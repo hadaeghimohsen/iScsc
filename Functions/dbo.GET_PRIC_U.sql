@@ -1,0 +1,16 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+CREATE FUNCTION [dbo].[GET_PRIC_U](@ExtpCode BIGINT, @MtodCode BIGINT, @CtgyCode BIGINT) RETURNS BIGINT
+AS
+BEGIN
+   DECLARE @Pric INT;
+   SELECT @Pric = PRIC
+     FROM Expense 
+    WHERE EXTP_CODE = @ExtpCode
+      AND MTOD_CODE = @MtodCode
+      AND CTGY_CODE = @CtgyCode;
+   RETURN @Pric;   
+END
+GO
