@@ -30,11 +30,12 @@ CREATE TABLE [dbo].[Attendance]
 [SUM_ATTN_MONT_DNRM] [int] NULL,
 [MBCO_RWNO_DNRM] [smallint] NULL,
 [SESN_SNID_DNRM] [bigint] NULL,
+[ATTN_DESC] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
-) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
 GO
@@ -121,7 +122,7 @@ BEGIN
    BEGIN
       -- اگر برای هنرجو تعداد جلسه مشخص شده باشد
       IF EXISTS(
-         SELECT *
+       SELECT *
            FROM dbo.Fighter f, dbo.Member_Ship m, Attendance A, INSERTED i
           WHERE f.FILE_NO = m.FIGH_FILE_NO
             AND f.MBSP_RWNO_DNRM = m.RWNO
@@ -455,7 +456,7 @@ BEGIN
               AND dbo.Member_Ship.RECT_CODE = A.Mbsp_Rect_Code_Dnrm
               AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
               AND I.Figh_File_No = D.Figh_File_No
-         AND I.Code = D.Code
+AND I.Code = D.Code
        AND I.Attn_Stat = '001' -- الان ابطال شده
               AND D.Attn_Stat = '002' -- قبلا فعال بوده
               AND dbo.Member_Ship.RECT_CODE = '004'              
