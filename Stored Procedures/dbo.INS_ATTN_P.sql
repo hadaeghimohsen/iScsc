@@ -483,7 +483,8 @@ BEGIN
    END
    
    -- پایان دسترسی    
-   IF @AttnCode IS NULL
+   -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
+   IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM)
       VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode);
    ELSE

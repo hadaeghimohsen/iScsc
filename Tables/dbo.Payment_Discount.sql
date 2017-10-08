@@ -4,6 +4,7 @@ CREATE TABLE [dbo].[Payment_Discount]
 [PYMT_RQST_RQID] [bigint] NOT NULL,
 [RQRO_RWNO] [smallint] NOT NULL,
 [RWNO] [smallint] NOT NULL CONSTRAINT [DF_Payment_Discount_RWNO] DEFAULT ((0)),
+[FIGH_FILE_NO_DNRM] [bigint] NULL,
 [EXPN_CODE] [bigint] NULL,
 [AMNT] [int] NULL,
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -88,6 +89,7 @@ BEGIN
       UPDATE
          SET CRET_BY = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
+            ,FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.PYMT_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
             ,RWNO = (SELECT ISNULL(MAX(RWNO), 0) + 1 
                        FROM Payment_Discount
                       WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE AND
@@ -155,6 +157,8 @@ GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [PK_PYDS] PRIMARY KEY CLUSTERED  ([PYMT_CASH_CODE], [PYMT_RQST_RQID], [RQRO_RWNO], [RWNO]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
+GO
+ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_FIGH] FOREIGN KEY ([FIGH_FILE_NO_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_PYMT] FOREIGN KEY ([PYMT_CASH_CODE], [PYMT_RQST_RQID]) REFERENCES [dbo].[Payment] ([CASH_CODE], [RQST_RQID])
 GO

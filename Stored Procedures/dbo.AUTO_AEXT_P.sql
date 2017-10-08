@@ -15,6 +15,7 @@ BEGIN
 	BEGIN TRY
 	BEGIN TRAN T_C$AutoAExtP;
 	
+	   L$Loop:
 	   DECLARE C$AutoAExtP CURSOR FOR
 	      SELECT CODE, FIGH_FILE_NO, CLUB_CODE
 	        FROM dbo.Attendance A
@@ -43,6 +44,14 @@ BEGIN
 	   END_C$AutoAExtP:
 	   CLOSE C$AutoAExtP;
 	   DEALLOCATE C$AutoAExtP;
+	   
+	   -- 1396/07/16 * اگر گزینه هایی که جا مانده اند
+	   IF EXISTS(SELECT CODE, FIGH_FILE_NO, CLUB_CODE
+	        FROM dbo.Attendance A
+	       WHERE A.EXIT_TIME IS NULL)
+	   BEGIN
+	      GOTO L$Loop;
+	   END
    
    COMMIT TRAN T_C$AutoAExtP;
    END TRY
