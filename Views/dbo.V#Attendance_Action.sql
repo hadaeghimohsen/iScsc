@@ -35,10 +35,11 @@ AS
             ( SELECT    CASE pm.RCPT_MTOD
                           WHEN '001' THEN N'نقدی'
                           WHEN '003' THEN pm.FLOW_NO
-                        END
+                        END + N', '
               FROM      dbo.Payment_Method pm
               WHERE     pm.FIGH_FILE_NO_DNRM = a.FIGH_FILE_NO
                         AND CAST(pm.ACTN_DATE AS DATE) = a.ATTN_DATE
+              FOR XML PATH('')
             ) AS PYMT_DESC
     FROM    dbo.Attendance a
     GROUP BY a.FIGH_FILE_NO ,
