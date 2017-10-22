@@ -197,7 +197,7 @@ BEGIN
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE();
    
-   SELECT * FROM Inserted;
+   --SELECT * FROM Inserted;
    
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
    MERGE dbo.Payment T

@@ -2,8 +2,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-
+-- View
 
 CREATE VIEW [dbo].[V#Attendance_Action]
 AS

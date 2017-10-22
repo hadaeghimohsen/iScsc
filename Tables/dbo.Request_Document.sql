@@ -86,7 +86,7 @@ ALTER TABLE [dbo].[Request_Document] ADD CONSTRAINT [DCMT_PK] PRIMARY KEY CLUSTE
 GO
 ALTER TABLE [dbo].[Request_Document] ADD CONSTRAINT [FK_RQDC_DCMT] FOREIGN KEY ([DCMT_DSID]) REFERENCES [dbo].[Document_Spec] ([DSID]) ON DELETE SET NULL
 GO
-ALTER TABLE [dbo].[Request_Document] ADD CONSTRAINT [FK_RQDC_RQRQ] FOREIGN KEY ([RQRQ_CODE]) REFERENCES [dbo].[Request_Requester] ([CODE]) ON DELETE SET NULL
+ALTER TABLE [dbo].[Request_Document] ADD CONSTRAINT [FK_RQDC_RQRQ] FOREIGN KEY ([RQRQ_CODE]) REFERENCES [dbo].[Request_Requester] ([CODE]) ON DELETE CASCADE
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره مدرک', 'SCHEMA', N'dbo', 'TABLE', N'Request_Document', 'COLUMN', N'RDID'
 GO
