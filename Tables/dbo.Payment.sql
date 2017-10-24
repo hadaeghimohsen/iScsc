@@ -130,7 +130,25 @@ BEGIN
             ,CASH_BY   = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_By IS NULL THEN SUSER_NAME() WHEN S.Cash_By IS NULL THEN NULL ELSE S.Cash_By END
             ,CASH_DATE = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_Date IS NULL THEN GETDATE()  WHEN S.Cash_Date IS NULL THEN NULL ELSE S.Cash_Date END
             /*,SUM_EXPN_PRIC = S.SUM_EXPN_PRIC - ISNULL(S.SUM_PYMT_DSCN_DNRM, 0)*/;
-        
+   
+   -- 1396/08/02 * برای آن دسته از درخواست هایی که مشتری کل پرداختی هزینه خود را پرداخت کرده به صورت اتوماتیک وضعیت هزینه پرداخت شده ثبت کنیم     
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Payment p , Inserted i
+       WHERE p.RQST_RQID = i.RQST_RQID
+         AND p.CASH_CODE = i.CASH_CODE
+         AND (p.SUM_EXPN_PRIC + ISNULL(p.SUM_EXPN_EXTR_PRCT, 0) - (ISNULL(p.SUM_RCPT_EXPN_PRIC, 0) + ISNULL(p.SUM_PYMT_DSCN_DNRM, 0))) = 0
+   )
+   BEGIN
+      UPDATE pd
+         SET pd.PAY_STAT = '002'
+            ,pd.DOCM_NUMB = i.CASH_CODE
+            ,pd.ISSU_DATE = GETDATE()
+        FROM dbo.Payment_Detail pd, Inserted i
+       WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
+         AND pd.PYMT_CASH_CODE = i.CASH_CODE
+         AND PAY_STAT = '001';
+   END
 END
 ;
 GO
