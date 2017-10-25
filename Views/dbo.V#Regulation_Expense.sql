@@ -8,7 +8,7 @@ SELECT  dbo.Regulation.YEAR, dbo.Regulation.CODE, dbo.Regulation.SUB_SYS, dbo.Re
                dbo.Expense.CODE AS EXPN_CODE, dbo.Expense.PRIC, dbo.Expense.EXTR_PRCT, dbo.Expense.EXPN_STAT, dbo.Expense.ADD_QUTS, dbo.Expense.COVR_DSCT, dbo.Expense.EXPN_TYPE, dbo.Expense.BUY_PRIC, 
                dbo.Expense.BUY_EXTR_PRCT, dbo.Expense.NUMB_OF_STOK, dbo.Expense.NUMB_OF_SALE, dbo.Expense.NUMB_OF_REMN_DNRM, dbo.Expense.ORDR_ITEM, dbo.Expense.COVR_TAX, dbo.Expense.NUMB_OF_ATTN_MONT, 
                dbo.Expense.NUMB_OF_ATTN_WEEK, dbo.Expense.MODL_NUMB_BAR_CODE, dbo.Expense.PRVT_COCH_EXPN, dbo.Expense.NUMB_CYCL_DAY, dbo.Expense.NUMB_MONT_OFER, dbo.Expense.MIN_NUMB, 
-               dbo.Expense.GROP_CODE, dbo.Expense.MIN_TIME
+               dbo.Expense.GROP_CODE, dbo.Expense.MIN_TIME, dbo.Expense.RELY_CMND
 FROM     dbo.Regulation INNER JOIN
                dbo.Expense ON dbo.Regulation.YEAR = dbo.Expense.REGL_YEAR AND dbo.Regulation.CODE = dbo.Expense.REGL_CODE
 GO

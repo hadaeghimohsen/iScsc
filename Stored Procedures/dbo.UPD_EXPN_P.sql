@@ -29,6 +29,7 @@ CREATE PROCEDURE [dbo].[UPD_EXPN_P]
   ,@GROP_CODE BIGINT
   ,@EXPN_DESC NVARCHAR(250)
   ,@MIN_TIME DATETIME
+  ,@RELY_CMND VARCHAR(50)
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -67,6 +68,7 @@ BEGIN
          ,MIN_NUMB = @MIN_NUMB
          ,GROP_CODE = @GROP_CODE
          ,MIN_TIME = @MIN_TIME
+         ,RELY_CMND = @RELY_CMND
     WHERE CODE = @CODE;
    
    L$End:

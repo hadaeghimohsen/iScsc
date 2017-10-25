@@ -69,7 +69,10 @@ BEGIN
                 ,@GateBandRate INT
                 ,@GateTimeClos INT
                 ,@GateEntrOpen VARCHAR(3)
-                ,@GateExitOpen VARCHAR(3);
+                ,@GateExitOpen VARCHAR(3)
+                ,@ExpnExtrStat VARCHAR(3)
+                ,@ExpnCommPortName VARCHAR(30)
+                ,@ExpnBandRate INT;
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -112,7 +115,11 @@ BEGIN
 	             ,@GateBandRate = @X.query('//Settings').value('(Settings/@gatebandrate)[1]', 'INT')
 	             ,@GateTimeClos = @X.query('//Settings').value('(Settings/@gatetimeclos)[1]', 'INT')
 	             ,@GateEntrOpen = @X.query('//Settings').value('(Settings/@gateentropen)[1]', 'VARCHAR(3)')
-	             ,@GateExitOpen = @X.query('//Settings').value('(Settings/@gateexitopen)[1]', 'VARCHAR(3)');
+	             ,@GateExitOpen = @X.query('//Settings').value('(Settings/@gateexitopen)[1]', 'VARCHAR(3)')
+	             
+	             ,@ExpnExtrStat = @X.query('//Settings').value('(Settings/@expnextrstat)[1]', 'VARCHAR(3)')
+	             ,@ExpnCommPortName = @X.query('//Settings').value('(Settings/@expncommportname)[1]', 'VARCHAR(30)')
+	             ,@ExpnBandRate = @X.query('//Settings').value('(Settings/@expnbandrate)[1]', 'INT');
          
          IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
@@ -160,6 +167,10 @@ BEGIN
                ,GATE_TIME_CLOS = @GateTimeClos
                ,GATE_ENTR_OPEN = @GateEntrOpen
                ,GATE_EXIT_OPEN = @GateExitOpen
+               
+               ,EXPN_EXTR_STAT = @ExpnExtrStat
+               ,EXPN_COMM_PORT_NAME = @ExpnCommPortName
+               ,EXPN_BAND_RATE = @ExpnBandRate
           WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

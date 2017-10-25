@@ -55,7 +55,8 @@ BEGIN
           ,@PrvtCochExpn VARCHAR(3)
           ,@MinNumb INT
           ,@GropCode BIGINT
-          ,@MinTime DATETIME;
+          ,@MinTime DATETIME
+          ,@RelyCmnd VARCHAR(50);
    
    OPEN C$RegulationExpense;
    L$NextRERow:
@@ -88,7 +89,8 @@ BEGIN
        ,@PrvtCochExpn
        ,@MinNumb
        ,@GropCode
-       ,@MinTime;
+       ,@MinTime
+       ,@RelyCmnd;
        
    IF @@FETCH_STATUS <> 0
       GOTO L$EndFetchRE;
@@ -108,8 +110,8 @@ BEGIN
    BEGIN
       --PRINT CAST(@Regl_Year AS VARCHAR(MAX)) + ', ' + CAST(@Regl_Code AS VARCHAR(MAX)) + ', ' + CAST(@CtgyCode AS VARCHAR(MAX)) + ', ' + CAST(@MtodCode AS VARCHAR(MAX)) + ', ' + CAST(@ExtpCode AS VARCHAR(MAX));
       --PRINT dbo.Gnrt_Nvid_U();
-      INSERT INTO Expense (REGL_YEAR,  REGL_CODE,  EXTP_CODE, CTGY_CODE, MTOD_CODE, PRIC,  EXPN_STAT, ADD_QUTS, COVR_DSCT, Expn_Type, Buy_Pric, Buy_Extr_Prct, Numb_Of_Stok, Numb_Of_Sale, Numb_Of_Remn_Dnrm, ORDR_ITEM, COVR_TAX, NUMB_OF_ATTN_MONT, NUMB_OF_ATTN_WEEK, MODL_NUMB_BAR_CODE, PRVT_COCH_EXPN, MIN_NUMB, GROP_CODE, MIN_TIME)
-      VALUES             (@REGL_YEAR, @REGL_CODE, @ExtpCode, @CtgyCode, @MtodCode, @Pric, @ExpnStat, @AddQust, @CovrDsct, @ExpnType, @BuyPric, @BuyExtrPrct, @NumbOfStok, @NumbOfSale, @NumbOfRemnDnrm, @OrdrItem, @CovrTax, @NumbOfAttnMont, @NumbOfAttnWeek, @ModlNumbBarCode, @PrvtCochExpn, @MinNumb, @GropCode, @MinTime);
+      INSERT INTO Expense (REGL_YEAR,  REGL_CODE,  EXTP_CODE, CTGY_CODE, MTOD_CODE, PRIC,  EXPN_STAT, ADD_QUTS, COVR_DSCT, Expn_Type, Buy_Pric, Buy_Extr_Prct, Numb_Of_Stok, Numb_Of_Sale, Numb_Of_Remn_Dnrm, ORDR_ITEM, COVR_TAX, NUMB_OF_ATTN_MONT, NUMB_OF_ATTN_WEEK, MODL_NUMB_BAR_CODE, PRVT_COCH_EXPN, MIN_NUMB, GROP_CODE, MIN_TIME, RELY_CMND)
+      VALUES             (@REGL_YEAR, @REGL_CODE, @ExtpCode, @CtgyCode, @MtodCode, @Pric, @ExpnStat, @AddQust, @CovrDsct, @ExpnType, @BuyPric, @BuyExtrPrct, @NumbOfStok, @NumbOfSale, @NumbOfRemnDnrm, @OrdrItem, @CovrTax, @NumbOfAttnMont, @NumbOfAttnWeek, @ModlNumbBarCode, @PrvtCochExpn, @MinNumb, @GropCode, @MinTime, @RelyCmnd);
    END
    
    GOTO L$NextRERow;

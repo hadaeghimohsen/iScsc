@@ -29,6 +29,7 @@ CREATE TABLE [dbo].[Expense]
 [NUMB_CYCL_DAY] [int] NULL,
 [NUMB_MONT_OFER] [int] NULL,
 [MIN_TIME] [datetime] NULL,
+[RELY_CMND] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -222,4 +223,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد آیین نامه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'REGL_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'سال آیین نامه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'REGL_YEAR'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'دستور ارسال به رله', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'RELY_CMND'
 GO

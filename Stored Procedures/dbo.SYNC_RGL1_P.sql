@@ -90,7 +90,8 @@ BEGIN
              Expn.NUMB_MONT_OFER,
              Expn.MIN_NUMB,
              Expn.GROP_CODE,
-             Expn.MIN_TIME
+             Expn.MIN_TIME,
+             Expn.RELY_CMND
         FROM Request_Requester Rqrq
             ,Expense_Type Extp
             ,Expense Expn
@@ -125,11 +126,12 @@ BEGIN
            ,@NumbMontOfer INT
            ,@MinNumb INT
            ,@GropCode BIGINT
-           ,@MinTime DATETIME;
+           ,@MinTime DATETIME
+           ,@RelyCmnd VARCHAR(50);
     
     OPEN C$OldRegl;
     NextOldRegl:
-    FETCH NEXT FROM C$OldRegl INTO @RqtpCode, @RqttCode, @EpitCode, @ExtpCode, @Pric, @MtodCode, @CtgyCode, @ExpnStat, @ExpnDesc, @AddQuts, @CovrDsct, @ExpnType, @BuyPric, @BuyExtrPrct, @NumbOfStok, @NumbOfSale, @NumbOfRemnDnrm, @OrdrItem, @CovrTax, @NumbOfAttnMont, @NumbOfAttnWeek, @ModlNumbBarCode, @NumbCyclDay, @NumbMontOfer, @MinNumb, @GropCode, @MinTime;
+    FETCH NEXT FROM C$OldRegl INTO @RqtpCode, @RqttCode, @EpitCode, @ExtpCode, @Pric, @MtodCode, @CtgyCode, @ExpnStat, @ExpnDesc, @AddQuts, @CovrDsct, @ExpnType, @BuyPric, @BuyExtrPrct, @NumbOfStok, @NumbOfSale, @NumbOfRemnDnrm, @OrdrItem, @CovrTax, @NumbOfAttnMont, @NumbOfAttnWeek, @ModlNumbBarCode, @NumbCyclDay, @NumbMontOfer, @MinNumb, @GropCode, @MinTime, @RelyCmnd;
     
     IF @@FETCH_STATUS <> 0
       GOTO EndFetchOldRegl;
@@ -156,6 +158,7 @@ BEGIN
           ,MIN_NUMB = @MinNumb
           ,GROP_CODE = @GropCode
           ,MIN_TIME = @MinTime
+          ,RELY_CMND = @RelyCmnd
      WHERE Extp_Code IN (
       SELECT Expn.EXTP_CODE
         FROM Request_Requester Rqrq
