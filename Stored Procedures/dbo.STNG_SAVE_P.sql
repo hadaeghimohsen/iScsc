@@ -49,12 +49,15 @@ BEGIN
 	             ,@CommPortName VARCHAR(30)
 	             ,@BandRate INT
 	             ,@BarCodeDataType VARCHAR(3)
+	             ,@Atn3EvntActnType VARCHAR(3)
 	             ,@IPAddr VARCHAR(15)
 	             ,@PortNumb INT
 	             ,@AttnCompConct VARCHAR(30)
+	             ,@Atn1EvntActnType VARCHAR(3)
                 ,@IPAdr2 VARCHAR(15)
 	             ,@PortNum2 INT
 	             ,@AttnCompCnc2 VARCHAR(30)	             
+	             ,@Atn2EvntActnType VARCHAR(3)
 	             ,@AttnNotfStat VARCHAR(3)
 	             ,@AttnNotfClosType VARCHAR(3)
 	             ,@AttnNotfClosIntr INT
@@ -92,13 +95,17 @@ BEGIN
 	             ,@CommPortName = @X.query('//Settings').value('(Settings/@commportname)[1]', 'VARCHAR(30)')
 	             ,@BandRate = @X.query('//Settings').value('(Settings/@bandrate)[1]', 'INT')
 	             ,@BarCodeDataType = @X.query('//Settings').value('(Settings/@barcodedatatype)[1]', 'VARCHAR(3)')
+	             ,@Atn3EvntActnType = @X.query('//Settings').value('(Settings/@atn3evntactntype)[1]', 'VARCHAR(3)')
+	             
 	             ,@IPAddr = @X.query('//Settings').value('(Settings/@ipaddr)[1]', 'VARCHAR(15)')
 	             ,@PortNumb = @X.query('//Settings').value('(Settings/@portnumb)[1]', 'INT')
 	             ,@AttnCompConct = @X.query('//Settings').value('(Settings/@attncompconct)[1]', 'VARCHAR(30)')
+	             ,@Atn1EvntActnType = @X.query('//Settings').value('(Settings/@atn1evntactntype)[1]', 'VARCHAR(3)')
 	             
 	             ,@IPAdr2 = @X.query('//Settings').value('(Settings/@ipadr2)[1]', 'VARCHAR(15)')
 	             ,@PortNum2 = @X.query('//Settings').value('(Settings/@portnum2)[1]', 'INT')
 	             ,@AttnCompCnc2 = @X.query('//Settings').value('(Settings/@attncompcnc2)[1]', 'VARCHAR(30)')
+	             ,@Atn2EvntActnType = @X.query('//Settings').value('(Settings/@atn2evntactntype)[1]', 'VARCHAR(3)')
 	             
 	             ,@AttnNotfStat = @X.query('//Settings').value('(Settings/@attnnotfstat)[1]', 'VARCHAR(3)')
 	             ,@AttnNotfClosType = @X.query('//Settings').value('(Settings/@attnnotfclostype)[1]', 'VARCHAR(3)')
@@ -144,13 +151,17 @@ BEGIN
                ,COMM_PORT_NAME = COALESCE(@CommPortName, 'COM1')
                ,BAND_RATE = COALESCE(@BandRate, 9600)
                ,BAR_CODE_DATA_TYPE = COALESCE(@BarCodeDataType, '001')
+               ,ATN3_EVNT_ACTN_TYPE = @Atn3EvntActnType
+               
                ,IP_ADDR = @IPAddr
                ,PORT_NUMB = @PortNumb
                ,ATTN_COMP_CONCT = @AttnCompConct
+               ,ATN1_EVNT_ACTN_TYPE = @Atn1EvntActnType
                
                ,IP_ADR2 = @IPAdr2
                ,PORT_NUM2 = @PortNum2
                ,ATTN_COMP_CNC2 = @AttnCompCnc2
+               ,ATN2_EVNT_ACTN_TYPE = @Atn2EvntActnType
                
                ,ATTN_NOTF_STAT = @AttnNotfStat
                ,ATTN_NOTF_CLOS_TYPE = @AttnNotfClosType
