@@ -565,7 +565,7 @@ BEGIN
                       AND RQRO_RWNO = @RqroRwno;
                    
                    --Raiserror(@Qnty, 16, 1)
-                   PRINT @Qnty;
+                   --PRINT @Qnty;
                    IF @Qnty <= 0
                    BEGIN
                       RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);

@@ -496,7 +496,7 @@ BEGIN
             END -- IF ISNULL(@SumAmntDeposit, 0) > 0
 
   	         -- بروز رسانی آیتم های هزینه که به صورت کالا و فروش محصول ارائه میشود	
-  	         PRINT '1';
+  	         --PRINT '1';
         	   
 	         MERGE dbo.Expense T
 	         USING (SELECT P.EXPN_CODE, P.QNTY FROM dbo.Payment_Detail P WHERE P.PYMT_RQST_RQID = @Rqid ) S

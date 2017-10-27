@@ -132,7 +132,7 @@ BEGIN
             /*,SUM_EXPN_PRIC = S.SUM_EXPN_PRIC - ISNULL(S.SUM_PYMT_DSCN_DNRM, 0)*/;
    
    -- 1396/08/02 * برای آن دسته از درخواست هایی که مشتری کل پرداختی هزینه خود را پرداخت کرده به صورت اتوماتیک وضعیت هزینه پرداخت شده ثبت کنیم     
-   IF EXISTS(
+   /*IF EXISTS(
       SELECT *
         FROM dbo.Payment p , Inserted i
        WHERE p.RQST_RQID = i.RQST_RQID
@@ -148,7 +148,7 @@ BEGIN
        WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
          AND pd.PYMT_CASH_CODE = i.CASH_CODE
          AND PAY_STAT = '001';
-   END
+   END*/
 END
 ;
 GO

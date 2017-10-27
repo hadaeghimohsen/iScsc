@@ -141,7 +141,8 @@ BEGIN
        
        IF @Qnty <= 0
        BEGIN
-          RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);
+          SET @Qnty = 1;
+          --RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);
        END
     END    
     ELSE IF @RqtpCode = '006'
@@ -163,7 +164,13 @@ BEGIN
          FROM dbo.Member_Ship
         WHERE RQRO_RQST_RQID = @Rqid
           AND RQRO_RWNO = @RqroRwno;
-         
+     
+     IF @Qnty <= 0
+       BEGIN
+          SET @Qnty = 1;
+          --RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);
+       END    
+       
     IF @@FETCH_STATUS <> 0
       GOTO EndFetchRequestRow;
     
@@ -217,7 +224,7 @@ BEGIN
     DEALLOCATE C$RQRV;
     
     
-    SET @X = '<Process><Request rqid="" msttcode="" ssttcode=""/></Process>';
+    /*SET @X = '<Process><Request rqid="" msttcode="" ssttcode=""/></Process>';
     SET @X.modify(
       'replace value of (//Request/@rqid)[1]
        with sql:variable("@Rqid")'
@@ -232,7 +239,7 @@ BEGIN
       'replace value of (//Request/@ssttcode)[1]
        with 1'
     );
-    EXEC dbo.NEXT_LEVL_F @X;
+    EXEC dbo.NEXT_LEVL_F @X;*/
     
 END
 GO

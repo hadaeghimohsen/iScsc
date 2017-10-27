@@ -369,20 +369,20 @@ WHERE RQST_RQID = @RqstRqid
       
       --PRINT @Rqid;
       
-	   IF NOT EXISTS(
-	      SELECT *
-	        FROM Request R, Payment P, Account_Detail ad
-	       WHERE R.RQID = P.RQST_RQID
-   	      AND R.RQID = @Rqid
-   	      AND P.CASH_CODE = @CashCode
-	         AND Ad.PYMT_CASH_CODE = P.CASH_CODE
-	         AND Ad.PYMT_RQST_RQID = P.RQST_RQID	         
-	   ) AND ISNULL(@ExpnAmnt, 0) > 0 -- مبلغ درآمد باید مثبت باشد
-	   BEGIN 
-	      --EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, '002', @ActnDate, @Rwno OUT;
-	      --EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, '002', @ActnDate, @CashCode, @Rqid, NULL, @AcdtRwno OUT;
-	      PRINT 'No Save Account';
-	   END
+	   --IF NOT EXISTS(
+	   --   SELECT *
+	   --     FROM Request R, Payment P, Account_Detail ad
+	   --    WHERE R.RQID = P.RQST_RQID
+   	--      AND R.RQID = @Rqid
+   	--      AND P.CASH_CODE = @CashCode
+	   --      AND Ad.PYMT_CASH_CODE = P.CASH_CODE
+	   --      AND Ad.PYMT_RQST_RQID = P.RQST_RQID	         
+	   --) AND ISNULL(@ExpnAmnt, 0) > 0 -- مبلغ درآمد باید مثبت باشد
+	   --BEGIN 
+	   --   --EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, '002', @ActnDate, @Rwno OUT;
+	   --   --EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, '002', @ActnDate, @CashCode, @Rqid, NULL, @AcdtRwno OUT;
+	   --   PRINT 'No Save Account';
+	   --END
 	END
    
    -- اگر درآمد شامل تخفیف بشود
