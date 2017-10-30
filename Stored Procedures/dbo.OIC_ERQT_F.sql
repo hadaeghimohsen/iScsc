@@ -42,18 +42,31 @@ BEGIN
 	   DECLARE @Rqid     BIGINT,
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
+	           
 	           @RegnCode VARCHAR(3),
 	           @PrvnCode VARCHAR(3),
+	           @CntyCode VARCHAR(3),
+	           
   	           @MdulName VARCHAR(11),
 	           @SctnName VARCHAR(11);
    	
-   	DECLARE @FileNo BIGINT;
+   	DECLARE @FileNo BIGINT
+   	       ,@FrstName NVARCHAR(250)
+   	       ,@LastName NVARCHAR(250)
+   	       ,@NatlCode VARCHAR(10)
+   	       ,@CellPhon VARCHAR(11);
+   	       
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
 	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
-	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');
+	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT')
+	         
+	         ,@FrstName = @X.query('//Fighter_Public').value('(Fighter_Public/@frstname)[1]', 'NVARCHAR(250)')
+	         ,@LastName = @X.query('//Fighter_Public').value('(Fighter_Public/@lastname)[1]', 'NVARCHAR(250)')
+	         ,@NatlCode = @X.query('//Fighter_Public').value('(Fighter_Public/@natlcode)[1]', 'VARCHAR(10)')
+	         ,@CellPhon = @X.query('//Fighter_Public').value('(Fighter_Public/@cellphon)[1]', 'VARCHAR(11)');
       
       IF @FileNo = 0 OR @FileNo IS NULL 
          SELECT TOP 1 @FileNo = FILE_NO
@@ -66,7 +79,7 @@ BEGIN
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END      
 
-      SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code 
+      SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code , @CntyCode = REGN_PRVN_CNTY_CODE
         FROM Fighter
        WHERE FILE_NO = @FileNo;
 
@@ -106,8 +119,36 @@ BEGIN
            ,@RqroRwno OUT;
       END
       
+      -- 1396/08/08 * اگر هزینه برای مشترک آزاد ثبت میشود می توانیم اطلاعات مشتری را ثبت کنیم
+      BEGIN
+         IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM = '005')
+         BEGIN
+            IF NOT EXISTS(SELECT * FROM dbo.Fighter_Public WHERE RQRO_RQST_RQID = @Rqid AND FIGH_FILE_NO = @FileNo)
+               INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE)
+               Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', @FrstName, @LastName, @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM
+                 FROM dbo.Fighter
+                WHERE FILE_NO = @FileNo;
+            ELSE
+               UPDATE dbo.Fighter_Public
+                  SET
+                     FRST_NAME = @FrstName
+                    ,LAST_NAME = @LastName
+                    ,CELL_PHON = @CellPhon
+                    ,NATL_CODE = @NatlCode
+                WHERE RQRO_RQST_RQID = @Rqid
+                  AND FIGH_FILE_NO = @FileNo
+                  AND RECT_CODE = '001';
+         END
+         ELSE
+         BEGIN
+            DELETE dbo.Fighter_Public
+             WHERE RQRO_RQST_RQID = @Rqid
+               AND RECT_CODE = '001';
+         END      
+      END
+      
       BEGIN                
-          -- اگر در ثبت موقت باشیم و برای نوع درخواست و متقاضی آیین نامه هزینه داری داشته باشیم درخواست را به فرم اعلام هزینه ارسال میکنیم            
+      -- اگر در ثبت موقت باشیم و برای نوع درخواست و متقاضی آیین نامه هزینه داری داشته باشیم درخواست را به فرم اعلام هزینه ارسال میکنیم            
       IF EXISTS(
          SELECT *
            FROM Request_Row Rr, Fighter F

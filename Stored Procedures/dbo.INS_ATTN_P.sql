@@ -287,13 +287,16 @@ BEGIN
          AND F.FGPB_TYPE_DNRM IN ('001', '005', '006')
          AND F.CBMT_CODE_DNRM = Cm.CODE
          AND Cm.CODE = cmw.CBMT_CODE
-         AND CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date)
-         AND cmw.STAT = '001' -- مجاز نباشد
+         AND ( 
+               (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
+               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) NOT BETWEEN cm.STRT_TIME AND cm.END_TIME)
+             )
+         
    )
    BEGIN
       SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
                          @SexDesc + N' ' + @NameDnrm + CHAR(10) +
-                         N' برنامه کلاسی شما در امروز تعریف نشده است.' + CHAR(10) +
+                         N' برنامه کلاسی شما در امروز یا این ساعت تعریف نشده است.' + CHAR(10) +
                          N'اگر مایل به جابه جا کردن ساعت کلاسی هستید با مدیریت باشگاه هماهنگی فرمایید'
                          ;
       RAISERROR (@MessageShow, 
@@ -304,6 +307,8 @@ BEGIN
       --RAISERROR(N'خطا 7 - شما هنرجوی عزیز برنامه کلاسی شما در امروز تعریف نشده است', 16, 1);
       RETURN;
    END
+   
+   
    
    -- 1395/07/21 ** بررسی میزان بدهی هنرجو برای حضور درون باشگاه
    IF @Attn_Type NOT IN ('005')
@@ -510,24 +515,24 @@ BEGIN
       
       
       -- پس گرفتن کلید کمد از کاربر اگر سامانه کمد فعال باشد و به صورت اتوماتیک انجام شود
-      IF EXISTS(SELECT * FROM Settings WHERE DRES_STAT = '002' AND DRES_AUTO = '002' AND CLUB_CODE = @Club_Code)
-      BEGIN
-         DECLARE @DresCode BIGINT
-                ,@ClubCode BIGINT;
+      --IF EXISTS(SELECT * FROM Settings WHERE DRES_STAT = '002' AND DRES_AUTO = '002' AND CLUB_CODE = @Club_Code)
+      --BEGIN
+      --   DECLARE @DresCode BIGINT
+      --          ,@ClubCode BIGINT;
          
-         SELECT @DresCode = Da.DRES_CODE
-           FROM Dresser_Attendance Da
-          WHERE Da.ATTN_CODE = @AttnCode
-            AND Da.Lend_Time IS NOT NULL
-            AND Da.Tkbk_Time IS NULL
-         IF @DresCode IS NOT NULL
-            UPDATE Dresser_Attendance
-               SET TKBK_TIME = CAST(GETDATE() AS TIME(0))
-             WHERE DRES_CODE = @DresCode
-               AND ATTN_CODE = @AttnCode
-               AND LEND_TIME IS NOT NULL
-               AND TKBK_TIME IS NULL;        
-      END
+      --   SELECT @DresCode = Da.DRES_CODE
+      --     FROM Dresser_Attendance Da
+      --    WHERE Da.ATTN_CODE = @AttnCode
+      --      AND Da.Lend_Time IS NOT NULL
+      --      AND Da.Tkbk_Time IS NULL
+      --   IF @DresCode IS NOT NULL
+      --      UPDATE Dresser_Attendance
+      --         SET TKBK_TIME = CAST(GETDATE() AS TIME(0))
+      --       WHERE DRES_CODE = @DresCode
+      --         AND ATTN_CODE = @AttnCode
+      --         AND LEND_TIME IS NOT NULL
+      --         AND TKBK_TIME IS NULL;        
+      --END
       
       IF @AttnDate != CAST(/*GETDATE()*/@Attn_Date AS DATE) AND @Attn_Type != '003' -- خروج بدون حضور مجدد
       BEGIN
