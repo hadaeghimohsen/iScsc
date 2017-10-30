@@ -19,7 +19,8 @@ CREATE TABLE [dbo].[Category_Belt]
 [NUMB_CYCL_DAY] [int] NULL,
 [NUMB_MONT_OFER] [int] NULL,
 [PRIC] [int] NULL,
-[DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CTGY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON

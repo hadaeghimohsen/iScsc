@@ -311,6 +311,11 @@ BEGIN
 			         ,rx.query('Club_Method').value('(Club_Method/@sextype)[1]', 'VARCHAR(3)')
 			         ,rx.query('Club_Method').value('(Club_Method/@cbmtdesc)[1]', 'NVARCHAR(250)')
 			         ,rx.query('Club_Method').value('(Club_Method/@dfltstat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@cpctnumb)[1]', 'INT')
+			         ,rx.query('Club_Method').value('(Club_Method/@cpctstat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@cbmttime)[1]', 'INT')
+			         ,rx.query('Club_Method').value('(Club_Method/@cbmttimestat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@clastime)[1]', 'INT')
 		        FROM @X.nodes('//Insert') Dcb(rx);
 		   
 		   DECLARE @MtodCode BIGINT
@@ -321,12 +326,17 @@ BEGIN
 		          ,@MtodStat VARCHAR(3)
 		          ,@SexType VARCHAR(3)
 		          ,@CbmtDesc NVARCHAR(250)
-		          ,@DfltStat varchar(3);
+		          ,@DfltStat varchar(3)
+		          ,@CpctNumb INT
+		          ,@CpctStat VARCHAR(3)
+		          ,@CbmtTime INT
+		          ,@CbmtTimeStat VARCHAR(3)
+		          ,@ClasTime INT;
 		   SET @VisitPrivilege = 0;
 		   -------------------------- Insert Club_Method
 		   OPEN C$Ins_Cbmt;
 		   FNFC$Ins_Cbmt:
-		   FETCH NEXT FROM C$Ins_Cbmt INTO @ClubCode, @MtodCode, @CochFileNo, @DayType, @StrtTime, @EndTime, @MtodStat, @SexType, @CbmtDesc, @DfltStat;
+		   FETCH NEXT FROM C$Ins_Cbmt INTO @ClubCode, @MtodCode, @CochFileNo, @DayType, @StrtTime, @EndTime, @MtodStat, @SexType, @CbmtDesc, @DfltStat, @CpctNumb, @CpctStat, @CbmtTime, @CbmtTimeStat, @ClasTime;
 		   
 		   IF @@FETCH_STATUS <> 0
 		      GOTO CDC$Ins_Cbmt;
@@ -349,8 +359,8 @@ BEGIN
 		   --IF EXISTS(SELECT * FROM Club_Method WHERE DAY_TYPE = @DayType AND STRT_TIME > @StrtTime AND END_TIME < @EndTime)
 		   --   RAISERROR(N'ساعت کلاس وارد شده با سایر ساعت های کلاسی مربیان تداخل دارد', 16, 1);
 		   
-		   INSERT INTO Club_Method (CODE, CLUB_CODE, MTOD_CODE, COCH_FILE_NO, DAY_TYPE, STRT_TIME, END_TIME, MTOD_STAT, SEX_TYPE, CBMT_DESC, DFLT_STAT)
-		   VALUES                  (dbo.GNRT_NVID_U()   , @ClubCode, @MtodCode, @CochFileNo , @DayType, @StrtTime, @EndTime, @MtodStat, @SexType, @CbmtDesc, @DfltStat);
+		   INSERT INTO Club_Method (CODE, CLUB_CODE, MTOD_CODE, COCH_FILE_NO, DAY_TYPE, STRT_TIME, END_TIME, MTOD_STAT, SEX_TYPE, CBMT_DESC, DFLT_STAT, CPCT_NUMB, CPCT_STAT, CBMT_TIME, CBMT_TIME_STAT, CLAS_TIME)
+		   VALUES                  (dbo.GNRT_NVID_U()   , @ClubCode, @MtodCode, @CochFileNo , @DayType, @StrtTime, @EndTime, @MtodStat, @SexType, @CbmtDesc, @DfltStat, @CpctNumb, @CpctStat, @CbmtTime, @CbmtTimeStat, @ClasTime);
 		      
 		   GOTO FNFC$Ins_Cbmt;
 		   CDC$Ins_Cbmt:
@@ -370,13 +380,18 @@ BEGIN
 			         ,rx.query('Club_Method').value('(Club_Method/@sextype)[1]', 'VARCHAR(3)')
 			         ,rx.query('Club_Method').value('(Club_Method/@cbmtdesc)[1]', 'NVARCHAR(250)')
 			         ,rx.query('Club_Method').value('(Club_Method/@dfltstat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@cpctnumb)[1]', 'INT')
+			         ,rx.query('Club_Method').value('(Club_Method/@cpctstat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@cbmttime)[1]', 'INT')
+			         ,rx.query('Club_Method').value('(Club_Method/@cbmttimestat)[1]', 'VARCHAR(3)')
+			         ,rx.query('Club_Method').value('(Club_Method/@clastime)[1]', 'INT')
 		        FROM @X.nodes('//Update') Dcb(rx);
 		   
 		   SET @VisitPrivilege = 0;
 		   -------------------------- Insert Club_Method
 		   OPEN C$Upd_Cbmt;
 		   FNFC$Upd_Cbmt:
-		   FETCH NEXT FROM C$Upd_Cbmt INTO @Cbmt_Code, @ClubCode, @MtodCode, @CochFileNo, @DayType, @StrtTime, @EndTime, @MtodStat,@SexType, @CbmtDesc, @DfltStat;
+		   FETCH NEXT FROM C$Upd_Cbmt INTO @Cbmt_Code, @ClubCode, @MtodCode, @CochFileNo, @DayType, @StrtTime, @EndTime, @MtodStat,@SexType, @CbmtDesc, @DfltStat, @CpctNumb, @CpctStat, @CbmtTime, @CbmtTimeStat, @ClasTime;
 		   
 		   IF @@FETCH_STATUS <> 0
 		      GOTO CDC$Upd_Cbmt;
@@ -410,6 +425,11 @@ BEGIN
 		         ,SEX_TYPE = @SexType
 		         ,CBMT_DESC = @CbmtDesc
 		         ,DFLT_STAT = @DfltStat
+		         ,CPCT_NUMB = @CpctNumb
+		         ,CPCT_STAT = @CpctStat
+		         ,CBMT_TIME = @CbmtTime
+		         ,CBMT_TIME_STAT = @CbmtTimeStat
+		         ,CLAS_TIME = @ClasTime
 		    WHERE CODE = @Cbmt_Code;
 		   
 		   MERGE dbo.Club_Method_Weekday T

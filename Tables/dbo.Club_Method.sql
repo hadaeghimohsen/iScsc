@@ -11,6 +11,11 @@ CREATE TABLE [dbo].[Club_Method]
 [SEX_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CBMT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CPCT_NUMB] [int] NULL,
+[CPCT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CBMT_TIME] [int] NULL,
+[CBMT_TIME_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CLAS_TIME] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -183,6 +188,16 @@ GO
 ALTER TABLE [dbo].[Club_Method] ADD CONSTRAINT [FK_CBMT_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE CASCADE
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرج کلاس رشته و مربی', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CBMT_DESC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CBMT_TIME'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'محدودیت مدت زمان کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CBMT_TIME_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CLAS_TIME'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'طرفیت کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CPCT_NUMB'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'محدودیت در نظر گرفتن ظرفیت کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CPCT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کلاس پیش فرض', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'DFLT_STAT'
 GO

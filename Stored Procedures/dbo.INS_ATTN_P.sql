@@ -489,9 +489,25 @@ BEGIN
       VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode);
    ELSE
    BEGIN
+      -- 1396/08/08 * برای محاسبه ساعت خروج واقعی
+      DECLARE @ClasTime INT, @EntrTime TIME(0);
+      SELECT TOP 1 @ClasTime = cm.CLAS_TIME
+            ,@EntrTime = a.ENTR_TIME
+        FROM dbo.Attendance a, dbo.Club_Method cm
+       WHERE a.CLUB_CODE = cm.CLUB_CODE
+         AND a.COCH_FILE_NO = cm.COCH_FILE_NO
+         AND a.MTOD_CODE_DNRM = cm.MTOD_CODE
+         AND a.ENTR_TIME BETWEEN cm.STRT_TIME AND cm.END_TIME;
+      
+      
       UPDATE Attendance
-         SET EXIT_TIME = CASE WHEN CAST(GETDATE() AS TIME(0)) < ENTR_TIME THEN CAST(DATEADD(MINUTE, 90,GETDATE()) AS TIME(0)) ELSE CAST(GETDATE() AS TIME(0)) END
-       WHERE CODE = @AttnCode;
+         SET EXIT_TIME = CASE 
+                           WHEN CAST(GETDATE() AS TIME(0)) < ENTR_TIME THEN 
+                              CAST(DATEADD(MINUTE, ISNULL(@ClasTime, 90),ENTR_TIME) AS TIME(0)) 
+                           ELSE CAST(GETDATE() AS TIME(0)) 
+                         END
+       WHERE CODE = @AttnCode;      
+      
       
       -- پس گرفتن کلید کمد از کاربر اگر سامانه کمد فعال باشد و به صورت اتوماتیک انجام شود
       IF EXISTS(SELECT * FROM Settings WHERE DRES_STAT = '002' AND DRES_AUTO = '002' AND CLUB_CODE = @Club_Code)
