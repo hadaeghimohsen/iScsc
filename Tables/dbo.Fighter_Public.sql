@@ -127,7 +127,8 @@ BEGIN
             ,CORD_X_DNRM = S.CORD_X
             ,CORD_Y_DNRM = S.CORD_Y
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
-            ,SERV_NO_DNRM = S.SERV_NO;
+            ,SERV_NO_DNRM = S.SERV_NO
+            ,NATL_CODE_DNRM = s.NATL_CODE;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -164,6 +165,7 @@ BEGIN
             ,CORD_Y_DNRM = NULL
             ,MOST_DEBT_CLNG_DNRM = NULL
             ,SERV_NO_DNRM = NULL
+            ,NATL_CODE_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -430,7 +432,8 @@ BEGIN
             ,CORD_X_DNRM = S.CORD_X
             ,CORD_Y_DNRM = S.CORD_Y
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
-            ,SERV_NO_DNRM = S.SERV_NO;
+            ,SERV_NO_DNRM = S.SERV_NO
+            ,NATL_CODE_DNRM = s.NATL_CODE;
 END
 ;
 GO

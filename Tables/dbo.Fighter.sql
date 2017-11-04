@@ -60,6 +60,7 @@ CREATE TABLE [dbo].[Fighter]
 [CORD_X_DNRM] [real] NULL,
 [CORD_Y_DNRM] [real] NULL,
 [SERV_NO_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NATL_CODE_DNRM] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -153,4 +154,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره کارت مشتریان جلسه ای', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'CARD_NUMB_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف جلسه خصوصی با مربی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'MBCO_RWNO_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد ملی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'NATL_CODE_DNRM'
 GO
