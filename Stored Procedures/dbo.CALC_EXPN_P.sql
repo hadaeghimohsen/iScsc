@@ -74,13 +74,20 @@ BEGIN
       
       -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو
       
-      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT)   
+      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU)   
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
              '001',
-             (PYDT.EXPN_PRIC * @PrctValu / 100) - ((PYDT.EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100)
+             --(PYDT.EXPN_PRIC * @PrctValu / 100) - ((PYDT.EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
+             (PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) - ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
+             PYMT.SUM_EXPN_PRIC,
+             PYMT.SUM_RCPT_EXPN_PRIC,
+             PYMT.SUM_PYMT_DSCN_DNRM,
+             @PrctValu,
+             @DecrPrct
         FROM Payment_Detail AS PYDT INNER JOIN
+             dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
              Fighter AS FIGH ON RQRO.FIGH_FILE_NO = FIGH.FILE_NO INNER JOIN
              Expense AS EXPN ON PYDT.EXPN_CODE = EXPN.CODE INNER JOIN
@@ -119,6 +126,13 @@ BEGIN
          AND pd.PYMT_RQST_RQID = p.RQST_RQID
          AND p.RQST_RQID = R.RQID
     GROUP BY r.REGN_PRVN_CNTY_CODE, r.REGN_PRVN_CODE, r.REGN_CODE, p.CLUB_CODE_DNRM, pe.COCH_FILE_NO ) T	  
+   
+   MERGE dbo.Payment_Expense T
+   USING (SELECT DISTINCT COCH_FILE_NO, CODE FROM dbo.Misc_Expense WHERE CALC_EXPN_TYPE = '001' AND DELV_STAT IS NULL) S
+   ON (T.COCH_FILE_NO = S.COCH_FILE_NO AND T.MSEX_CODE IS NULL)
+   WHEN MATCHED THEN
+      UPDATE SET t.MSEX_CODE = S.CODE;
+
    
    COMMIT TRAN T1;  
    END TRY
