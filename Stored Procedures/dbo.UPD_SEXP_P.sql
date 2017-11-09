@@ -21,7 +21,8 @@ BEGIN
              ,@ExpnPric BIGINT
              ,@PydtDesc NVARCHAR(250)
              ,@Qnty SMALLINT
-             ,@FighFileNo BIGINT;
+             ,@FighFileNo BIGINT
+             ,@CbmtCodeDnrm BIGINT;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -29,13 +30,26 @@ BEGIN
             ,@ExpnPric = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@expnpric)[1]', 'BIGINT')
             ,@PydtDesc = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@pydtdesc)[1]', 'NVARCHAR(250)')
             ,@Qnty = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@qnty)[1]', 'SMALLINT')
-            ,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT');
+            --,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT')
+            ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT');
+
+      IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
+      BEGIN
+         SET @CbmtCodeDnrm = NULL;
+         SET @FighFileNo = NULL;
+      END
+      ELSE
+         SELECT @FighFileNo = COCH_FILE_NO
+           FROM dbo.Club_Method
+          WHERE code = @CbmtCodeDnrm;
+
       
       UPDATE Payment_Detail
          SET EXPN_PRIC = @ExpnPric
             ,PYDT_DESC = @PydtDesc
             ,QNTY = @Qnty  
-            ,FIGH_FILE_NO = CASE WHEN @FighFileNo = 0 THEN NULL ELSE @FighFileNo END          
+            ,FIGH_FILE_NO = @FighFileNo
+            ,CBMT_CODE_DNRM = @CbmtCodeDnrm
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

@@ -25,7 +25,8 @@ BEGIN
       DECLARE @FileNo BIGINT
              ,@MtodCode BIGINT
              ,@CtgyCode BIGINT
-             ,@CbmtCode BIGINT;
+             ,@CbmtCode BIGINT
+             ,@FrstTime VARCHAR(3) = '001';
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]', 'BIGINT')
@@ -37,7 +38,7 @@ BEGIN
 	   
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END
-
+      
 	   SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code
 	     FROM Fighter 
 	     WHERE FILE_NO = @FileNo;
@@ -45,6 +46,7 @@ BEGIN
       /* ثبت شماره درخواست */
       IF @Rqid IS NULL OR @Rqid = 0
       BEGIN
+         SET @FrstTime = '002';
          EXEC dbo.INS_RQST_P
             @PrvnCode,
             @RegnCode,
@@ -88,7 +90,7 @@ BEGIN
       IF @@FETCH_STATUS <> 0
          GOTO EndFetchRqrv;
       
-            /* ثبت ردیف درخواست */
+      /* ثبت ردیف درخواست */
       DECLARE @RqroRwno SMALLINT;
       SET @RqroRwno = NULL;
       SELECT @RqroRwno = Rwno
@@ -134,10 +136,11 @@ BEGIN
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
       -- 1395/06/17 * برای ثبت ابتدایی درخواست تمدید
-      IF ISNULL(@MtodCode, 0) = 0 OR ISNULL(@CtgyCode, 0) = 0
+      IF (ISNULL(@MtodCode, 0) = 0 OR ISNULL(@CtgyCode, 0) = 0) OR @FrstTime = '002'
       BEGIN
          SELECT @MtodCode = MTOD_CODE_DNRM
                ,@CtgyCode = CTGY_CODE_DNRM
+               ,@CbmtCode = CBMT_CODE_DNRM
            FROM Fighter
           WHERE FILE_NO = @FileNo;
       END

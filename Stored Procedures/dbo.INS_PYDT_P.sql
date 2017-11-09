@@ -20,6 +20,8 @@ CREATE PROCEDURE [dbo].[INS_PYDT_P]
   ,@PYDT_DESC NVARCHAR(250)
   ,@ADD_QUTS VARCHAR(3)
   ,@Figh_File_No BIGINT
+  ,@PRE_EXPN_STAT VARCHAR(3)
+  ,@CBMT_CODE_DNRM BIGINT
   ,@CODE BIGINT out
 AS
 BEGIN
@@ -42,7 +44,9 @@ INSERT INTO [dbo].[Payment_Detail]
            ,[RECV_LETT_DATE]
            ,[PYDT_DESC]
            ,[ADD_QUTS]
-           ,[FIGH_FILE_NO])
+           ,[FIGH_FILE_NO]
+           ,[PRE_EXPN_STAT]
+           ,[CBMT_CODE_DNRM])
      VALUES
            (@PYMT_CASH_CODE
            ,@PYMT_RQST_RQID
@@ -61,7 +65,9 @@ INSERT INTO [dbo].[Payment_Detail]
            ,@RECV_LETT_DATE
            ,@PYDT_DESC
            ,@ADD_QUTS
-           ,@Figh_File_No);
+           ,@Figh_File_No
+           ,@PRE_EXPN_STAT
+           ,@CBMT_CODE_DNRM);
    
    SELECT @CODE = CODE
      FROM dbo.Payment_Detail

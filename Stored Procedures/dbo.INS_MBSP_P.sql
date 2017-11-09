@@ -25,16 +25,21 @@ BEGIN
    
    DECLARE @ERORMESG  NVARCHAR(250)
           ,@TryValdSbmt VARCHAR(3)
-          ,@Days INT;
+          ,@Days INT
+          ,@StrtDateTemp DATE;
    
    SELECT @TryValdSbmt = S.TRY_VALD_SBMT
-         ,@Days = ABS(DATEDIFF(DAY, @StrtDate, MBSP_END_DATE))
+         ,@Days = (DATEDIFF(DAY, @StrtDate, MBSP_END_DATE))
+         ,@StrtDateTemp = F.MBSP_STRT_DATE
      FROM dbo.Fighter F, dbo.Settings S
     WHERE f.CLUB_CODE_DNRM = s.CLUB_CODE
       AND f.FILE_NO = @FileNo;
    
    SET @TryValdSbmt = ISNULL(@TryValdSbmt, '002');
-   SET @Days = ISNULL(@Days, 0);
+   IF ISNULL(@Days, 0) < 0 SET @Days = 0;
+   --ELSE SET @Days = ISNULL(@Days, 0);
+   IF @StrtDate = @StrtDateTemp
+      SET @Days = 0;
    
    IF EXISTS(SELECT * FROM Request WHERE RQID = @Rqid AND RQTT_CODE != '004' ) AND 
       (SELECT COUNT(*) 

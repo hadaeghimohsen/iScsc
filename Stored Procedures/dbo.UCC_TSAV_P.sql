@@ -59,6 +59,43 @@ BEGIN
          EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '004', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, @NumbOfAttnWeek, @AttnDayType;
       ELSE
          EXEC UPD_MBSP_P @Rqid, @RqroRwno, @FileNo, '004', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, @NumbOfAttnWeek, @AttnDayType;
+
+      -- 1396/08/18 * اگر درون تخفیفات مشترک گزینه ای باشد که مبلغ تخفیف مابه التفاوت وجود داشته باشد بایستی 
+      -- مبلغ بدهی قبلی را به عنوان تخفیف مابه التفاوت لحاظ شود و تسویه حساب کامل انجام شود         
+      --IF EXISTS(
+      --   SELECT *
+      --     FROM dbo.Payment_Discount
+      --    WHERE AMNT_TYPE = '004'   
+      --      AND PYMT_RQST_RQID = @Rqid       
+      --)
+      BEGIN
+         -- 1396/08/18 * بدست آوردن درخواست ثبت نام قبلی
+         DECLARE @OldRqid BIGINT
+         SELECT TOP 1 @OldRqid = RQID
+           FROM dbo.[VF$Request_Changing](@FileNo)
+          WHERE RQTT_CODE != '004'
+            AND RQTP_CODE IN ('001' , '009')
+       ORDER BY SAVE_DATE DESC;
+         -- اگر مشترک نسبت به دوره قبلی بدهکار باشد
+         IF EXISTS(
+            SELECT *
+              FROM dbo.Payment
+             WHERE RQST_RQID = @OldRqid
+               AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0
+         )
+         BEGIN
+            INSERT INTO dbo.Payment_Discount ( PYMT_CASH_CODE ,PYMT_RQST_RQID ,RQRO_RWNO ,RWNO ,AMNT ,AMNT_TYPE ,STAT ,PYDS_DESC )
+            SELECT CASH_CODE, RQST_RQID, 1, 0, (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)), '004', '002', N'کسر مبلغ مابه التفاوت بدهی شهریه بابت جابه جایی کلاس'
+              FROM dbo.Payment
+             WHERE RQST_RQID = @OldRqid
+               AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0;
+            
+            UPDATE dbo.Payment_Detail
+               SET PAY_STAT = '002'
+             WHERE PYMT_RQST_RQID = @OldRqid;
+         END
+      END
+
       
       UPDATE Request
          SET RQST_STAT = '002'
@@ -86,7 +123,8 @@ BEGIN
       UPDATE Payment_Detail
          SET FIGH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
             ,CBMT_CODE_DNRM = @CbmtCode
-       WHERE PYMT_RQST_RQID = @Rqid;         
+       WHERE PYMT_RQST_RQID = @Rqid;
+      
       
       -- آیا سبک و رسته تغییر کرده است 
       IF EXISTS(

@@ -1332,7 +1332,7 @@ BEGIN
             SET @VisitPrivilege = 1;
          END
          
-         IF LEN(@MdulName) < 10 RAISERROR(N'نام فرم باید 10 کاراکتر باشد', 16, 1)
+         --IF LEN(@MdulName) < 10 RAISERROR(N'نام فرم باید 10 کاراکتر باشد', 16, 1)
          IF LEN(@MdulDesc) = 0 RAISERROR(N'برای توضیحات چاپ فرم چیزی وارد نشده', 16, 1)
          IF LEN(@RprtPath) = 0 RAISERROR(N'برای فایل چاپ مسیر فایل مشخص نشده', 16, 1)
          IF LEN(@RprtDesc) = 0 SET @RprtDesc = @MdulDesc;
@@ -1387,7 +1387,7 @@ BEGIN
             SET @VisitPrivilege = 1;
          END
 
-         IF LEN(@MdulName) <> 10 RAISERROR(N'نام فرم باید 10 کاراکتر باشد', 16, 1)
+         --IF LEN(@MdulName) <> 10 RAISERROR(N'نام فرم باید 10 کاراکتر باشد', 16, 1)
          IF LEN(@MdulDesc) = 0 RAISERROR(N'برای توضیحات چاپ فرم چیزی وارد نشده', 16, 1)
          IF LEN(@RprtPath) = 0 RAISERROR(N'برای فایل چاپ مسیر فایل مشخص نشده', 16, 1)
          IF LEN(@RprtDesc) = 0 SET @RprtDesc = @MdulDesc;
