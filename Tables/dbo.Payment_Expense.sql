@@ -11,6 +11,8 @@ CREATE TABLE [dbo].[Payment_Expense]
 [DECR_PRCT_VALU] [float] NULL,
 [RCPT_PRIC] [bigint] NULL,
 [DSCN_PRIC] [bigint] NULL,
+[CONF_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CONF_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -73,4 +75,11 @@ GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_MSEX] FOREIGN KEY ([MSEX_CODE]) REFERENCES [dbo].[Misc_Expense] ([CODE]) ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_PYDT] FOREIGN KEY ([PYDT_CODE]) REFERENCES [dbo].[Payment_Detail] ([CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'شرح تاییدیه یا تایید نشده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_DESC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت مبلغ محاسبه شده
+* اگر هنرجو از کلاس استفاده کرده باشد و هزینه را کامل پرداخت کرده باشد بدون هیچ مشکلی هزینه به مربی پرداخت میشود.
+* اگر هنرجو پرداخت انجام داده باشد ولی هیچ کلاسی در باشگاه حضور نداشته باشد هزینه مربی با وضعیت خاصی نمایش داده میشود که مدیر تصمیم گیرنده هست.
+* اگر هنرجو مبلغی از کلاس خود را پرداخت کرده باشد و از کلاس ها استفاده کرده باشد و بدهی خود را بعد از اتمام دوره تکمیل نکرده باشد باید محاسبه هزینه مربی با وضعیت خاصی مشخص شده باشد.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_STAT'
 GO

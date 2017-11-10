@@ -4,7 +4,12 @@ CREATE TABLE [dbo].[Calculate_Expense_Coach]
 [EPIT_CODE] [bigint] NULL,
 [RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COCH_DEG] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXTP_CODE] [bigint] NULL,
+[MTOD_CODE] [bigint] NULL,
+[CTGY_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_Calculate_Expense_Coach_CODE] DEFAULT ((0)),
+[CALC_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[AMNT] [bigint] NULL,
 [PRCT_VALU] [float] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -68,9 +73,27 @@ END;
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [PK_CEXC] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
+GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EPIT] FOREIGN KEY ([EPIT_CODE]) REFERENCES [dbo].[Expense_Item] ([CODE])
+GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EXTP] FOREIGN KEY ([EXTP_CODE]) REFERENCES [dbo].[Expense_Type] ([CODE])
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_FIGH] FOREIGN KEY ([COCH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE])
+GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_RQTT] FOREIGN KEY ([RQTT_CODE]) REFERENCES [dbo].[Requester_Type] ([CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ محاسبه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'AMNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع محاسبه هزینه (مبلغی یا درصدی)', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CALC_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'رسته', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CTGY_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع آیتم درآمدی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EXTP_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'سبک', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'MTOD_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'درصد محاسبه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'PRCT_VALU'
 GO
