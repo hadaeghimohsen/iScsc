@@ -14,6 +14,11 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Epit_Code BIGINT
   ,@Rqtt_Code VARCHAR(3)
   ,@Coch_Deg  VARCHAR(3)
+  ,@Extp_Code BIGINT
+  ,@Mtod_Code BIGINT
+  ,@Ctgy_Code BIGINT
+  ,@Calc_Type VARCHAR(3)
+  ,@Amnt BIGINT
   ,@Prct_Valu FLOAT
   ,@Stat      VARCHAR(3)
 AS
@@ -40,6 +45,11 @@ BEGIN
          ,COCH_DEG     = @Coch_Deg
          ,PRCT_VALU    = @Prct_Valu
          ,STAT         = @Stat
+         ,EXTP_CODE    = @Extp_Code
+         ,MTOD_CODE    = @Mtod_Code
+         ,CTGY_CODE    = @Ctgy_Code
+         ,CALC_TYPE    = @Calc_Type
+         ,AMNT         = @Amnt
     WHERE CODE = @Code;
 END
 GO
