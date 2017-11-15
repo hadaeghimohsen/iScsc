@@ -20,6 +20,8 @@ CREATE TABLE [dbo].[Payment_Detail]
 [FIGH_FILE_NO] [bigint] NULL,
 [PRE_EXPN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CBMT_CODE_DNRM] [bigint] NULL,
+[MTOD_CODE_DNRM] [bigint] NULL,
+[CTGY_CODE_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -154,6 +156,15 @@ BEGIN
    IF EXISTS (SELECT * from dbo.Payment_Detail WHERE CODE = @Code)
 	GOTO L$NextCode;*/
 	
+	-- 1396/08/24 * اضافه کردن آیتم هزینه مربوط به نوع ثبت نامی ها
+	DECLARE @MtodCode BIGINT
+	       ,@CtgyCode BIGINT;
+	
+	SELECT @MtodCode = e.MTOD_CODE
+	      ,@CtgyCode = e.CTGY_CODE
+	  FROM dbo.Expense e, Inserted i
+	 WHERE e.CODE = i.EXPN_CODE;
+	
    -- Insert statements for trigger here
    MERGE dbo.Payment_Detail T
    USING (SELECT * FROM INSERTED) S
@@ -173,7 +184,9 @@ BEGIN
             ,CODE           = dbo.GNRT_NVID_U()
             ,EXPN_PRIC      = CASE @PayType WHEN '002' THEN @ExpnPric     ELSE -@ExpnPric END
             ,EXPN_EXTR_PRCT = CASE @PayType WHEN '002' THEN @ExpnExtrPrct ELSE -@ExpnExtrPrct END
-            ,REMN_PRIC      = @RemnPric;
+            ,REMN_PRIC      = @RemnPric
+            ,MTOD_CODE_DNRM = @MtodCode
+            ,CTGY_CODE_DNRM = @CtgyCode;
    
    -- اضافه شدن گزینه های پیش فرض
    IF EXISTS(
@@ -402,7 +415,7 @@ WHERE RQST_RQID = @RqstRqid
                ,@RqroRwno AS 'Request_Row/@rwno'
                ,@ExpnCode AS 'Request_Row/Expense/@code'
                ,@Qnty AS 'Request_Row/Expense/@qnty'
-           FOR XML PATH('Request')
+   FOR XML PATH('Request')
       );
         
       SELECT @Rslt = dbo.PYDS_CHCK_U(@Rslt);
@@ -474,9 +487,13 @@ ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_CASH] FOREIGN KEY ([P
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_CBMT] FOREIGN KEY ([CBMT_CODE_DNRM]) REFERENCES [dbo].[Club_Method] ([CODE])
 GO
+ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_CTGY] FOREIGN KEY ([CTGY_CODE_DNRM]) REFERENCES [dbo].[Category_Belt] ([CODE])
+GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_FIGH] FOREIGN KEY ([FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
+GO
+ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_MTOD] FOREIGN KEY ([MTOD_CODE_DNRM]) REFERENCES [dbo].[Method] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_PYMT] FOREIGN KEY ([PYMT_CASH_CODE], [PYMT_RQST_RQID]) REFERENCES [dbo].[Payment] ([CASH_CODE], [RQST_RQID]) ON DELETE CASCADE
 GO
