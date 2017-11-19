@@ -7,7 +7,7 @@ GO
 -- Create date: <Create Date, ,>
 -- Description:	<Description, ,>
 -- =============================================
-create FUNCTION [dbo].[GET_ADMN_U]
+CREATE FUNCTION [dbo].[GET_ADMN_U]
 (
 	-- Add the parameters for the function here
 	@RqstDate DATE,
@@ -18,7 +18,7 @@ create FUNCTION [dbo].[GET_ADMN_U]
 RETURNS BIGINT
 AS
 BEGIN
-   
+   RETURN NULL;
 	IF @QuryType = '001'
 	BEGIN
 	   RETURN (

@@ -80,7 +80,9 @@ SELECT  pm.ACTN_DATE ,
         f.CBMT_CODE_DNRM,
         CAST(cm.STRT_TIME AS VARCHAR(5)) AS STRT_TIME,
         CAST(cm.END_TIME AS VARCHAR(5)) AS END_TIME,
-        cm.CBMT_DESC
+        cm.CBMT_DESC,
+        dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '001', f.CBMT_CODE_DNRM) AS MTOD_CONT,
+        dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM) AS CBMT_CONT
 FROM    dbo.Payment_Method pm ,        
         dbo.Payment p ,
         dbo.Request r ,
