@@ -52,7 +52,7 @@ BEGIN
          IF @@FETCH_STATUS <> 0
             GOTO CDC$AINS_MDRP;
          
-         IF 1 <= (SELECT COUNT(CODE) FROM Modual_Report WHERE ISNULL(CODE, 0) <> 0 AND MDUL_NAME = @MdulName AND SECT_NAME = @SectName AND RPRT_PATH = @RprtPath )
+         IF 1 < (SELECT COUNT(CODE) FROM Modual_Report WHERE ISNULL(CODE, 0) <> 0 AND MDUL_NAME = @MdulName AND SECT_NAME = @SectName AND RPRT_PATH = @RprtPath )
             RAISERROR(N'برای فرم جاری قبلا همین فایل گزارش اضافه شده است', 16, 1);
 
          IF @Dflt = '002'

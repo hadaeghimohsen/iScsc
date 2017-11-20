@@ -24,7 +24,8 @@ WITH    QXML
             dbo.GET_MTOS_U(R.SAVE_DATE) AS SAVE_DATE,
             UPPER(SUSER_NAME()) AS CRNT_USER,
             dbo.GET_MTOS_U(GETDATE()) + CHAR(10) + CAST(CAST(GETDATE() AS TIME(0)) AS VARCHAR(5)) AS CRNT_DATE,
-            
+            dbo.GET_MTOS_U(f.MBSP_STRT_DATE) AS MBSP_STRT_DATE,
+            dbo.GET_MTOS_U(f.MBSP_END_DATE) AS MBSP_END_DATE,
             -- Parameters Show
             dbo.GET_MTOS_U(Qx.FROM_RQST_DATE) AS PARM_FROM_RQST_DATE,
             dbo.GET_MTOS_U(Qx.TO_RQST_DATE) AS PARM_TO_RQST_DATE,
@@ -35,6 +36,8 @@ WITH    QXML
             dbo.Method m ,
             dbo.Payment p ,
             dbo.Request r ,
+            dbo.Request_Row rr,
+            dbo.Fighter f,
             QXML Qx
     WHERE   pd.PYMT_CASH_CODE = p.CASH_CODE
             AND pd.PYMT_RQST_RQID = p.RQST_RQID
@@ -43,13 +46,22 @@ WITH    QXML
             AND pd.CTGY_CODE_DNRM = cb.CODE
             AND pd.MTOD_CODE_DNRM = m.CODE
             AND m.CODE = cb.MTOD_CODE
+            AND pd.PYMT_RQST_RQID = r.RQID
+            AND pd.RQRO_RWNO = rr.RWNO
+            AND r.RQID = rr.RQST_RQID
+            AND rr.FIGH_FILE_NO = f.FILE_NO
             AND r.RQST_STAT = '002'
             AND r.RQTP_CODE IN ( '001', '009' )
             
             AND (Qx.CBMT_CODE IS NULL OR qx.CBMT_CODE = 0 OR (pd.CBMT_CODE_DNRM = Qx.CBMT_CODE))
             AND (Qx.COCH_FILE_NO IS NULL OR qx.COCH_FILE_NO = 0 OR (pd.FIGH_FILE_NO = Qx.COCH_FILE_NO))
-            AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) >= Qx.FROM_RQST_DATE))
-            AND (Qx.TO_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) <= Qx.TO_RQST_DATE))
+            
+            --AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) >= Qx.FROM_RQST_DATE))
+            --AND (Qx.TO_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) <= Qx.TO_RQST_DATE))
+            
+            AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(f.MBSP_END_DATE AS DATE) >= Qx.FROM_RQST_DATE))
+            AND (Qx.TO_RQST_DATE IS NULL OR (CAST(f.MBSP_END_DATE AS DATE) <= Qx.TO_RQST_DATE))
+            
             AND (Qx.CRET_BY IS NULL OR Qx.CRET_BY = '' OR (R.CRET_BY = Qx.CRET_BY))
 );
   
