@@ -81,8 +81,8 @@ SELECT  pm.ACTN_DATE ,
         CAST(cm.STRT_TIME AS VARCHAR(5)) AS STRT_TIME,
         CAST(cm.END_TIME AS VARCHAR(5)) AS END_TIME,
         cm.CBMT_DESC,
-        dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '001', f.CBMT_CODE_DNRM) AS MTOD_CONT,
-        dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM) AS CBMT_CONT
+        /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '001', f.CBMT_CODE_DNRM)*/ 0 AS MTOD_CONT,
+        /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM)*/ 0 AS CBMT_CONT
 FROM    dbo.Payment_Method pm ,        
         dbo.Payment p ,
         dbo.Request r ,
@@ -116,6 +116,65 @@ WHERE   pm.PYMT_RQST_RQID = p.RQST_RQID
         AND pm.RCPT_MTOD = rc.VALU
         AND p.AMNT_UNIT_TYPE_DNRM = at.VALU
         AND r.RQTP_CODE NOT IN ('016')
+        
+        --AND (Qx.FROM_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
+        --AND (Qx.TO_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))
+        
+        --AND (Qx.FROM_SAVE_DATE IS NULL OR CAST(R.SAVE_DATE AS DATE) >= CAST(Qx.FROM_SAVE_DATE AS DATE))
+        --AND (Qx.TO_SAVE_DATE IS NULL OR CAST(R.SAVE_DATE AS DATE) <= CAST(Qx.TO_SAVE_DATE AS DATE))
+        
+        AND (Qx.FROM_RQST_DATE IS NULL OR CAST(pm.ACTN_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
+        AND (Qx.TO_RQST_DATE IS NULL OR CAST(pm.ACTN_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))
+        
+        AND (Qx.CRET_BY IS NULL OR Qx.CRET_BY = '' OR pm.CRET_BY = Qx.CRET_BY)
+
+UNION
+SELECT  pm.ACTN_DATE ,    
+        dbo.GET_MTOS_U(pm.ACTN_DATE) AS PERS_ACTN_DATE,
+        CAST(pm.ACTN_DATE AS TIME(0)) AS ACTN_TIME,
+        pm.AMNT ,
+        at.DOMN_DESC AS UNIT_AMNT_TYPE,   
+        pm.RCPT_MTOD ,
+        rc.DOMN_DESC AS RCPT_DESC,
+        pm.CRET_BY ,
+        rt.RQTP_DESC ,
+        r.RQTP_CODE ,
+        r.RQTT_CODE ,
+        '' AS FGPB_TYPE_DNRM,
+        0 AS CLUB_CODE_DNRM,
+        '' AS NAME,
+        '' AS SUNT_BUNT_DEPT_ORGN_CODE_DNRM ,
+        '' AS SUNT_BUNT_DEPT_CODE_DNRM ,
+        '' AS SUNT_BUNT_CODE_DNRM ,
+        '' AS SUNT_CODE_DNRM ,
+        0 AS FILE_NO,
+        '' AS SUNT_DESC,
+        0 AS MTOD_CODE_DNRM ,
+        N'درآمد متفرقه' AS MTOD_DESC, 
+        0 AS CTGY_CODE_DNRM ,
+        '' AS CTGY_DESC ,
+        0 AS COCH_FILE_NO_DNRM ,
+        '' AS NAME_DNRM,
+        0 AS CBMT_CODE_DNRM,
+        '' AS STRT_TIME,
+        '' AS END_TIME,
+        '' AS CBMT_DESC,
+        0 AS MTOD_CONT,
+        0 AS CBMT_CONT
+FROM    dbo.Payment_Method pm ,        
+        dbo.Payment p ,
+        dbo.Request r ,
+        dbo.Request_Type rt,
+        dbo.[D$RCMT] rc,
+        dbo.[D$ATYP] at,
+        QXML Qx
+WHERE   pm.PYMT_RQST_RQID = p.RQST_RQID
+        AND pm.PYMT_CASH_CODE = p.CASH_CODE
+        AND p.RQST_RQID = r.RQID
+        AND r.RQTP_CODE = rt.CODE        
+        AND pm.RCPT_MTOD = rc.VALU
+        AND p.AMNT_UNIT_TYPE_DNRM = at.VALU
+        AND r.RQTP_CODE IN ('016')
         
         --AND (Qx.FROM_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
         --AND (Qx.TO_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))

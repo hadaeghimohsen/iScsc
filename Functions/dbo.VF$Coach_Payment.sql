@@ -24,8 +24,13 @@ WITH    QXML
             dbo.GET_MTOS_U(R.SAVE_DATE) AS SAVE_DATE,
             UPPER(SUSER_NAME()) AS CRNT_USER,
             dbo.GET_MTOS_U(GETDATE()) + CHAR(10) + CAST(CAST(GETDATE() AS TIME(0)) AS VARCHAR(5)) AS CRNT_DATE,
-            dbo.GET_MTOS_U(f.MBSP_STRT_DATE) AS MBSP_STRT_DATE,
-            dbo.GET_MTOS_U(f.MBSP_END_DATE) AS MBSP_END_DATE,
+            f.FNGR_PRNT_DNRM,
+            f.NAME_DNRM AS FIGH_NAME_DNRM,
+            r.RQID,
+            ms.RWNO AS MBSP_RWNO,
+            --f.MBSP_RWNO_DNRM,
+            dbo.GET_MTOS_U(ms.STRT_DATE) AS MBSP_STRT_DATE,
+            dbo.GET_MTOS_U(ms.END_DATE) AS MBSP_END_DATE,
             -- Parameters Show
             dbo.GET_MTOS_U(Qx.FROM_RQST_DATE) AS PARM_FROM_RQST_DATE,
             dbo.GET_MTOS_U(Qx.TO_RQST_DATE) AS PARM_TO_RQST_DATE,
@@ -38,6 +43,7 @@ WITH    QXML
             dbo.Request r ,
             dbo.Request_Row rr,
             dbo.Fighter f,
+            dbo.Member_Ship ms,
             QXML Qx
     WHERE   pd.PYMT_CASH_CODE = p.CASH_CODE
             AND pd.PYMT_RQST_RQID = p.RQST_RQID
@@ -50,6 +56,9 @@ WITH    QXML
             AND pd.RQRO_RWNO = rr.RWNO
             AND r.RQID = rr.RQST_RQID
             AND rr.FIGH_FILE_NO = f.FILE_NO
+            AND rr.RQST_RQID = ms.RQRO_RQST_RQID
+            AND rr.RWNO = ms.RQRO_RWNO
+            AND ms.RECT_CODE = '004'
             AND r.RQST_STAT = '002'
             AND r.RQTP_CODE IN ( '001', '009' )
             
@@ -59,8 +68,8 @@ WITH    QXML
             --AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) >= Qx.FROM_RQST_DATE))
             --AND (Qx.TO_RQST_DATE IS NULL OR (CAST(R.RQST_DATE AS DATE) <= Qx.TO_RQST_DATE))
             
-            AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(f.MBSP_END_DATE AS DATE) >= Qx.FROM_RQST_DATE))
-            AND (Qx.TO_RQST_DATE IS NULL OR (CAST(f.MBSP_END_DATE AS DATE) <= Qx.TO_RQST_DATE))
+            AND (Qx.FROM_RQST_DATE IS NULL OR (CAST(ms.END_DATE AS DATE) >= Qx.FROM_RQST_DATE))
+            AND (Qx.TO_RQST_DATE IS NULL OR (CAST(ms.END_DATE AS DATE) <= Qx.TO_RQST_DATE))
             
             AND (Qx.CRET_BY IS NULL OR Qx.CRET_BY = '' OR (R.CRET_BY = Qx.CRET_BY))
 );
