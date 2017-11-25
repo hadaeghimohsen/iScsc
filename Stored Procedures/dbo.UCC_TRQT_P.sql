@@ -147,6 +147,16 @@ BEGIN
       -- 1395/06/17 * برای مشخص کردن نرخ هزینه و ساعت کلاسی مربی
       ELSE
       BEGIN
+         -- 1396/09/04 * بررسی کردن گزینه ایا سبک و. ساعت کلاسی مربی درست میباشد یا خیر
+         IF NOT EXISTS(
+            SELECT * 
+              FROM dbo.Club_Method
+             WHERE CODE = @CbmtCode
+               AND MTOD_CODE = @MtodCode
+         )
+         BEGIN
+            RAISERROR(N'ساعت کلاسی مربی با سبک ورزشی که انتخاب کرده اید مطابقت ندارد، لطفا اصلاح فرمایید', 16, 1);
+         END;
          UPDATE dbo.Fighter
             SET MTOD_CODE_DNRM = @MtodCode
                ,CTGY_CODE_DNRM = @CtgyCode

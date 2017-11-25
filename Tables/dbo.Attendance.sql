@@ -94,7 +94,7 @@ BEGIN
                ,
                T.ENTR_TIME = CAST(GETDATE() AS TIME(0)) ,
                T.MBSP_RECT_CODE_DNRM = CASE WHEN /*EXISTS (SELECT * FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No AND*/ S.FGPB_TYPE_DNRM NOT IN (
-                                                 '002', '003' ) THEN '004'
+                                                 '002'/*, '003'*/ ) THEN '004'
                                             ELSE NULL
                                        END ,
                T.MBSP_RWNO_DNRM = /*(SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No)*/ S.MBSP_RWNO_DNRM ,

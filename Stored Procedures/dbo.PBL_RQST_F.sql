@@ -341,7 +341,7 @@ BEGIN
                   ,@AttnTime = NULL;                  
             
          -- اگر باشگاه مشخص نباشد
-         IF ISNULL(@ClubCode, 0) = 0 AND (SELECT COUNT(CODE) FROM Club) = 1
+         IF ISNULL(@ClubCode, 0) = 0 AND (SELECT COUNT(CODE) FROM Club) >= 1
             SELECT TOP 1 @ClubCode = Code
               FROM Club;      
          

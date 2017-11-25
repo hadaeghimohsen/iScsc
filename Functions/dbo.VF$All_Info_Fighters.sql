@@ -17,7 +17,7 @@ SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE,
        dbo.Fighter_Public.SUNT_BUNT_DEPT_ORGN_CODE, dbo.Fighter_Public.SUNT_BUNT_DEPT_CODE, dbo.Fighter_Public.SUNT_BUNT_CODE, dbo.Fighter_Public.SUNT_CODE,
        dbo.Organ.ORGN_DESC, dbo.Department.DEPT_DESC, dbo.Base_Unit.BUNT_DESC, dbo.Sub_Unit.SUNT_DESC,
        dbo.Fighter_Public.CORD_X,dbo.Fighter_Public.CORD_Y, dbo.Fighter_Public.SERV_NO, dbo.Fighter_Public.BRTH_PLAC, dbo.Fighter_Public.ISSU_PLAC, dbo.Fighter_Public.FATH_WORK, dbo.Fighter_Public.HIST_DESC,
-       dbo.Fighter_Public.DPST_ACNT_SLRY_BANK,dbo.Fighter_Public.DPST_ACNT_SLRY
+       dbo.Fighter_Public.DPST_ACNT_SLRY_BANK,dbo.Fighter_Public.DPST_ACNT_SLRY, dbo.Fighter_Public.CBMT_CODE
 FROM   --dbo.Category_Belt INNER JOIN
        --dbo.Method ON dbo.Category_Belt.MTOD_CODE = dbo.Method.CODE LEFT OUTER JOIN
        dbo.Fighter INNER JOIN

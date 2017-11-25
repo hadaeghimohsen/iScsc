@@ -198,7 +198,7 @@ BEGIN
       SET @SuntCode             = CASE LEN(@SuntCode)             WHEN 4 THEN @SuntCode             ELSE '0000' END;
 
       
-      IF ISNULL(@ClubCode, 0) = 0 AND (SELECT COUNT(CODE) FROM Club) = 1
+      IF ISNULL(@ClubCode, 0) = 0 AND (SELECT COUNT(CODE) FROM Club) >= 1
          SELECT TOP 1 @ClubCode = Code
            FROM Club;      
       
@@ -334,6 +334,35 @@ BEGIN
       UPDATE Fighter
          SET CONF_STAT = '002'
        WHERE FILE_NO = @FileNo;
+     
+      -- 1396/09/04 * برای مربیان هم گزینه جدول تازیخ عضویت را وارد میکنیم
+      DECLARE @StrtDate DATE = GETDATE()
+             ,@EndDate DATE = DATEADD(YEAR, 2, GETDATE());
+      
+      SET @X = '<Process><Request rqstrqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="0" numbofattnmont="0" numbofattnweek="0" attndaytype="001"/></Request_Row></Request></Process>';
+      SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
+      SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+      SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
+      EXEC UCC_RQST_P @X;
+      
+      SELECT @Rqid = R.RQID
+        FROM Request R
+       WHERE R.RQST_RQID = @Rqid
+         AND R.RQST_STAT = '001'
+         AND R.RQTP_CODE = '009'
+         AND R.RQTT_CODE = '004';
+
+      SET @X = '<Process><Request rqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row rwno="1" fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="0" numbofattnmont="0" numbofattnweek="0" attndaytype="001"/></Request_Row></Request></Process>';
+      SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
+      SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+      SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');
+      EXEC UCC_SAVE_P @X;
                 
       COMMIT TRAN T1;
    END TRY

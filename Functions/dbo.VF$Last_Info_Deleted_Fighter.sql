@@ -11,7 +11,7 @@ RETURN
 SELECT     dbo.Fighter.FILE_NO, dbo.Fighter.DEBT_DNRM, fighter.BUFE_DEBT_DNTM, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter.FGPB_RWNO_DNRM, dbo.Fighter.MBSP_RWNO_DNRM, dbo.Fighter.CAMP_RWNO_DNRM, dbo.Fighter.TEST_RWNO_DNRM, dbo.Fighter.CLCL_RWNO_DNRM, 
            dbo.Fighter.HERT_RWNO_DNRM, dbo.Fighter.PSFN_RWNO_DNRM, dbo.Fighter.CONF_DATE, dbo.Fighter.RQST_RQID, dbo.Fighter.NAME_DNRM, dbo.Fighter.FATH_NAME_DNRM, 
            dbo.Fighter.BRTH_DATE_DNRM, dbo.Fighter.CELL_PHON_DNRM, dbo.Fighter.TELL_PHON_DNRM, dbo.Fighter.INSR_NUMB_DNRM, dbo.Fighter.INSR_DATE_DNRM, 
-           dbo.Fighter.TEST_DATE_DNRM, dbo.Fighter.CAMP_DATE_DNRM, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.POST_ADRS, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.LAST_NAME,dbo.Fighter_Public.TYPE,
+           dbo.Fighter.TEST_DATE_DNRM, dbo.Fighter.CAMP_DATE_DNRM, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.POST_ADRS, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.LAST_NAME,dbo.Fighter_Public.TYPE,dbo.Fighter_Public.CBMT_CODE,
            dbo.Fighter_Public.EMAL_ADRS, dbo.Diseases_Type.DISE_DESC, dbo.Club.NAME AS CLUB_NAME, ISNULL(dbo.Club.CODE, 0) AS CLUB_CODE, dbo.D$FGTP.DOMN_DESC AS TYPE_DESC, dbo.D$DEGR.DOMN_DESC AS COCH_DEGR, dbo.Fighter_Public.COCH_FILE_NO, dbo.Fighter.ACTV_TAG_DNRM, dbo.Fighter.MOST_DEBT_CLNG_DNRM,
            D$DEGR_1.DOMN_DESC AS GUGD_DEGR, dbo.D$SXTP.DOMN_DESC AS SEX_TYPE, dbo.D$FGST.DOMN_DESC AS FIGH_STAT, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC,
            dbo.D$ACTG.DOMN_DESC AS ACTV_TAG, dbo.Region.NAME AS REGN_NAME, dbo.Province.NAME AS PRVN_NAME, dbo.D$BLOD.DOMN_DESC AS BLOD_GROP, dbo.Request_Type.RQTP_DESC, dbo.Fighter.FNGR_PRNT_DNRM,

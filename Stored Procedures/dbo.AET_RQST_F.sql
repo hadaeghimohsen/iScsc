@@ -216,6 +216,7 @@ BEGIN
       )
       BEGIN
        SELECT @ActvTag = r.query('Fighter_Public/Actv_Tag').value('.', 'VARCHAR(3)')
+             --,@FngrPrnt = r.query('Fighter_Public/Fngr_Prnt').value('.', 'VARCHAR(20)')
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
        
@@ -327,9 +328,15 @@ BEGIN
           AND P.RECT_CODE = '004';
 
        SELECT @ActvTag = r.query('Fighter_Public/Actv_Tag').value('.', 'VARCHAR(3)')
+             ,@FngrPrnt = r.query('Fighter_Public/Fngr_Prnt').value('.', 'VARCHAR(20)')
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
-          
+       
+       IF ISNULL(@FngrPrnt , '') != '' AND EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO != @FileNo AND FNGR_PRNT_DNRM = @FngrPrnt)
+       BEGIN
+         RAISERROR(N'کد انگشتی یا کارتی انتخابی شما توسط هنرجو یا مربی دیگری مورد استفاده قرار گرفته شده است، لطفا کد دیگری را انتخاب کنید', 16, 1);
+         RETURN;
+       END
       END
       
       /* ثبت اطلاعات عمومی پرونده */
