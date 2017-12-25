@@ -289,7 +289,7 @@ BEGIN
          AND Cm.CODE = cmw.CBMT_CODE
          AND ( 
                (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
-               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) NOT BETWEEN cm.STRT_TIME AND cm.END_TIME)
+               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)))
              )
          
    )
