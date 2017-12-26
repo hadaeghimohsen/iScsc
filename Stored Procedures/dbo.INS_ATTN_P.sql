@@ -287,9 +287,17 @@ BEGIN
          AND F.FGPB_TYPE_DNRM IN ('001', '005', '006')
          AND F.CBMT_CODE_DNRM = Cm.CODE
          AND Cm.CODE = cmw.CBMT_CODE
+         AND NOT EXISTS(
+            SELECT *
+              FROM dbo.Attendance a
+             WHERE a.FIGH_FILE_NO = f.FILE_NO
+               AND f.MBSP_RWNO_DNRM = a.MBSP_RWNO_DNRM
+               AND a.MBSP_RECT_CODE_DNRM = '004'
+               AND a.ENTR_TIME IS NULL
+         )
          AND ( 
                (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
-               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)))
+               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) < CAST(cm.STRT_TIME AS TIME(0)) /* NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)) */)               
              )
          
    )

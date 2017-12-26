@@ -310,7 +310,17 @@ BEGIN
       UPDATE Fighter
          SET CONF_STAT = '002'
        WHERE FILE_NO = @FileNo;
-     
+      
+      UPDATE dbo.Session_Meeting
+         SET END_TIME = GETDATE()
+       WHERE MBSP_FIGH_FILE_NO = @FileNo
+         AND END_TIME IS NULL;
+      
+      UPDATE dbo.Attendance
+         SET EXIT_TIME = GETDATE()
+       WHERE FIGH_FILE_NO = @FileNo
+         AND EXIT_TIME IS NULL;
+       
       COMMIT TRAN T1;
    END TRY
    BEGIN CATCH

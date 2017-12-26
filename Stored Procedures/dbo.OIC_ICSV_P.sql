@@ -201,7 +201,17 @@ BEGIN
          SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
          EXEC PBL_SAVE_F @X;
       END
-       
+
+      UPDATE dbo.Session_Meeting
+         SET END_TIME = GETDATE()
+       WHERE MBSP_FIGH_FILE_NO = @FileNo
+         AND END_TIME IS NULL;
+      
+      UPDATE dbo.Attendance
+         SET EXIT_TIME = GETDATE()
+       WHERE FIGH_FILE_NO = @FileNo
+         AND EXIT_TIME IS NULL;
+             
       COMMIT TRAN T1;
    END TRY
    BEGIN CATCH

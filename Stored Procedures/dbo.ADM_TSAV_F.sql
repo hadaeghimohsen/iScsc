@@ -12,7 +12,7 @@ CREATE PROCEDURE [dbo].[ADM_TSAV_F]
 	@X XML
 AS
 BEGIN
-/*   RAISERROR(N'گوه خوردی', 16, 1);
+   /*RAISERROR(N'گوه خوردی', 16, 1);
    RETURN;*/
    
    DECLARE @AP BIT
@@ -338,6 +338,50 @@ BEGIN
          SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
          EXEC MBC_TSAV_P @X;
       END
+      
+      -- 1396/10/05 * ثبت پیامک 
+      IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND EXISTS(SELECT * FROM dbo.Request WHERE RQID = @OrgnRqid AND RQTT_CODE = '001')
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@ClubName NVARCHAR(250)
+                ,@InsrCnamStat VARCHAR(3)
+                ,@InsrFnamStat VARCHAR(3);
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '006';
+         
+         IF @MsgbStat = '002' 
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+               
+            DECLARE @XMsg XML;
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      '002' AS '@linetype',
+                      (
+                        SELECT @CellPhon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+         END;
+      END;      
       
       COMMIT TRAN T$ADM_TSAV_F;
    END TRY
