@@ -233,7 +233,8 @@ BEGIN
       SELECT @MtodCode = MTOD_CODE_DNRM
             ,@CtgyCode = CTGY_CODE_DNRM
         FROM Fighter
-       WHERE FILE_NO = @FileNo;
+       WHERE FILE_NO = @FileNo
+         AND FGPB_TYPE_DNRM != '009';
       
       /* ثبت اطلاعات عمومی پرونده */
       IF NOT EXISTS(

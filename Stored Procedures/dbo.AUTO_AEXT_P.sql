@@ -40,6 +40,11 @@ BEGIN
    	    @CochFileNo = NULL,
    	    @Attn_Type = '003'; -- date   	
    	
+   	UPDATE dbo.Session_Meeting
+   	   SET END_TIME = GETDATE()
+   	 WHERE MBSP_FIGH_FILE_NO = @FileNo
+   	   AND END_TIME IS NULL;
+   	
 	   GOTO FNR_C$AutoAExtP;
 	   END_C$AutoAExtP:
 	   CLOSE C$AutoAExtP;

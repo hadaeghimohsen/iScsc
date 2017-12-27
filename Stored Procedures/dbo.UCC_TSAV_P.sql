@@ -133,8 +133,8 @@ BEGIN
           WHERE FIGH_FILE_NO = @FileNo
             AND RWNO = @FgpbRwnoDnrm
             AND RECT_CODE = '004'
-            AND (MTOD_CODE <> @MtodCode
-               OR CTGY_CODE <> @CtgyCode )
+            AND (ISNULL(MTOD_CODE, 0) <> @MtodCode
+               OR ISNULL(CTGY_CODE, 0) <> @CtgyCode )
       )
       BEGIN
          SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش سبک و رسته پیرو تمدید مشترک بخاطر عوض شدن نوع سبک و رسته"><Request_Row fileno=""><ChngMtodCtgy><Mtod_Code/><Ctgy_Code/> </ChngMtodCtgy></Request_Row></Request></Process>';
@@ -169,6 +169,7 @@ BEGIN
          UPDATE dbo.Fighter_Public
             SET CBMT_CODE = @CbmtCode
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
+               ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004';
       END
@@ -178,7 +179,7 @@ BEGIN
           WHERE FIGH_FILE_NO = @FileNo
             AND RWNO = @FgpbRwnoDnrm
             AND RECT_CODE = '004'
-            AND (CBMT_CODE <> @CbmtCode)
+            AND (ISNULL(CBMT_CODE, 0) <> @CbmtCode)
       )
       BEGIN
          -- اگر تغییری در سبک و رسته ایجاد نشده باشد باید تغییر مشخصات عمومی مجزایی برای ثبت ساعت کلاسی ذخیره کنیم
@@ -200,6 +201,7 @@ BEGIN
          UPDATE dbo.Fighter_Public
             SET CBMT_CODE = @CbmtCode
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
+               ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
           WHERE RQRO_RQST_RQID = @Rqid
             AND FIGH_FILE_NO = @FileNo;
          

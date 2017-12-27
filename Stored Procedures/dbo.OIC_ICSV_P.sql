@@ -191,6 +191,10 @@ BEGIN
          
          UPDATE dbo.Fighter_Public
             SET TYPE = '009'
+               ,MTOD_CODE = NULL
+               ,CTGY_CODE = NULL
+               ,COCH_FILE_NO = NULL
+               ,CBMT_CODE = NULL
           WHERE RQRO_RQST_RQID = @Rqid
             AND FIGH_FILE_NO = @FileNo;
          
