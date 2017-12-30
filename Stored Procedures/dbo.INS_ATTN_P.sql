@@ -198,6 +198,14 @@ BEGIN
          --AND CAST(M.END_DATE AS DATE) >= CAST(GETDATE() AS DATE)
          AND ISNULL(m.NUMB_OF_ATTN_MONT, 0) > 0
          AND ISNULL(M.NUMB_OF_ATTN_MONT, 0) <= ISNULL(M.SUM_ATTN_MONT_DNRM, 0) /*- 1*/
+         AND NOT EXISTS(
+            SELECT * 
+              FROM dbo.Attendance
+             WHERE FIGH_FILE_NO = @Figh_File_No
+               AND MBSP_RWNO_DNRM = m.RWNO
+               AND MBSP_RECT_CODE_DNRM = m.RECT_CODE
+               AND EXIT_TIME IS NULL
+         )
    )
    BEGIN
       SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
