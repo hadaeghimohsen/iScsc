@@ -44,7 +44,8 @@ CREATE TABLE [dbo].[Settings]
 [GATE_EXIT_OPEN] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_EXTR_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_COMM_PORT_NAME] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[EXPN_BAND_RATE] [int] NULL
+[EXPN_BAND_RATE] [int] NULL,
+[RUN_QURY] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [FK_STNG_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE]) ON DELETE CASCADE
@@ -70,6 +71,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان بسته شدن گیت بعد از باز شدن', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'GATE_TIME_CLOS'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'اجرا کردن کوئری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'RUN_QURY'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تمدید مشترکین با تاریخ معتبر', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'TRY_VALD_SBMT'
 GO

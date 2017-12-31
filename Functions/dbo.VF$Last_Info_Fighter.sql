@@ -3,7 +3,14 @@ GO
 SET ANSI_NULLS ON
 GO
 CREATE FUNCTION [dbo].[VF$Last_Info_Fighter] (
-   @FileNo BIGINT
+   @FileNo BIGINT,
+   @FrstName NVARCHAR(250),
+   @LastName NVARCHAR(250),
+   @NatlCode VARCHAR(10),
+   @FngrPrnt VARCHAR(20),
+   @CellPhon VARCHAR(11),
+   @TellPhon VARCHAR(11),
+   @SexType VARCHAR(3)
 )RETURNS TABLE 
 AS
 RETURN
@@ -49,5 +56,12 @@ WHERE     (dbo.Fighter_Public.RECT_CODE = '004') AND (dbo.Fighter.CONF_STAT = '0
   AND     (@FileNo IS NULL OR dbo.Fighter.FILE_NO = @FileNo)
   AND     (dbo.Fighter.FGPB_TYPE_DNRM IN ( '002','003', '004' ) OR dbo.PLC_CLUB_U('<Club code="' + CAST(dbo.Fighter.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002')
   AND     (dbo.Fighter.ACTV_TAG_DNRM >= '101')
+  AND     (@FrstName IS NULL OR @FrstName = '' OR dbo.Fighter_Public.FRST_NAME LIKE N'%' + @FrstName + N'%')
+  AND     (@LastName IS NULL OR @LastName = '' OR dbo.Fighter_Public.LAST_NAME LIKE N'%' + @LastName + N'%')
+  AND     (@NatlCode IS NULL OR @NatlCode = '' OR dbo.Fighter.NATL_CODE_DNRM LIKE N'%' + @NatlCode + N'%')
+  AND     (@FngrPrnt IS NULL OR @FngrPrnt = '' OR dbo.Fighter.FNGR_PRNT_DNRM LIKE N'%' + @FngrPrnt + N'%')
+  AND     (@CellPhon IS NULL OR @CellPhon = '' OR dbo.Fighter.CELL_PHON_DNRM LIKE N'%' + @CellPhon + N'%')
+  AND     (@TellPhon IS NULL OR @TellPhon = '' OR dbo.Fighter.TELL_PHON_DNRM LIKE N'%' + @TellPhon + N'%')
+  AND     (@SexType IS NULL OR @SexType = '' OR dbo.Fighter.SEX_TYPE_DNRM LIKE @SexType)  
 )
 GO
