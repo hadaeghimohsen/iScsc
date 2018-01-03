@@ -301,6 +301,12 @@ BEGIN
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
       EXEC UCC_SAVE_P @X;
       
+      -- 1396/10/13 * ثبت گزینه ردیف عمومی
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = 1
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @Rqid;
+      
       IF EXISTS(
          SELECT *
            FROM dbo.Request R, dbo.Request_Row Rr, dbo.Payment P, dbo.Payment_Detail Pd, dbo.Expense E
