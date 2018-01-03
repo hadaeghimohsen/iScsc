@@ -19,7 +19,8 @@ BEGIN
 	   DECLARE @Rqid     BIGINT,
 	           @OrgnRqid BIGINT,
 	           @FileNo   BIGINT,
-	           @RqroRwno SMALLINT;
+	           @RqroRwno SMALLINT,
+	           @FgpbRwno INT;
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@OrgnRqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT');
@@ -172,7 +173,14 @@ BEGIN
                ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004';
+         
+         -- 1396/10/13 * بدست آوردن ردیف عمومی در جدول تمدید
+         SELECT @FgpbRwno = RWNO
+           FROM dbo.Fighter_Public
+          WHERE RQRO_RQST_RQID = @Rqid
+            AND RECT_CODE = '004';
       END
+      
       ELSE IF EXISTS(
          SELECT *
            FROM dbo.Fighter_Public
@@ -211,7 +219,20 @@ BEGIN
          SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
          EXEC PBL_SAVE_F @X;
+         
+         -- 1396/10/13 * بدست آوردن ردیف عمومی
+         SELECT @FgpbRwno = RWNO
+           FROM dbo.Fighter_Public
+          WHERE RQRO_RQST_RQID = @Rqid
+            AND RECT_CODE = '004';           
       END
+      
+      -- 1396/10/13 * ثبت گزینه ردیف عمومی در جدول تمدید
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = @FgpbRwno
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @OrgnRqid
+         AND RECT_CODE = '004';
       
       -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
       IF EXISTS(

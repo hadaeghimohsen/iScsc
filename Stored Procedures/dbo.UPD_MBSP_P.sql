@@ -35,7 +35,7 @@ BEGIN
       AND f.FILE_NO = @FileNo;
    
    SET @TryValdSbmt = ISNULL(@TryValdSbmt, '002');
-   IF ISNULL(@Days, 0) < 0 SET @Days = 0;
+   IF ISNULL(@Days, 0) < 0 SET @Days = 0; ELSE SET @Days = 0;
    --ELSE SET @Days = ISNULL(@Days, 0);
    IF @StrtDate = @StrtDateTemp
       SET @Days = 0;
