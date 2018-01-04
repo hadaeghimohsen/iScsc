@@ -48,7 +48,8 @@ AS
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
         SET NOCOUNT ON;
-
+       
+       
    -- Insert statements for trigger here
         MERGE dbo.Attendance T
         USING
@@ -59,27 +60,33 @@ AS
                         f.MBCO_RWNO_DNRM ,
                         m.NUMB_OF_ATTN_MONT ,
                         m.SUM_ATTN_MONT_DNRM ,
-                        f.BRTH_DATE_DNRM ,
-                        f.MBSP_RWNO_DNRM ,
+                        fp.BRTH_DATE AS BRTH_DATE_DNRM,
+                        m.RWNO AS MBSP_RWNO_DNRM ,
                         f.NAME_DNRM ,
                         f.CELL_PHON_DNRM ,
-                        f.FGPB_TYPE_DNRM ,
-                        ISNULL(f.MTOD_CODE_DNRM, i.MTOD_CODE_DNRM) AS MTOD_CODE_DNRM ,
-                        ISNULL(f.CTGY_CODE_DNRM, i.CTGY_CODE_DNRM) AS CTGY_CODE_DNRM ,
+                        fp.[TYPE] AS FGPB_TYPE_DNRM ,
+                        ISNULL(fp.MTOD_CODE, i.MTOD_CODE_DNRM) AS MTOD_CODE_DNRM ,
+                        ISNULL(fp.CTGY_CODE, i.CTGY_CODE_DNRM) AS CTGY_CODE_DNRM ,
                         f.IMAG_RCDC_RCID_DNRM ,
                         f.IMAG_RWNO_DNRM ,
                         f.FNGR_PRNT_DNRM ,
                         f.DEBT_DNRM ,
-                        f.BUFE_DEBT_DNTM ,
-                        f.MBSP_STRT_DATE ,
-                        f.MBSP_END_DATE ,
+                        --f.BUFE_DEBT_DNTM ,
+                        0 AS BUFE_DEBT_DNTM,
+                        m.STRT_DATE AS MBSP_STRT_DATE,
+                        m.END_DATE AS MBSP_END_DATE,
                         i.ATTN_TYPE
               FROM      INSERTED i ,
-                        dbo.Fighter f
-                        LEFT OUTER JOIN dbo.Member_Ship m ON m.FIGH_FILE_NO = f.FILE_NO
-                                                             AND m.RWNO = f.MBSP_RWNO_DNRM
+                        dbo.Fighter f,
+                        dbo.Fighter_Public fp
+                        LEFT OUTER JOIN dbo.Member_Ship m ON m.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                                                             AND m.FGPB_RWNO_DNRM = fp.RWNO
+                                                             AND m.FGPB_RECT_CODE_DNRM = '004'
                                                              AND m.RECT_CODE = '004'
-              WHERE     i.FIGH_FILE_NO = f.FILE_NO
+              WHERE i.FIGH_FILE_NO = f.FILE_NO
+                AND f.FILE_NO = fp.FIGH_FILE_NO
+                AND m.RWNO = i.MBSP_RWNO_DNRM
+                AND fp.RECT_CODE = '004'
             ) S
         ON ( T.CLUB_CODE = S.CLUB_CODE
              AND T.FIGH_FILE_NO = S.FIGH_FILE_NO
@@ -93,12 +100,11 @@ AS
             --,CODE      = dbo.Gnrt_Nvid_U()
                     ,
                     T.ENTR_TIME = CAST(GETDATE() AS TIME(0)) ,
-                    T.MBSP_RECT_CODE_DNRM = CASE WHEN /*EXISTS (SELECT * FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No AND*/ S.FGPB_TYPE_DNRM NOT IN (
-                                                      '002' /*, '003'*/ )
+                    /*T.MBSP_RECT_CODE_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN ( '002' )
                                                  THEN '004'
                                                  ELSE NULL
                                             END ,
-                    T.MBSP_RWNO_DNRM = /*(SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No)*/ S.MBSP_RWNO_DNRM ,
+                    T.MBSP_RWNO_DNRM = S.MBSP_RWNO_DNRM ,*/
                     T.NAME_DNRM = S.NAME_DNRM ,
                     T.CELL_PHON_DNRM = S.CELL_PHON_DNRM ,
                     T.FGPB_TYPE_DNRM = S.FGPB_TYPE_DNRM ,
@@ -133,6 +139,10 @@ AS
                                        ELSE NULL
                                   END;
 
+        DECLARE @MbspRwno SMALLINT;
+        SELECT @MbspRwno = Inserted.MBSP_RWNO_DNRM
+          FROM Inserted;
+          
    -- ثبت جلسه برای هنرجویان عادی
    -- در جدول عضویت مشترکین
         IF EXISTS ( SELECT  *
@@ -150,7 +160,8 @@ AS
                                     Attendance A ,
                                     INSERTED i
                             WHERE   f.FILE_NO = m.FIGH_FILE_NO
-                                    AND f.MBSP_RWNO_DNRM = m.RWNO
+                                    --AND f.MBSP_RWNO_DNRM = m.RWNO
+                                    AND m.RWNO = @MbspRwno
                                     AND m.RECT_CODE = '004'
                                     AND A.FIGH_FILE_NO = m.FIGH_FILE_NO
                                     AND A.MBSP_RWNO_DNRM = m.RWNO
@@ -170,7 +181,9 @@ AS
                                                               + CAST(FIGH_FILE_NO AS VARCHAR(14))
                                                               + '"/>').query('//Attendance').value('(Attendance/@d)[1]',
                                                               'BIGINT')
-                        WHERE   EXISTS ( SELECT *
+                        WHERE RWNO = @mbsprwno 
+                          AND RECT_CODE = '004'
+                          AND EXISTS ( SELECT *
                                          FROM   INSERTED I ,
                                                 Attendance A
                                          WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
@@ -197,211 +210,212 @@ AS
  
  
    -- ثبت جلسه برای هنرجویان جلسه ای
-        IF EXISTS ( SELECT  *
-                    FROM    Fighter F ,
-                            Inserted I
-                    WHERE   F.FILE_NO = I.FIGH_FILE_NO
-                            AND F.FGPB_TYPE_DNRM IN ( '008', '009' )
-                            AND F.CONF_STAT = '002' )
-            BEGIN
-      -- ثبت جلسه حضور برای هنرجویان تک روز چند جلسه ای
-                IF EXISTS ( SELECT  *
-                            FROM    Fighter F ,
-                                    Member_Ship M ,
-                                    inserted I
-                            WHERE   F.FILE_NO = M.FIGH_FILE_NO
-                                    AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
-                                    AND F.MBSP_RWNO_DNRM = M.RWNO
-                                    AND M.RECT_CODE = '004'
-                                    AND DATEDIFF(DAY, M.STRT_DATE, M.END_DATE) = 0 )
-                    BEGIN
-                        IF EXISTS ( SELECT  *
-                                    FROM    Fighter F ,
-                                            Member_Ship M ,
-                                            [Session] S ,
-                                            inserted I
-                                    WHERE   F.FILE_NO = M.FIGH_FILE_NO
-                                            AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
-                                            AND F.MBSP_RWNO_DNRM = M.RWNO
-                                            AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
-                                            AND M.RECT_CODE = S.MBSP_RECT_CODE
-                                            AND M.RWNO = S.MBSP_RWNO
-                                            AND M.RECT_CODE = '004'
-                                            AND DATEDIFF(DAY, M.STRT_DATE,
-                                                         M.END_DATE) = 0
-                                            AND S.TOTL_SESN > ISNULL(S.SUM_MEET_HELD_DNRM,
-                                                              0) )
-                            BEGIN
-                                MERGE Session_Meeting T
-                                USING
-                                    ( SELECT    S.MBSP_FIGH_FILE_NO ,
-                                                S.MBSP_RECT_CODE ,
-                                                S.MBSP_RWNO ,
-                                                S.EXPN_CODE ,
-                                                S.SNID ,
-                                                0 AS RWNO ,
-                                                '002' AS VALD_TYPE ,
-                                                GETDATE() AS STRT_TIME ,
-                                                DATEADD(MINUTE, 90, GETDATE()) AS END_TIME ,
-                                                1 AS NUMB_OF_GAYS
-                                      FROM      Fighter F ,
-                                                Member_Ship M ,
-                                                [Session] S ,
-                                                Inserted I
-                                      WHERE     F.FILE_NO = I.FIGH_FILE_NO
-                                                AND F.FILE_NO = M.FIGH_FILE_NO
-                                                AND F.MBSP_RWNO_DNRM = M.RWNO
-                                                AND M.RECT_CODE = '004'
-                                                AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
-                                                AND M.RECT_CODE = S.MBSP_RECT_CODE
-                                                AND M.RWNO = S.MBSP_RWNO
-                                    ) S
-                                ON ( T.MBSP_FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
-                                     AND T.MBSP_RECT_CODE = S.MBSP_RECT_CODE
-                                     AND T.MBSP_RWNO = S.MBSP_RWNO
-                                     AND T.EXPN_CODE = S.EXPN_CODE
-                                     AND T.SESN_SNID = S.SNID
-                                   )
-                                WHEN NOT MATCHED THEN
-                                    INSERT ( MBSP_FIGH_FILE_NO ,
-                                             MBSP_RECT_CODE ,
-                                             MBSP_RWNO ,
-                                             EXPN_CODE ,
-                                             SESN_SNID ,
-                                             RWNO ,
-                                             VALD_TYPE ,
-                                             STRT_TIME ,
-                                             END_TIME ,
-                                             NUMB_OF_GAYS
-                                           )
-                                    VALUES ( S.MBSP_FIGH_FILE_NO ,
-                                             S.MBSP_RECT_CODE ,
-                                             S.MBSP_RWNO ,
-                                             S.EXPN_CODE ,
-                                             S.SNID ,
-                                             0 ,
-                                             '002' ,
-                                             GETDATE() ,
-                                             DATEADD(MINUTE, 90, GETDATE()) ,
-                                             1
-                                           )
-                                WHEN MATCHED THEN
-                                    UPDATE SET
-                                             NUMB_OF_GAYS = S.NUMB_OF_GAYS + 1;
+      --  IF EXISTS ( SELECT  *
+      --              FROM    Fighter F ,
+      --                      Inserted I
+      --              WHERE   F.FILE_NO = I.FIGH_FILE_NO
+      --                      AND F.FGPB_TYPE_DNRM IN ( '008', '009' )
+      --                      AND F.CONF_STAT = '002' )
+      --      BEGIN
+      ---- ثبت جلسه حضور برای هنرجویان تک روز چند جلسه ای
+      --          IF EXISTS ( SELECT  *
+      --                      FROM    Fighter F ,
+      --                              Member_Ship M ,
+      --                              inserted I
+      --                      WHERE   F.FILE_NO = M.FIGH_FILE_NO
+      --                              AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                              --AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                              AND m.RWNO = @MbspRwno
+      --                              AND M.RECT_CODE = '004'
+      --                              AND DATEDIFF(DAY, M.STRT_DATE, M.END_DATE) = 0 )
+      --              BEGIN
+      --                  IF EXISTS ( SELECT  *
+      --                              FROM    Fighter F ,
+      --                                      Member_Ship M ,
+      --                                      [Session] S ,
+      --                                      inserted I
+      --                              WHERE   F.FILE_NO = M.FIGH_FILE_NO
+      --                                      AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                                      AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                                      AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --                                      AND M.RECT_CODE = S.MBSP_RECT_CODE
+      --                                      AND M.RWNO = S.MBSP_RWNO
+      --                                      AND M.RECT_CODE = '004'
+      --                                      AND DATEDIFF(DAY, M.STRT_DATE,
+      --                                                   M.END_DATE) = 0
+      --                                      AND S.TOTL_SESN > ISNULL(S.SUM_MEET_HELD_DNRM,
+      --                                                        0) )
+      --                      BEGIN
+      --                          MERGE Session_Meeting T
+      --                          USING
+      --                              ( SELECT    S.MBSP_FIGH_FILE_NO ,
+      --                                          S.MBSP_RECT_CODE ,
+      --                                          S.MBSP_RWNO ,
+      --                                          S.EXPN_CODE ,
+      --                                          S.SNID ,
+      --                                          0 AS RWNO ,
+      --                                          '002' AS VALD_TYPE ,
+      --                                          GETDATE() AS STRT_TIME ,
+      --                                          DATEADD(MINUTE, 90, GETDATE()) AS END_TIME ,
+      --                                          1 AS NUMB_OF_GAYS
+      --                                FROM      Fighter F ,
+      --                                          Member_Ship M ,
+      --                                          [Session] S ,
+      --                                          Inserted I
+      --                                WHERE     F.FILE_NO = I.FIGH_FILE_NO
+      --                                          AND F.FILE_NO = M.FIGH_FILE_NO
+      --                                          AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                                          AND M.RECT_CODE = '004'
+      --                                          AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --                                          AND M.RECT_CODE = S.MBSP_RECT_CODE
+      --                                          AND M.RWNO = S.MBSP_RWNO
+      --                              ) S
+      --                          ON ( T.MBSP_FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --                               AND T.MBSP_RECT_CODE = S.MBSP_RECT_CODE
+      --                               AND T.MBSP_RWNO = S.MBSP_RWNO
+      --                               AND T.EXPN_CODE = S.EXPN_CODE
+      --                               AND T.SESN_SNID = S.SNID
+      --                             )
+      --                          WHEN NOT MATCHED THEN
+      --                              INSERT ( MBSP_FIGH_FILE_NO ,
+      --                                       MBSP_RECT_CODE ,
+      --                                       MBSP_RWNO ,
+      --                                       EXPN_CODE ,
+      --                                       SESN_SNID ,
+      --                                       RWNO ,
+      --                                       VALD_TYPE ,
+      --                                       STRT_TIME ,
+      --                                       END_TIME ,
+      --                                       NUMB_OF_GAYS
+      --                                     )
+      --                              VALUES ( S.MBSP_FIGH_FILE_NO ,
+      --                                       S.MBSP_RECT_CODE ,
+      --                                       S.MBSP_RWNO ,
+      --                                       S.EXPN_CODE ,
+      --                                       S.SNID ,
+      --                                       0 ,
+      --                                       '002' ,
+      --                                       GETDATE() ,
+      --                                       DATEADD(MINUTE, 90, GETDATE()) ,
+      --                                       1
+      --                                     )
+      --                          WHEN MATCHED THEN
+      --                              UPDATE SET
+      --                                       NUMB_OF_GAYS = S.NUMB_OF_GAYS + 1;
            
-                            END;
-                        ELSE
-                            BEGIN
-                                RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
-                                RETURN;
-                            END;
+      --                      END;
+      --                  ELSE
+      --                      BEGIN
+      --                          RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
+      --                          RETURN;
+      --                      END;
          
-                    END;
-                ELSE -- ثبت جلسه حضور برای هنرجویان چندجلسه ای
-                    IF EXISTS ( SELECT  *
-                                FROM    Fighter F ,
-                                        Member_Ship M ,
-                                        inserted I
-                                WHERE   F.FILE_NO = M.FIGH_FILE_NO
-                                        AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
-                                        AND F.MBSP_RWNO_DNRM = M.RWNO
-                                        AND M.RECT_CODE = '004'
-                                        AND DATEDIFF(DAY, M.STRT_DATE,
-                                                     M.END_DATE) >= 1 )
-                        BEGIN
-                            IF EXISTS ( SELECT  *
-                                        FROM    Fighter F ,
-                                                Member_Ship M ,
-                                                [Session] S ,
-                                                Inserted I
-                                        WHERE   F.FILE_NO = M.FIGH_FILE_NO
-                                                AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
-                                                AND F.MBSP_RWNO_DNRM = M.RWNO
-                                                AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
-                                                AND M.RECT_CODE = S.MBSP_RECT_CODE
-                                                AND M.RWNO = S.MBSP_RWNO
-                                                AND M.RECT_CODE = '004'
-                                                AND DATEDIFF(DAY, M.STRT_DATE,
-                                                             M.END_DATE) >= 1
-                                                AND ( S.TOTL_SESN + 2 ) > ISNULL(S.SUM_MEET_HELD_DNRM,
-                                                              0) )
-                                BEGIN
-                                    IF ( EXISTS ( SELECT    *
-                                                  FROM      Settings S ,
-                                                            Fighter F ,
-                                                            inserted I
-                                                  WHERE     S.CLUB_CODE = F.CLUB_CODE_DNRM
-                                                            AND F.FILE_NO = I.FIGH_FILE_NO
-                                                            AND S.MORE_ATTN_SESN = '002' -- تک جلسه در روز
-                                       )
-                                         AND NOT EXISTS ( SELECT
-                                                              *
-                                                          FROM
-                                                              Fighter F ,
-                                                              Member_Ship M ,
-                                                              [Session] S ,
-                                                              Session_Meeting Sm ,
-                                                              Inserted I
-                                                          WHERE
-                                                              F.FILE_NO = I.FIGH_FILE_NO
-                                                              AND F.FILE_NO = M.FIGH_FILE_NO
-                                                              AND F.MBSP_RWNO_DNRM = M.RWNO
-                                                              AND M.RECT_CODE = '004'
-                                                              AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
-                                                              AND M.RECT_CODE = S.MBSP_RECT_CODE
-                                                              AND M.RWNO = S.MBSP_RWNO
-                                                              AND S.SNID = Sm.SESN_SNID
-                                                              AND S.MBSP_FIGH_FILE_NO = Sm.MBSP_FIGH_FILE_NO
-                                                              AND S.MBSP_RECT_CODE = Sm.MBSP_RECT_CODE
-                                                              AND S.MBSP_RWNO = Sm.MBSP_RWNO
-                                                              AND CAST(Sm.ACTN_DATE AS DATE) = CAST(GETDATE() AS DATE) )
-                                       )
-                                        OR EXISTS ( SELECT  *
-                                                    FROM    Settings S ,
-                                                            Fighter F ,
-                                                            inserted I
-                                                    WHERE   S.CLUB_CODE = F.CLUB_CODE_DNRM
-                                                            AND F.FILE_NO = I.FIGH_FILE_NO
-                                                            AND S.MORE_ATTN_SESN = '001' -- چند جلسه در روز
-            )
-                                        BEGIN
-                                            UPDATE  dbo.Member_Ship
-                                            SET     SUM_ATTN_MONT_DNRM = ISNULL(SUM_ATTN_MONT_DNRM,
-                                                              0) + 1
-                                            WHERE   EXISTS ( SELECT
-                                                              *
-                                                             FROM
-                                                              INSERTED I ,
-                                                              Attendance A
-                                                             WHERE
-                                                              dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
-                                                              AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
-                                                              AND dbo.Member_Ship.RECT_CODE = A.MBSP_RECT_CODE_DNRM
-                                                              AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
-                                                              AND dbo.Member_Ship.RECT_CODE = '004'
-                                                              AND CAST(A.ATTN_DATE AS DATE) = CAST(/*GETDATE()*/ I.ATTN_DATE AS DATE)
-                                                              AND A.ENTR_TIME IS NOT NULL
-                                                              AND ( ( A.ATTN_TYPE <> '002'
-                                                              AND A.EXIT_TIME IS NULL
-                                                              )
-                                                              OR ( A.ATTN_TYPE = '002'
-                                                              AND A.EXIT_TIME IS NOT NULL
-                                                              )
-                                                              ) );                            
-                                        END;
-                                    ELSE
-                                        BEGIN
-                                            RAISERROR(N'شما هنرجوی عزیز در طول روز فقط یک جلسه با مربی قادر به تمرین می باشید', 16, 1);
-                                            RETURN;
-                                        END;
-                                END;
-                            ELSE
-                                BEGIN
-                                    RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
-                                    RETURN;
-                                END;         
-                        END;
-            END;
+      --              END;
+      --          ELSE -- ثبت جلسه حضور برای هنرجویان چندجلسه ای
+      --              IF EXISTS ( SELECT  *
+      --                          FROM    Fighter F ,
+      --                                  Member_Ship M ,
+      --                                  inserted I
+      --                          WHERE   F.FILE_NO = M.FIGH_FILE_NO
+      --                                  AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                                  AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                                  AND M.RECT_CODE = '004'
+      --                                  AND DATEDIFF(DAY, M.STRT_DATE,
+      --                                               M.END_DATE) >= 1 )
+      --                  BEGIN
+      --                      IF EXISTS ( SELECT  *
+      --                                  FROM    Fighter F ,
+      --                                          Member_Ship M ,
+      --                                          [Session] S ,
+      --                                          Inserted I
+      --                                  WHERE   F.FILE_NO = M.FIGH_FILE_NO
+      --                                          AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                                          AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                                          AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --                                          AND M.RECT_CODE = S.MBSP_RECT_CODE
+      --                                          AND M.RWNO = S.MBSP_RWNO
+      --                                          AND M.RECT_CODE = '004'
+      --                                          AND DATEDIFF(DAY, M.STRT_DATE,
+      --                                                       M.END_DATE) >= 1
+      --                                          AND ( S.TOTL_SESN + 2 ) > ISNULL(S.SUM_MEET_HELD_DNRM,
+      --                                                        0) )
+      --                          BEGIN
+      --                              IF ( EXISTS ( SELECT    *
+      --                                            FROM      Settings S ,
+      --                                                      Fighter F ,
+      --                                                      inserted I
+      --                                            WHERE     S.CLUB_CODE = F.CLUB_CODE_DNRM
+      --                                                      AND F.FILE_NO = I.FIGH_FILE_NO
+      --                                                      AND S.MORE_ATTN_SESN = '002' -- تک جلسه در روز
+      --                                 )
+      --                                   AND NOT EXISTS ( SELECT
+      --                                                        *
+      --                                                    FROM
+      --                                                        Fighter F ,
+      --                                                        Member_Ship M ,
+      --                                                        [Session] S ,
+      --                                                        Session_Meeting Sm ,
+      --                                                        Inserted I
+      --                                                    WHERE
+      --                                                        F.FILE_NO = I.FIGH_FILE_NO
+      --                                                        AND F.FILE_NO = M.FIGH_FILE_NO
+      --                                                        AND F.MBSP_RWNO_DNRM = M.RWNO
+      --                                                        AND M.RECT_CODE = '004'
+      --                                                        AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --                                                        AND M.RECT_CODE = S.MBSP_RECT_CODE
+      --                                                        AND M.RWNO = S.MBSP_RWNO
+      --                                                        AND S.SNID = Sm.SESN_SNID
+      --                                                        AND S.MBSP_FIGH_FILE_NO = Sm.MBSP_FIGH_FILE_NO
+      --                                                        AND S.MBSP_RECT_CODE = Sm.MBSP_RECT_CODE
+      --                                                        AND S.MBSP_RWNO = Sm.MBSP_RWNO
+      --                                                        AND CAST(Sm.ACTN_DATE AS DATE) = CAST(GETDATE() AS DATE) )
+      --                                 )
+      --                                  OR EXISTS ( SELECT  *
+      --                                              FROM    Settings S ,
+      --                                                      Fighter F ,
+      --                                                      inserted I
+      --                                              WHERE   S.CLUB_CODE = F.CLUB_CODE_DNRM
+      --                                                      AND F.FILE_NO = I.FIGH_FILE_NO
+      --                                                      AND S.MORE_ATTN_SESN = '001' -- چند جلسه در روز
+      --      )
+      --                                  BEGIN
+      --                                      UPDATE  dbo.Member_Ship
+      --                                      SET     SUM_ATTN_MONT_DNRM = ISNULL(SUM_ATTN_MONT_DNRM,
+      --                                                        0) + 1
+      --                                      WHERE   EXISTS ( SELECT
+      --                                                        *
+      --                                                       FROM
+      --                                                        INSERTED I ,
+      --                                                        Attendance A
+      --                                                       WHERE
+      --                                                        dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
+      --                                                        AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
+      --                                                        AND dbo.Member_Ship.RECT_CODE = A.MBSP_RECT_CODE_DNRM
+      --                                                        AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                                                        AND dbo.Member_Ship.RECT_CODE = '004'
+      --                                                        AND CAST(A.ATTN_DATE AS DATE) = CAST(/*GETDATE()*/ I.ATTN_DATE AS DATE)
+      --                                                        AND A.ENTR_TIME IS NOT NULL
+      --                                                        AND ( ( A.ATTN_TYPE <> '002'
+      --                                                        AND A.EXIT_TIME IS NULL
+      --                                                        )
+      --                                                        OR ( A.ATTN_TYPE = '002'
+      --                                                        AND A.EXIT_TIME IS NOT NULL
+      --                                                        )
+      --                                                        ) );                            
+      --                                  END;
+      --                              ELSE
+      --                                  BEGIN
+      --                                      RAISERROR(N'شما هنرجوی عزیز در طول روز فقط یک جلسه با مربی قادر به تمرین می باشید', 16, 1);
+      --                                      RETURN;
+      --                                  END;
+      --                          END;
+      --                      ELSE
+      --                          BEGIN
+      --                              RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
+      --                              RETURN;
+      --                          END;         
+      --                  END;
+      --      END;
     END;
 GO
 SET QUOTED_IDENTIFIER ON

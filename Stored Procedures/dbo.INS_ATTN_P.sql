@@ -12,7 +12,8 @@ CREATE PROCEDURE [dbo].[INS_ATTN_P]
 	@Figh_File_No BIGINT,
 	@Attn_Date DATE,
 	@CochFileNo BIGINT,	
-	@Attn_TYPE VARCHAR(3)
+	@Attn_TYPE VARCHAR(3),
+	@MbspRwno SMALLINT
 AS
 BEGIN
    BEGIN TRY
@@ -60,6 +61,7 @@ BEGIN
          END
       END
    END
+   
    IF @Attn_Date IS NULL
       SET @Attn_Date = GETDATE();
    IF NOT EXISTS(SELECT * FROM Fighter WHERE CONF_STAT = '002' AND FILE_NO = @Figh_File_No)
@@ -67,6 +69,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
+   
    
    IF @Attn_TYPE = '005' -- حضوری با مربی دیگر بدون قید و شرط
    BEGIN
@@ -80,7 +83,8 @@ BEGIN
    END
    ELSE -- برای بقیه حالت ها
    BEGIN
-      SELECT @CochFileNo = COCH_FILE_NO_DNRM
+      SELECT @CochFileNo = COCH_FILE_NO_DNRM, 
+             @MbspRwno   = ISNULL(@MbspRwno, MBSP_RWNO_DNRM)
         FROM dbo.Fighter
        WHERE FILE_NO = @Figh_File_No
          AND FGPB_TYPE_DNRM NOT IN ('002', '003');
@@ -109,7 +113,8 @@ BEGIN
      FROM dbo.Fighter F, dbo.D$SXDC sxdc, dbo.Member_Ship M
     WHERE F.FILE_NO = @Figh_File_No
       AND F.FILE_NO = M.FIGH_FILE_NO
-      AND F.MBSP_RWNO_DNRM = M.RWNO
+      --AND F.MBSP_RWNO_DNRM = M.RWNO
+      AND m.RWNO = @MbspRwno
       AND M.RECT_CODE = '004'
       AND F.SEX_TYPE_DNRM = sxdc.VALU;
    
@@ -129,6 +134,7 @@ BEGIN
                );
    END;
    
+   -- بررسی کردن گزینه بلوکه کردن
    IF EXISTS(
       SELECT *
         FROM dbo.Fighter f, dbo.Member_Ship m
@@ -168,7 +174,7 @@ BEGIN
          AND F.FGPB_TYPE_DNRM IN ( '001', '005', '006' )
          AND M.TYPE = '001'
          AND M.RECT_CODE = '004'
-         AND M.RWNO = F.MBSP_RWNO_DNRM
+         AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
          AND CAST(M.END_DATE AS DATE) < CAST(/*GETDATE()*/@Attn_Date AS DATE)
    )
    BEGIN
@@ -194,7 +200,7 @@ BEGIN
          AND M.FIGH_FILE_NO = F.FILE_NO
          AND M.TYPE IN ( '001', '005', '006' )
          AND M.RECT_CODE = '004'
-         AND M.RWNO = F.MBSP_RWNO_DNRM
+         AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
          --AND CAST(M.END_DATE AS DATE) >= CAST(GETDATE() AS DATE)
          AND ISNULL(m.NUMB_OF_ATTN_MONT, 0) > 0
          AND ISNULL(M.NUMB_OF_ATTN_MONT, 0) <= ISNULL(M.SUM_ATTN_MONT_DNRM, 0) /*- 1*/
@@ -261,7 +267,8 @@ BEGIN
          SELECT *
            FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Attendance A
           WHERE F.FILE_NO = M.FIGH_FILE_NO
-            AND F.MBSP_RWNO_DNRM = M.RWNO
+            --AND F.MBSP_RWNO_DNRM = M.RWNO
+            AND m.RWNO = @MbspRwno
             AND M.RECT_CODE = '004'
             AND M.FIGH_FILE_NO = A.FIGH_FILE_NO
             AND M.RWNO = A.MBSP_RWNO_DNRM
@@ -290,16 +297,21 @@ BEGIN
    IF @Attn_TYPE NOT IN ('004', '005') AND
      EXISTS(
       SELECT *
-        FROM dbo.Fighter f, dbo.Club_Method cm, dbo.Club_Method_Weekday cmw
-       WHERE f.FILE_NO = @Figh_File_No       
-         AND F.FGPB_TYPE_DNRM IN ('001', '005', '006')
-         AND F.CBMT_CODE_DNRM = Cm.CODE
+        FROM dbo.Member_Ship mb, dbo.Fighter_Public f, dbo.Club_Method cm, dbo.Club_Method_Weekday cmw
+       WHERE f.FIGH_FILE_NO = @Figh_File_No       
+         AND mb.FIGH_FILE_NO = f.FIGH_FILE_NO
+         AND mb.FGPB_RWNO_DNRM = f.RWNO
+         AND mb.FGPB_RECT_CODE_DNRM = f.RECT_CODE         
+         AND mb.RWNO = @MbspRwno
+         AND F.[TYPE] IN ('001', '005', '006')
+         AND F.CBMT_CODE = Cm.CODE
          AND Cm.CODE = cmw.CBMT_CODE
          AND NOT EXISTS(
             SELECT *
               FROM dbo.Attendance a
-             WHERE a.FIGH_FILE_NO = f.FILE_NO
-               AND f.MBSP_RWNO_DNRM = a.MBSP_RWNO_DNRM
+             WHERE a.FIGH_FILE_NO = f.FIGH_FILE_NO
+               --AND f.MBSP_RWNO_DNRM = a.MBSP_RWNO_DNRM
+               AND a.MBSP_RWNO_DNRM = @MbspRwno
                AND a.MBSP_RECT_CODE_DNRM = '004'
                AND a.ENTR_TIME IS NULL
          )
@@ -330,9 +342,9 @@ BEGIN
    IF @Attn_Type NOT IN ('005')
    BEGIN
       DECLARE @DebtDnrm BIGINT
-		     ,@DebtChckStat VARCHAR(3);
+		       ,@DebtChckStat VARCHAR(3);
       SELECT @DebtDnrm = DEBT_DNRM
-			,@DebtChckStat = s.DEBT_CHCK_STAT
+			   ,@DebtChckStat = s.DEBT_CHCK_STAT
         FROM dbo.Fighter f, dbo.Settings s
        WHERE f.FILE_NO = @Figh_File_No
          AND f.CLUB_CODE_DNRM = s.CLUB_CODE;
@@ -343,13 +355,13 @@ BEGIN
          DECLARE @StrtDate DATE
                 ,@NumbOfMontDnrm INT
                 ,@NumbOfDayDnrm INT
-                ,@MbspRwno SMALLINT
+                ,@TempMbspRwno SMALLINT
                 ,@TotlAttn INT
                 ,@Rqid BIGINT
                 ,@Amnt BIGINT;
          
          SELECT TOP 1 
-               @MbspRwno = M.RWNO,
+               @TempMbspRwno = M.RWNO,
                @StrtDate = M.STRT_DATE, 
                @Rqid = R.RQID, 
                @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
@@ -358,7 +370,8 @@ BEGIN
            FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Request R
           WHERE F.FILE_NO = @Figh_File_No
             AND F.FILE_NO = M.FIGH_FILE_NO
-            AND F.MBSP_RWNO_DNRM = M.RWNO
+            --AND F.MBSP_RWNO_DNRM = M.RWNO
+            AND m.RWNO = @MbspRwno
             AND M.RECT_CODE = '004'
             AND R.RQID = M.RQRO_RQST_RQID
             AND R.RQTP_CODE = '009' -- درخواست تمدید باشگاه
@@ -368,7 +381,7 @@ BEGIN
          
          IF @MbspRwno IS NULL OR @MbspRwno = 0
             SELECT TOP 1 
-                  @MbspRwno = 1,
+                  @TempMbspRwno = 1,
                   @StrtDate = M.STRT_DATE, 
                   @Rqid = R.RQID, 
                   @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
@@ -430,7 +443,7 @@ BEGIN
                   FROM dbo.Attendance 
                  WHERE FIGH_FILE_NO = @Figh_File_No 
                    AND MBSP_RECT_CODE_DNRM = '004' 
-                   AND MBSP_RWNO_DNRM >= @MbspRwno 
+                   AND MBSP_RWNO_DNRM >= @TempMbspRwno 
                    AND EXIT_TIME IS NOT NULL
                    AND ATTN_STAT = '002') + 1
             BEGIN
@@ -463,6 +476,7 @@ BEGIN
      FROM Attendance
     WHERE FIGH_FILE_NO = @Figh_File_No
       AND CLUB_CODE = @Club_Code
+      AND MBSP_RWNO_DNRM = @MbspRwno
       AND ENTR_TIME IS NOT NULL
       AND EXIT_TIME IS NULL;
    
@@ -474,7 +488,8 @@ BEGIN
         FROM Fighter F, Member_Ship M
        WHERE F.FILE_NO = @Figh_File_No
          AND F.FILE_NO = M.FIGH_FILE_NO
-         AND F.MBSP_RWNO_DNRM = M.RWNO
+         --AND F.MBSP_RWNO_DNRM = M.RWNO
+         AND m.RWNO = @MbspRwno
          AND M.RECT_CODE = '004'
          AND F.FGPB_TYPE_DNRM = '008'
          AND F.CONF_STAT = '002'
@@ -506,8 +521,8 @@ BEGIN
    -- پایان دسترسی    
    -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
    IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
-      INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM)
-      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode);
+      INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM)
+      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004');
    ELSE
    BEGIN
       -- 1396/08/08 * برای محاسبه ساعت خروج واقعی
