@@ -75,7 +75,8 @@ AS
                         0 AS BUFE_DEBT_DNTM,
                         m.STRT_DATE AS MBSP_STRT_DATE,
                         m.END_DATE AS MBSP_END_DATE,
-                        i.ATTN_TYPE
+                        i.ATTN_TYPE,
+                        i.ATTN_DESC
               FROM      INSERTED i ,
                         dbo.Fighter f,
                         dbo.Fighter_Public fp
@@ -136,7 +137,7 @@ AS
                                        THEN N'ثبت جلسه حضوری با همراه با کسر جلسه از اعضا'
                                        WHEN S.ATTN_TYPE = '008'
                                        THEN N'ثبت جلسه حضوری با همراه بدون کسر جلسه از اعضا'
-                                       ELSE NULL
+                                       ELSE s.ATTN_DESC
                                   END;
 
         DECLARE @MbspRwno SMALLINT;
@@ -252,7 +253,7 @@ AS
       --                                          S.MBSP_RECT_CODE ,
       --                                          S.MBSP_RWNO ,
       --                                          S.EXPN_CODE ,
-      --                                          S.SNID ,
+     --                                          S.SNID ,
       --                                          0 AS RWNO ,
       --                                          '002' AS VALD_TYPE ,
       --                                          GETDATE() AS STRT_TIME ,
@@ -317,7 +318,7 @@ AS
       --                                  Member_Ship M ,
       --                                  inserted I
       --                          WHERE   F.FILE_NO = M.FIGH_FILE_NO
-      --                                  AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
+      --                         AND M.FIGH_FILE_NO = I.FIGH_FILE_NO
       --                                  AND F.MBSP_RWNO_DNRM = M.RWNO
       --                                  AND M.RECT_CODE = '004'
       --                                  AND DATEDIFF(DAY, M.STRT_DATE,

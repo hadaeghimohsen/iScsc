@@ -518,7 +518,6 @@ BEGIN
       END
    END
    
-   -- پایان دسترسی    
    -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
    IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM)
@@ -526,9 +525,10 @@ BEGIN
    ELSE
    BEGIN
       -- 1396/08/08 * برای محاسبه ساعت خروج واقعی
-      DECLARE @ClasTime INT, @EntrTime TIME(0);
+      DECLARE @ClasTime INT, @EntrTime TIME(0), @CbmtTimeStat VARCHAR(3);
       SELECT TOP 1 @ClasTime = cm.CLAS_TIME
             ,@EntrTime = a.ENTR_TIME
+            ,@CbmtTimeStat = cm.CBMT_TIME_STAT
         FROM dbo.Attendance a, dbo.Club_Method cm
        WHERE a.CLUB_CODE = cm.CLUB_CODE
          AND a.COCH_FILE_NO = cm.COCH_FILE_NO
@@ -542,29 +542,21 @@ BEGIN
                               CAST(DATEADD(MINUTE, ISNULL(@ClasTime, 90),ENTR_TIME) AS TIME(0)) 
                            ELSE CAST(GETDATE() AS TIME(0)) 
                          END
-       WHERE CODE = @AttnCode;      
-      
-      
-      -- پس گرفتن کلید کمد از کاربر اگر سامانه کمد فعال باشد و به صورت اتوماتیک انجام شود
-      --IF EXISTS(SELECT * FROM Settings WHERE DRES_STAT = '002' AND DRES_AUTO = '002' AND CLUB_CODE = @Club_Code)
-      --BEGIN
-      --   DECLARE @DresCode BIGINT
-      --          ,@ClubCode BIGINT;
+       WHERE CODE = @AttnCode;            
+     
+      -- 1396/10/09 * بررسی اینکه آیا بیش از حد مجاز در کلاس بوده
+      IF ISNULL(@CbmtTimeStat, '001') = '002' AND @ClasTime < ( SELECT DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) FROM dbo.Attendance WHERE Code = @AttnCode)
+      BEGIN
+         DECLARE @TempAttnCode BIGINT = dbo.GNRT_NVID_U();
          
-      --   SELECT @DresCode = Da.DRES_CODE
-      --     FROM Dresser_Attendance Da
-      --    WHERE Da.ATTN_CODE = @AttnCode
-      --      AND Da.Lend_Time IS NOT NULL
-      --      AND Da.Tkbk_Time IS NULL
-      --   IF @DresCode IS NOT NULL
-      --      UPDATE Dresser_Attendance
-      --         SET TKBK_TIME = CAST(GETDATE() AS TIME(0))
-      --       WHERE DRES_CODE = @DresCode
-      --         AND ATTN_CODE = @AttnCode
-      --         AND LEND_TIME IS NOT NULL
-      --         AND TKBK_TIME IS NULL;        
-      --END
-      
+         INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC)
+         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه');
+         
+         UPDATE dbo.Attendance
+            SET EXIT_TIME = DATEADD(MINUTE, @ClasTime, GETDATE())
+          WHERE CODE = @TempAttnCode;         
+      END
+           
       IF @AttnDate != CAST(/*GETDATE()*/@Attn_Date AS DATE) AND @Attn_Type != '003' -- خروج بدون حضور مجدد
       BEGIN
          SELECT @AttnCode = NULL, @AttnDate = NULL;
