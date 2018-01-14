@@ -57,10 +57,10 @@ WITH    QXML
             AND rr.FIGH_FILE_NO = f.FILE_NO
             AND 
             (
-               (r.RQTP_CODE = '009' AND rr.RQST_RQID = ms.RQRO_RQST_RQID AND rr.RWNO = ms.RQRO_RWNO) OR 
-               (r.RQTP_CODE = '001' AND ms.RQRO_RQST_RQID = (SELECT rt.RQID FROM dbo.Request rt WHERE r.RQID = rt.RQST_RQID AND rt.RQTP_CODE = '009' AND rt.RQTT_CODE = '004'))               
+               (r.RQTP_CODE = '009' AND rr.RQST_RQID = ms.RQRO_RQST_RQID AND rr.RWNO = ms.RQRO_RWNO AND ms.RECT_CODE = '004') OR 
+               (r.RQTP_CODE = '001' AND rr.RQST_RQID = ms.RQRO_RQST_RQID AND rr.RWNO = ms.RQRO_RWNO AND ms.RECT_CODE = '001')--ms.RQRO_RQST_RQID = (SELECT rt.RQID FROM dbo.Request rt WHERE r.RQID = rt.RQST_RQID AND rt.RQTP_CODE = '009' AND rt.RQTT_CODE = '004'))               
             )
-            AND ms.RECT_CODE = '004'
+            
             AND r.RQST_STAT = '002'
             AND r.RQTP_CODE IN ( '001', '009' )
             
