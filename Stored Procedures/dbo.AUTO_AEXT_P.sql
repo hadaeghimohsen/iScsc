@@ -17,19 +17,20 @@ BEGIN
 	
 	   L$Loop:
 	   DECLARE C$AutoAExtP CURSOR FOR
-	      SELECT CODE, FIGH_FILE_NO, CLUB_CODE
+	      SELECT CODE, FIGH_FILE_NO, CLUB_CODE, A.MBSP_RWNO_DNRM
 	        FROM dbo.Attendance A
 	       WHERE A.EXIT_TIME IS NULL;
    	
 	   DECLARE @Code BIGINT, 
 	           @FileNo BIGINT,
 	           @ClubCode BIGINT,
-	           @AttnDate DATE;
+	           @AttnDate DATE,
+	           @MbspRwno SMALLINT;
    	SET @AttnDate = DATEADD(HH, 1, GETDATE());
    	
 	   OPEN C$AutoAExtP;
 	   FNR_C$AutoAExtP:
-	   FETCH NEXT FROM C$AutoAExtP INTO @Code, @FileNo, @ClubCode;
+	   FETCH NEXT FROM C$AutoAExtP INTO @Code, @FileNo, @ClubCode, @MbspRwno;
    	
 	   IF @@FETCH_STATUS <> 0
 	      GOTO END_C$AutoAExtP;
@@ -38,7 +39,8 @@ BEGIN
    	    @Figh_File_No = @FileNo, -- bigint
    	    @Attn_Date = @AttnDate,
    	    @CochFileNo = NULL,
-   	    @Attn_Type = '003'; -- date   	
+   	    @Attn_Type = '003',
+   	    @MbspRwno = @MbspRwno; -- date   	
    	
    	UPDATE dbo.Session_Meeting
    	   SET END_TIME = GETDATE()

@@ -227,6 +227,11 @@ BEGIN
             AND RECT_CODE = '004';           
       END
       
+      IF @FgpbRwno IS NULL OR @FgpbRwno = 0
+         SELECT @FgpbRwno = FGPB_RWNO_DNRM
+           FROM dbo.Fighter
+          WHERE FILE_NO = @FileNo;
+      
       -- 1396/10/13 * ثبت گزینه ردیف عمومی در جدول تمدید
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @FgpbRwno
