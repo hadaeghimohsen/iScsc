@@ -14,7 +14,8 @@ CREATE PROCEDURE [dbo].[UPD_MTOD_P]
 	@Mtod_Code BIGINT,
 	@Epit_Type VARCHAR(3),
 	@Dflt_Stat VARCHAR(3),
-	@Mtod_Stat VARCHAR(3)
+	@Mtod_Stat VARCHAR(3),
+	@Chck_Attn_Alrm VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -38,6 +39,7 @@ BEGIN
          ,Epit_Type = @Epit_Type
          ,DFLT_STAT = ISNULL(@Dflt_Stat, '001')
          ,MTOD_STAT = @Mtod_Stat
+         ,CHCK_ATTN_ALRM = @Chck_Attn_Alrm
     WHERE CODE = @Code;
 END
 GO
