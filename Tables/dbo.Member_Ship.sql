@@ -22,6 +22,7 @@ CREATE TABLE [dbo].[Member_Ship]
 [SESN_MEET_DATE] [datetime] NULL,
 [SESN_MEET_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SMS_SEND] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -141,7 +142,8 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,RWNO      = (SELECT ISNULL(MAX(RWNO),0) + 1 FROM MEMBER_SHIP WHERE FIGH_FILE_NO = S.FIGH_FILE_NO AND RECT_CODE = S.RECT_CODE/*RQRO_RQST_RQID < S.RQRO_RQST_RQID*/);
+            ,RWNO      = (SELECT ISNULL(MAX(RWNO),0) + 1 FROM MEMBER_SHIP WHERE FIGH_FILE_NO = S.FIGH_FILE_NO AND RECT_CODE = S.RECT_CODE/*RQRO_RQST_RQID < S.RQRO_RQST_RQID*/)
+            ,VALD_TYPE = '002';
 
 END
 ;
@@ -297,4 +299,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت برگذاری جلسه مشاوره', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'SESN_MEET_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ارسال پیامک انجام شود ', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'SMS_SEND'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'آیا دوره معتبر است؟', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'VALD_TYPE'
 GO

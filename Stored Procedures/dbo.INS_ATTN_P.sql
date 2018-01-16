@@ -31,6 +31,15 @@ BEGIN
       RETURN;
    END
    
+   IF EXISTS(SELECT * FROM dbo.Member_Ship WHERE FIGH_FILE_NO = @Figh_File_No AND RWNO = @MbspRwno AND RECT_CODE = '004' AND VALD_TYPE = '001')
+   BEGIN
+      RAISERROR ( N'دوره مورد نظر شما حذف شده است', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END
+   
    DECLARE @Type VARCHAR(3);
    IF @Club_Code IS NULL
    BEGIN
@@ -533,6 +542,7 @@ BEGIN
          AND ms.FIGH_FILE_NO = @Figh_File_No
          AND ms.RWNO = @MbspRwno;
       
+      -- اگر برای ورزش نیازی به نظارت اپراتور وجود ندارد
       IF @ChckAttnAlrm = '002'
          SET @ExitTime = GETDATE();
       ELSE
