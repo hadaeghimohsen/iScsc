@@ -520,8 +520,27 @@ BEGIN
    
    -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
    IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
+   BEGIN
+      -- 1396/10/26 * گزینه مشخص شود که چه ورزشی می باشد      
+      DECLARE @ChckAttnAlrm VARCHAR(3);
+                   
+      SELECT @ChckAttnAlrm = CHCK_ATTN_ALRM
+        FROM dbo.Method m, dbo.Fighter_Public fp, dbo.Member_Ship ms
+       WHERE m.CODE = fp.MTOD_CODE
+         AND fp.RWNO = ms.FGPB_RWNO_DNRM
+         AND fp.RECT_CODE = ms.FGPB_RECT_CODE_DNRM
+         AND fp.FIGH_FILE_NO = ms.FIGH_FILE_NO
+         AND ms.FIGH_FILE_NO = @Figh_File_No
+         AND ms.RWNO = @MbspRwno;
+      
+      IF @ChckAttnAlrm = '002'
+         SET @ExitTime = GETDATE();
+      ELSE
+         SET @ExitTime = NULL;
+         
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM)
       VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004');
+   END
    ELSE
    BEGIN
       -- 1396/08/08 * برای محاسبه ساعت خروج واقعی

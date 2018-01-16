@@ -186,16 +186,21 @@ AS
                           AND RECT_CODE = '004'
                           AND EXISTS ( SELECT *
                                          FROM   INSERTED I ,
-                                                Attendance A
+                                                Attendance A ,
+                                                dbo.Method m
                                          WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
                                                 AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
                                                 AND dbo.Member_Ship.RECT_CODE = A.MBSP_RECT_CODE_DNRM
                                                 AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
                                                 AND dbo.Member_Ship.RECT_CODE = '004'
+                                                AND a.MTOD_CODE_DNRM = m.CODE
                                                 AND CAST(A.ATTN_DATE AS DATE) = CAST(/*GETDATE()*/ I.ATTN_DATE AS DATE)
                                                 AND A.ENTR_TIME IS NOT NULL
                                                 AND ( ( A.ATTN_TYPE <> '002'
                                                         AND A.EXIT_TIME IS NULL
+                                                      )
+                                                      OR ( A.ATTN_TYPE <> '002'
+                                                        AND A.EXIT_TIME IS NOT NULL AND M.CHCK_ATTN_ALRM = '002'
                                                       )
                                                       OR ( A.ATTN_TYPE = '002'
                                                            AND A.EXIT_TIME IS NOT NULL
