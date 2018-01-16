@@ -216,6 +216,12 @@ BEGIN
          SET CONF_STAT = '002'
        WHERE FILE_NO = @FileNo;
       
+      -- 1396/10/26 * ثبت شماره ردیف اطلاعات عمومی هنرجو
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = 1
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @Rqid;
+      
       /*DECLARE @AttnDate DATE;
       SET @AttnDate = GETDATE();
       EXEC INS_ATTN_P @ClubCode, @FileNo, @AttnDate;

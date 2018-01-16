@@ -236,8 +236,8 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
-       WHERE RQRO_RQST_RQID = @OrgnRqid
-         AND RECT_CODE = '004';
+       WHERE RQRO_RQST_RQID = @OrgnRqid;
+         --AND RECT_CODE = '004';
       
       -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
       IF EXISTS(
