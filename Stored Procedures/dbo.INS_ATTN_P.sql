@@ -31,6 +31,15 @@ BEGIN
       RETURN;
    END
    
+   IF ISNULL(@MbspRwno, 0) = 0
+   BEGIN
+      RAISERROR ( N'اعضای گرامی، دوره ای برای شما وجود ندارد یا دوره شما به اتمام رسیده', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END
+   
    IF EXISTS(SELECT * FROM dbo.Member_Ship WHERE FIGH_FILE_NO = @Figh_File_No AND RWNO = @MbspRwno AND RECT_CODE = '004' AND VALD_TYPE = '001')
    BEGIN
       RAISERROR ( N'دوره مورد نظر شما حذف شده است', -- Message text.
@@ -39,6 +48,7 @@ BEGIN
                );
       RETURN;
    END
+   
    
    DECLARE @Type VARCHAR(3);
    IF @Club_Code IS NULL

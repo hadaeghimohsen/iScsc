@@ -71,6 +71,10 @@ END
 GO
 ALTER TABLE [dbo].[Computer_Action] ADD CONSTRAINT [PK_COMA] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'حضور یا عدم حضور منشی پشت سیستم
+اگر مقدار 1 داشته باشد یعنی منشی حضور دارد
+اگر مقدار 2 داشته باشد یعنی منشی حضور ندارد', 'SCHEMA', N'dbo', 'TABLE', N'Computer_Action', 'COLUMN', N'CHCK_ATTN_ALRM'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'بررسی کردن دوبار خوندن اطلاعات هنرجویان', 'SCHEMA', N'dbo', 'TABLE', N'Computer_Action', 'COLUMN', N'CHCK_DOBL_ATTN_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نام کامپیوتر', 'SCHEMA', N'dbo', 'TABLE', N'Computer_Action', 'COLUMN', N'COMP_NAME'
