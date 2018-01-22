@@ -327,8 +327,8 @@ BEGIN
             IF NOT EXISTS (
                SELECT *
                  FROM dbo.Fighter
-                WHERE FILE_NO = @FileNo
-                  AND MTOD_CODE_DNRM = @MtodCode                
+                WHERE FILE_NO = @FileNo                  
+                  AND (MTOD_CODE_DNRM IS NULL OR MTOD_CODE_DNRM = @MtodCode)
             )
             BEGIN
                RAISERROR (N'ساعت کلاسی وارده شده متناسب با سبک هنرجو نمی باشد، لطفا اصلاح کنید' , 16, 1);

@@ -10,7 +10,9 @@ CREATE FUNCTION [dbo].[VF$Last_Info_Deleted_Fighter] (
    @FngrPrnt VARCHAR(20),
    @CellPhon VARCHAR(11),
    @TellPhon VARCHAR(11),
-   @SexType VARCHAR(3)
+   @SexType VARCHAR(3),
+   @ServNo NVARCHAR(50),
+   @GlobCode NVARCHAR(50)
 )RETURNS TABLE 
 AS
 RETURN
@@ -62,6 +64,8 @@ WHERE     (dbo.Fighter_Public.RECT_CODE = '004') AND (dbo.Fighter.CONF_STAT = '0
   AND     (@FngrPrnt IS NULL OR @FngrPrnt = '' OR dbo.Fighter.FNGR_PRNT_DNRM LIKE @FngrPrnt)
   AND     (@CellPhon IS NULL OR @CellPhon = '' OR dbo.Fighter.CELL_PHON_DNRM LIKE N'%' + @CellPhon + N'%')
   AND     (@TellPhon IS NULL OR @TellPhon = '' OR dbo.Fighter.TELL_PHON_DNRM LIKE N'%' + @TellPhon + N'%')
+  AND     (@ServNo   IS NULL OR @ServNo = ''   OR dbo.Fighter.SERV_NO_DNRM   LIKE N'%' + @ServNo + N'%')
+  AND     (@GlobCode IS NULL OR @GlobCode = '' OR dbo.Fighter_Public.GLOB_CODE LIKE N'%' + @GlobCode + N'%')  
   AND     (@SexType IS NULL OR @SexType = '' OR dbo.Fighter.SEX_TYPE_DNRM LIKE @SexType)
 )
 GO
