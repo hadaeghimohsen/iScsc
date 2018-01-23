@@ -100,6 +100,8 @@ BEGIN
       UPDATE 
          SET FGPB_RWNO_DNRM = S.RWNO
             ,NAME_DNRM      = S.FRST_NAME + ', ' + S.LAST_NAME
+            ,FRST_NAME_DNRM = s.FRST_NAME
+            ,LAST_NAME_DNRM = s.LAST_NAME
             ,FATH_NAME_DNRM = S.FATH_NAME
             ,POST_ADRS_DNRM = S.POST_ADRS
             ,SEX_TYPE_DNRM  = S.SEX_TYPE
@@ -128,7 +130,8 @@ BEGIN
             ,CORD_Y_DNRM = S.CORD_Y
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
             ,SERV_NO_DNRM = S.SERV_NO
-            ,NATL_CODE_DNRM = s.NATL_CODE;
+            ,NATL_CODE_DNRM = s.NATL_CODE
+            ,GLOB_CODE_DNRM = s.GLOB_CODE;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -137,6 +140,8 @@ BEGIN
       UPDATE Fighter
          SET FGPB_RWNO_DNRM = NULL
             ,NAME_DNRM      = NULL
+            ,FRST_NAME_DNRM = NULL
+            ,LAST_NAME_DNRM = NULL
             ,FATH_NAME_DNRM = NULL
             ,POST_ADRS_DNRM = NULL
             ,SEX_TYPE_DNRM  = NULL
@@ -166,6 +171,7 @@ BEGIN
             ,MOST_DEBT_CLNG_DNRM = NULL
             ,SERV_NO_DNRM = NULL
             ,NATL_CODE_DNRM = NULL
+            ,GLOB_CODE_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -405,6 +411,8 @@ BEGIN
       UPDATE 
          SET FGPB_RWNO_DNRM = S.RWNO
             ,NAME_DNRM      = S.LAST_NAME + ', ' + S.FRST_NAME
+            ,FRST_NAME_DNRM = s.FRST_NAME
+            ,LAST_NAME_DNRM = S.LAST_NAME
             ,FATH_NAME_DNRM = S.FATH_NAME
             ,POST_ADRS_DNRM = S.POST_ADRS
             ,SEX_TYPE_DNRM  = S.SEX_TYPE
@@ -433,7 +441,8 @@ BEGIN
             ,CORD_Y_DNRM = S.CORD_Y
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
             ,SERV_NO_DNRM = S.SERV_NO
-            ,NATL_CODE_DNRM = s.NATL_CODE;
+            ,NATL_CODE_DNRM = s.NATL_CODE
+            ,GLOB_CODE_DNRM = S.GLOB_CODE;
 END
 ;
 GO

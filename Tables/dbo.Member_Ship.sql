@@ -160,7 +160,6 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
-
    -- Insert statements for trigger here
    MERGE dbo.Member_Ship T
    USING (SELECT * FROM INSERTED) S
@@ -216,9 +215,11 @@ BEGIN
            WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
                             WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
                                   M.TYPE IN ( '001', '004' ) AND
+								          M.VALD_TYPE = '002' AND
                                   M.RECT_CODE    = '004')) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO AND
        S.TYPE IN ('001', '004') AND
+	    S.VALD_TYPE = '002' AND 
        S.RECT_CODE = '004')
    WHEN MATCHED THEN
       UPDATE 
@@ -232,9 +233,11 @@ BEGIN
            WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
                             WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
                                   M.TYPE = '003' AND
+								          m.VALD_TYPE = '002' AND 
                                   M.RECT_CODE    = '004')) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO AND
        S.TYPE = '003' AND
+	    S.VALD_TYPE = '002' AND 
        S.RECT_CODE = '004')
    WHEN MATCHED THEN
       UPDATE 
@@ -246,9 +249,11 @@ BEGIN
            WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
                             WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
                                   M.TYPE = '005' AND
+								          m.VALD_TYPE = '002' AND 
                                   M.RECT_CODE    = '004')) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO AND
        S.TYPE = '005' AND
+	    s.VALD_TYPE = '002' AND 
        S.RECT_CODE = '004')
    WHEN MATCHED THEN
       UPDATE 
@@ -260,9 +265,11 @@ BEGIN
            WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
                             WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
                                   M.TYPE = '006' AND
+								          m.VALD_TYPE = '002' AND 
                                   M.RECT_CODE    = '004')) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO AND
        S.TYPE = '006' AND
+	    s.VALD_TYPE = '002' AND 
        S.RECT_CODE = '004')
    WHEN MATCHED THEN
       UPDATE 
