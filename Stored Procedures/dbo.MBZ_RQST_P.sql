@@ -107,7 +107,8 @@ BEGIN
              ,@NumbOfAttnWeek INT
              ,@AttnDayType VARCHAR(3)
              ,@SumAttnMontDnrm INT
-             ,@SumAttnWeekDnrm INT;
+             ,@SumAttnWeekDnrm INT
+             ,@FgpbRwno INT;
       SET @StrtDate = NULL;
       SET @EndDate = NULL;
       SET @PrntCont = 0;
@@ -132,6 +133,7 @@ BEGIN
             ,@NumbOfAttnWeek = m.NUMB_OF_ATTN_WEEK
             ,@SumAttnMontDnrm = m.SUM_ATTN_MONT_DNRM
             ,@SumAttnWeekDnrm = m.SUM_ATTN_WEEK_DNRM
+            ,@FgpbRwno = m.FGPB_RWNO_DNRM
         FROM dbo.Member_Ship m, dbo.Fighter f
        WHERE f.FILE_NO = m.FIGH_FILE_NO
          AND f.MBSP_RWNO_DNRM = m.RWNO
@@ -147,6 +149,8 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET SUM_ATTN_MONT_DNRM = @SumAttnMontDnrm
             ,SUM_ATTN_WEEK_DNRM = @SumAttnWeekDnrm
+            ,FGPB_RWNO_DNRM = @FgpbRwno
+            ,FGPB_RECT_CODE_DNRM = '004'
        WHERE RQRO_RQST_RQID = @Rqid
          AND RQRO_RWNO = @RqroRwno
          AND FIGH_FILE_NO = @FileNo

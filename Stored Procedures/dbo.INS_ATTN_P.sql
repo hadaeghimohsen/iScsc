@@ -135,6 +135,7 @@ BEGIN
       --AND F.MBSP_RWNO_DNRM = M.RWNO
       AND m.RWNO = @MbspRwno
       AND M.RECT_CODE = '004'
+      AND m.VALD_TYPE = '002'
       AND F.SEX_TYPE_DNRM = sxdc.VALU;
    
    -- پایان مهلت بدهی هنرجو
@@ -161,6 +162,7 @@ BEGIN
          AND f.MBFZ_RWNO_DNRM = m.RWNO
          AND m.RECT_CODE = '004'
          AND f.FILE_NO = @Figh_File_No
+         AND m.VALD_TYPE = '002'
          AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE
    )
    BEGIN
@@ -171,6 +173,7 @@ BEGIN
          AND f.MBFZ_RWNO_DNRM = m.RWNO
          AND m.RECT_CODE = '004'
          AND f.FILE_NO = @Figh_File_No
+         AND m.VALD_TYPE = '002'
          AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE;
          
       SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
@@ -193,6 +196,7 @@ BEGIN
          AND F.FGPB_TYPE_DNRM IN ( '001', '005', '006' )
          AND M.TYPE = '001'
          AND M.RECT_CODE = '004'
+         AND m.VALD_TYPE = '002'
          AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
          AND CAST(M.END_DATE AS DATE) < CAST(/*GETDATE()*/@Attn_Date AS DATE)
    )
@@ -219,6 +223,7 @@ BEGIN
          AND M.FIGH_FILE_NO = F.FILE_NO
          AND M.TYPE IN ( '001', '005', '006' )
          AND M.RECT_CODE = '004'
+         AND m.VALD_TYPE = '002'
          AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
          --AND CAST(M.END_DATE AS DATE) >= CAST(GETDATE() AS DATE)
          AND ISNULL(m.NUMB_OF_ATTN_MONT, 0) > 0
@@ -289,6 +294,7 @@ BEGIN
             --AND F.MBSP_RWNO_DNRM = M.RWNO
             AND m.RWNO = @MbspRwno
             AND M.RECT_CODE = '004'
+            AND m.VALD_TYPE = '002'
             AND M.FIGH_FILE_NO = A.FIGH_FILE_NO
             AND M.RWNO = A.MBSP_RWNO_DNRM
             AND M.RECT_CODE = A.MBSP_RECT_CODE_DNRM    
@@ -325,6 +331,7 @@ BEGIN
          AND F.[TYPE] IN ('001', '005', '006')
          AND F.CBMT_CODE = Cm.CODE
          AND Cm.CODE = cmw.CBMT_CODE
+         AND mb.VALD_TYPE = '002'         
          AND NOT EXISTS(
             SELECT *
               FROM dbo.Attendance a
@@ -391,6 +398,7 @@ BEGIN
             AND F.FILE_NO = M.FIGH_FILE_NO
             --AND F.MBSP_RWNO_DNRM = M.RWNO
             AND m.RWNO = @MbspRwno
+            AND m.VALD_TYPE = '002'
             AND M.RECT_CODE = '004'
             AND R.RQID = M.RQRO_RQST_RQID
             AND R.RQTP_CODE = '009' -- درخواست تمدید باشگاه
@@ -411,6 +419,7 @@ BEGIN
                AND F.FILE_NO = M.FIGH_FILE_NO
                AND R.RQID = Rr.RQST_RQID
                AND Rr.FIGH_FILE_NO = F.FILE_NO
+               AND m.VALD_TYPE = '002'
                AND M.RWNO = 1 -- اولین رکورد تمدید باشگاه
                AND M.RECT_CODE = '004'
                AND R.RQTP_CODE = '001' -- درخواست تمدید باشگاه
@@ -512,6 +521,7 @@ BEGIN
          AND M.RECT_CODE = '004'
          AND F.FGPB_TYPE_DNRM = '008'
          AND F.CONF_STAT = '002'
+         AND m.VALD_TYPE = '002'
          AND DATEDIFF(DAY, M.STRT_DATE, M.END_DATE) = 0
    )
    BEGIN
@@ -550,7 +560,8 @@ BEGIN
          AND fp.RECT_CODE = ms.FGPB_RECT_CODE_DNRM
          AND fp.FIGH_FILE_NO = ms.FIGH_FILE_NO
          AND ms.FIGH_FILE_NO = @Figh_File_No
-         AND ms.RWNO = @MbspRwno;
+         AND ms.RWNO = @MbspRwno
+         AND ms.VALD_TYPE = '002';
       
       -- اگر برای ورزش نیازی به نظارت اپراتور وجود ندارد
       IF @ChckAttnAlrm = '002'
