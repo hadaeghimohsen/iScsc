@@ -98,7 +98,8 @@ BEGIN
       
       -- 1396/05/09 * برای اینکه تعداد جلساتی که در باشگاه حضور پیدا کرده
       UPDATE dbo.Member_Ship
-         SET SUM_ATTN_MONT_DNRM = @SumAttnMontDnrm
+         SET NUMB_OF_ATTN_MONT = NULL
+            ,SUM_ATTN_MONT_DNRM = @SumAttnMontDnrm
             ,SUM_ATTN_WEEK_DNRM = @SumAttnWeekDnrm
             ,FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
@@ -130,6 +131,37 @@ BEGIN
          EXEC dbo.END_RQST_P @X;
       END
       
+      DECLARE @MinMbspRwno SMALLINT,
+              @MaxMbspRwno SMALLINT;
+              
+      SELECT  @MinMbspRwno = MIN(RWNO), @MaxMbspRwno = MAX(RWNO)      
+        FROM dbo.Member_Ship
+       WHERE FIGH_FILE_NO = @FileNo
+         AND RECT_CODE = '004'
+         AND VALD_TYPE = '002'
+         AND CAST(GETDATE() AS DATE) BETWEEN CAST(STRT_DATE AS DATE) AND CAST(END_DATE AS DATE)
+         AND (NUMB_OF_ATTN_MONT = 0 OR NUMB_OF_ATTN_MONT > SUM_ATTN_MONT_DNRM);
+      
+      -- 1396/11/06 * بدست آوردن گزینه هایی که در بلوکه کردن دخیل هستن
+      DECLARE C$Mbsp CURSOR FOR 
+         SELECT RWNO, FGPB_RWNO_DNRM, NUMB_OF_ATTN_MONT, SUM_ATTN_MONT_DNRM
+           FROM dbo.Member_Ship
+          WHERE FIGH_FILE_NO = @FileNo
+            AND RECT_CODE = '004'
+            AND VALD_TYPE = '002'
+            AND CAST(GETDATE() AS DATE) BETWEEN CAST(STRT_DATE AS DATE) AND CAST(END_DATE AS DATE)
+            AND (NUMB_OF_ATTN_MONT = 0 OR NUMB_OF_ATTN_MONT > SUM_ATTN_MONT_DNRM)
+            AND RWNO BETWEEN @MinMbspRwno AND @MaxMbspRwno;
+      
+      DECLARE @MbspRwno SMALLINT;
+      
+      OPEN [C$Mbsp];
+      L$Loop_Mbsp:
+      FETCH [C$Mbsp] INTO @MbspRwno, @FgpbRwno, @NumbOfAttnMont, @SumAttnMontDnrm;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop_Mbsp;      
+      
       DECLARE @Xt XML;
       SELECT @Xt = (
          SELECT @Rqid AS '@rqstrqid'
@@ -153,7 +185,8 @@ BEGIN
                )
            FROM dbo.Fighter f, dbo.Member_Ship m
           WHERE f.FILE_NO = m.FIGH_FILE_NO
-            AND f.MBSP_RWNO_DNRM = m.RWNO
+            --AND f.MBSP_RWNO_DNRM = m.RWNO
+            AND m.RWNO = @MbspRwno
             AND F.FILE_NO = @FileNo
             AND m.RECT_CODE = '004'
             FOR XML PATH('Request'), ROOT('Process'), TYPE
@@ -170,7 +203,7 @@ BEGIN
       -- 1396/05/09 * برای اینکه تعداد جلساتی که در باشگاه حضور پیدا کرده
       UPDATE dbo.Member_Ship
          SET SUM_ATTN_MONT_DNRM = @SumAttnMontDnrm
-            ,SUM_ATTN_WEEK_DNRM = @SumAttnWeekDnrm
+            ,SUM_ATTN_WEEK_DNRM = @SumAttnWeekDnrm            
             ,FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
        WHERE RQRO_RQST_RQID = @Rqid       
@@ -217,104 +250,115 @@ BEGIN
          AND RQRO_RWNO = @RqroRwno
          AND FIGH_FILE_NO = @FileNo
          AND RECT_CODE = '004';
+
+      UPDATE dbo.Member_Ship
+         SET VALD_TYPE = '001'
+       WHERE FIGH_FILE_NO = @FileNo
+         AND RECT_CODE = '004'
+         AND RWNO = @MbspRwno;       
       
+      GOTO L$Loop_Mbsp;
+      L$EndLoop_Mbsp:
+      CLOSE [C$Mbsp];
+      DEALLOCATE [C$Mbsp];
+            
       -- 1396/05/09 * اگر هنرجو از مشتریان جلسات ترکیبی باشد باید اطلاعات جداول زیر پر شود
       -- Session, Session_Metting
-      DECLARE @Mbsp_Rwno INT;
-      SELECT @Mbsp_Rwno = F.MBSP_RWNO_DNRM
-        FROM dbo.Fighter F
-       WHERE F.FILE_NO = @FileNo;
+      --DECLARE @Mbsp_Rwno INT;
+      --SELECT @Mbsp_Rwno = F.MBSP_RWNO_DNRM
+      --  FROM dbo.Fighter F
+      -- WHERE F.FILE_NO = @FileNo;
        
-      IF Exists(
-         SELECT *
-           FROM dbo.Session s, dbo.Member_Ship m, dbo.Fighter f
-          WHERE f.FILE_NO = m.FIGH_FILE_NO
-            AND (f.MBFZ_RWNO_DNRM - 1) = m.RWNO
-            AND m.RECT_CODE = '004'
-            AND s.MBSP_FIGH_FILE_NO = m.FIGH_FILE_NO
-            AND s.MBSP_RECT_CODE = m.RECT_CODE
-            AND s.MBSP_RWNO = m.RWNO
-            AND f.FILE_NO = @FileNo
-      )
-      BEGIN
-         DECLARE C$Sesn CURSOR FOR
-         SELECT s.MBSP_FIGH_FILE_NO ,s.MBSP_RECT_CODE ,s.EXPN_CODE ,s.SNID ,s.SESN_TYPE ,s.TIME_WATE ,s.TOTL_SESN ,s.SUM_MEET_HELD_DNRM ,s.SUM_MEET_MINT_DNRM ,s.CARD_NUMB ,s.CBMT_CODE
-           FROM dbo.Session s, dbo.Member_Ship m, dbo.Fighter f
-          WHERE f.FILE_NO = m.FIGH_FILE_NO
-            AND (f.MBFZ_RWNO_DNRM - 1) = m.RWNO
-            AND m.RECT_CODE = '004'
-            AND s.MBSP_FIGH_FILE_NO = m.FIGH_FILE_NO
-            AND s.MBSP_RECT_CODE = m.RECT_CODE
-            AND s.MBSP_RWNO = m.RWNO
-            AND f.FILE_NO = @FileNo;
+      --IF Exists(
+      --   SELECT *
+      --     FROM dbo.Session s, dbo.Member_Ship m, dbo.Fighter f
+      --    WHERE f.FILE_NO = m.FIGH_FILE_NO
+      --      AND (f.MBFZ_RWNO_DNRM - 1) = m.RWNO
+      --      AND m.RECT_CODE = '004'
+      --      AND s.MBSP_FIGH_FILE_NO = m.FIGH_FILE_NO
+      --      AND s.MBSP_RECT_CODE = m.RECT_CODE
+      --      AND s.MBSP_RWNO = m.RWNO
+      --      AND f.FILE_NO = @FileNo
+      --)
+      --BEGIN
+      --   DECLARE C$Sesn CURSOR FOR
+      --   SELECT s.MBSP_FIGH_FILE_NO ,s.MBSP_RECT_CODE ,s.EXPN_CODE ,s.SNID ,s.SESN_TYPE ,s.TIME_WATE ,s.TOTL_SESN ,s.SUM_MEET_HELD_DNRM ,s.SUM_MEET_MINT_DNRM ,s.CARD_NUMB ,s.CBMT_CODE
+      --     FROM dbo.Session s, dbo.Member_Ship m, dbo.Fighter f
+      --    WHERE f.FILE_NO = m.FIGH_FILE_NO
+      --      AND (f.MBFZ_RWNO_DNRM - 1) = m.RWNO
+      --      AND m.RECT_CODE = '004'
+      --      AND s.MBSP_FIGH_FILE_NO = m.FIGH_FILE_NO
+      --      AND s.MBSP_RECT_CODE = m.RECT_CODE
+      --      AND s.MBSP_RWNO = m.RWNO
+      --      AND f.FILE_NO = @FileNo;
          
-         DECLARE @MBSP_FIGH_FILE_NO BIGINT,
-                 @MBSP_RECT_CODE VARCHAR(3),
-                 --@MBSP_RWNO INT,
-                 @EXPN_CODE BIGINT,
-                 @SNID BIGINT,
-                 @SESN_TYPE VARCHAR(3),
-                 @TIME_WATE TIME,
-                 @TOTL_SESN SMALLINT,
-                 @SUM_MEET_HELD_DNRM SMALLINT ,
-                 @SUM_MEET_MINT_DNRM SMALLINT,
-                 @CARD_NUMB VARCHAR(50),
-                 @CBMT_CODE BIGINT;
+      --   DECLARE @MBSP_FIGH_FILE_NO BIGINT,
+      --           @MBSP_RECT_CODE VARCHAR(3),
+      --           --@MBSP_RWNO INT,
+      --           @EXPN_CODE BIGINT,
+      --           @SNID BIGINT,
+      --           @SESN_TYPE VARCHAR(3),
+      --           @TIME_WATE TIME,
+      --           @TOTL_SESN SMALLINT,
+      --           @SUM_MEET_HELD_DNRM SMALLINT ,
+      --           @SUM_MEET_MINT_DNRM SMALLINT,
+      --           @CARD_NUMB VARCHAR(50),
+      --           @CBMT_CODE BIGINT;
          
-         OPEN [C$Sesn];
-         L$Loop:
-         FETCH NEXT FROM [C$Sesn] INTO @MBSP_FIGH_FILE_NO ,@MBSP_RECT_CODE ,@EXPN_CODE ,@SNID ,@SESN_TYPE ,@TIME_WATE ,@TOTL_SESN ,@SUM_MEET_HELD_DNRM ,@SUM_MEET_MINT_DNRM ,@CARD_NUMB ,@CBMT_CODE;
+      --   OPEN [C$Sesn];
+      --   L$Loop:
+      --   FETCH NEXT FROM [C$Sesn] INTO @MBSP_FIGH_FILE_NO ,@MBSP_RECT_CODE ,@EXPN_CODE ,@SNID ,@SESN_TYPE ,@TIME_WATE ,@TOTL_SESN ,@SUM_MEET_HELD_DNRM ,@SUM_MEET_MINT_DNRM ,@CARD_NUMB ,@CBMT_CODE;
          
-         IF @@FETCH_STATUS <> 0
-            GOTO L$EndLoop;
+      --   IF @@FETCH_STATUS <> 0
+      --      GOTO L$EndLoop;
 
-         DECLARE @NewSnId BIGINT = dbo.GNRT_NVID_U();
+      --   DECLARE @NewSnId BIGINT = dbo.GNRT_NVID_U();
                      
-         INSERT INTO dbo.Session ( MBSP_FIGH_FILE_NO ,MBSP_RECT_CODE ,MBSP_RWNO ,EXPN_CODE ,SESN_SNID ,SNID ,SESN_TYPE ,TIME_WATE ,TOTL_SESN ,SUM_MEET_HELD_DNRM ,SUM_MEET_MINT_DNRM ,CARD_NUMB ,CBMT_CODE )
-         VALUES (@MBSP_FIGH_FILE_NO ,@MBSP_RECT_CODE ,@MBSP_RWNO ,@EXPN_CODE ,@SNID, @NewSnId ,@SESN_TYPE ,@TIME_WATE ,@TOTL_SESN ,@SUM_MEET_HELD_DNRM ,@SUM_MEET_MINT_DNRM ,@CARD_NUMB ,@CBMT_CODE);
+      --   INSERT INTO dbo.Session ( MBSP_FIGH_FILE_NO ,MBSP_RECT_CODE ,MBSP_RWNO ,EXPN_CODE ,SESN_SNID ,SNID ,SESN_TYPE ,TIME_WATE ,TOTL_SESN ,SUM_MEET_HELD_DNRM ,SUM_MEET_MINT_DNRM ,CARD_NUMB ,CBMT_CODE )
+      --   VALUES (@MBSP_FIGH_FILE_NO ,@MBSP_RECT_CODE ,@MBSP_RWNO ,@EXPN_CODE ,@SNID, @NewSnId ,@SESN_TYPE ,@TIME_WATE ,@TOTL_SESN ,@SUM_MEET_HELD_DNRM ,@SUM_MEET_MINT_DNRM ,@CARD_NUMB ,@CBMT_CODE);
          
-         DECLARE @RWNO [smallint],
-	              @VALD_TYPE [varchar](3),
-	              @ACTN_DATE [date] ,
-	              @STRT_TIME [time](0),
-	              @END_TIME [time](0) ,
-	              @MEET_MINT_DNRM [int] ,
-	              @NUMB_OF_GAYS [smallint] ,
-	              @EXPN_PRIC [int] ,
-	              @EXPN_EXTR_PRCT [int] ,
-	              @REMN_PRIC [int] ;
+      --   DECLARE @RWNO [smallint],
+	     --         @VALD_TYPE [varchar](3),
+	     --         @ACTN_DATE [date] ,
+	     --         @STRT_TIME [time](0),
+	     --         @END_TIME [time](0) ,
+	     --         @MEET_MINT_DNRM [int] ,
+	     --         @NUMB_OF_GAYS [smallint] ,
+	     --         @EXPN_PRIC [int] ,
+	     --         @EXPN_EXTR_PRCT [int] ,
+	     --         @REMN_PRIC [int] ;
 
-         -- Insert Session_Metting
-         DECLARE C$SesnMtng CURSOR FOR
-            SELECT [EXPN_CODE], [RWNO] ,[VALD_TYPE] ,[ACTN_DATE] ,[STRT_TIME] ,[END_TIME] ,[MEET_MINT_DNRM] ,[NUMB_OF_GAYS] ,[EXPN_PRIC] ,[EXPN_EXTR_PRCT] ,[REMN_PRIC] , [CBMT_CODE]
-              FROM dbo.Session_Meeting
-             WHERE SESN_SNID = @SNID;
+      --   -- Insert Session_Metting
+      --   DECLARE C$SesnMtng CURSOR FOR
+      --      SELECT [EXPN_CODE], [RWNO] ,[VALD_TYPE] ,[ACTN_DATE] ,[STRT_TIME] ,[END_TIME] ,[MEET_MINT_DNRM] ,[NUMB_OF_GAYS] ,[EXPN_PRIC] ,[EXPN_EXTR_PRCT] ,[REMN_PRIC] , [CBMT_CODE]
+      --        FROM dbo.Session_Meeting
+      --       WHERE SESN_SNID = @SNID;
          
-         OPEN [C$SesnMtng];
-         L$Loop1:
-         FETCH NEXT FROM [C$SesnMtng] INTO @EXPN_CODE, @RWNO, @VALD_TYPE, @ACTN_DATE, @STRT_TIME, @END_TIME, @MEET_MINT_DNRM, @NUMB_OF_GAYS, @EXPN_PRIC, @EXPN_EXTR_PRCT, @REMN_PRIC, @CBMT_CODE;
+      --   OPEN [C$SesnMtng];
+      --   L$Loop1:
+      --   FETCH NEXT FROM [C$SesnMtng] INTO @EXPN_CODE, @RWNO, @VALD_TYPE, @ACTN_DATE, @STRT_TIME, @END_TIME, @MEET_MINT_DNRM, @NUMB_OF_GAYS, @EXPN_PRIC, @EXPN_EXTR_PRCT, @REMN_PRIC, @CBMT_CODE;
          
-         IF @@FETCH_STATUS <> 00
-            GOTO L$EndLoop1;
+      --   IF @@FETCH_STATUS <> 00
+      --      GOTO L$EndLoop1;
          
-         INSERT INTO dbo.Session_Meeting( MBSP_FIGH_FILE_NO ,MBSP_RECT_CODE ,MBSP_RWNO ,EXPN_CODE ,SESN_SNID ,RWNO ,
-                                          VALD_TYPE ,ACTN_DATE ,STRT_TIME ,END_TIME ,MEET_MINT_DNRM ,NUMB_OF_GAYS ,
-                                          EXPN_PRIC ,EXPN_EXTR_PRCT ,REMN_PRIC ,CBMT_CODE )
-         VALUES(@FileNo, '004', @Mbsp_Rwno, @EXPN_CODE, @NewSnId, 0, 
-                @VALD_TYPE, @ACTN_DATE, @STRT_TIME, @END_TIME, @MEET_MINT_DNRM, @NUMB_OF_GAYS, 
-                @EXPN_PRIC, @EXPN_EXTR_PRCT, @REMN_PRIC, @CBMT_CODE);
+      --   INSERT INTO dbo.Session_Meeting( MBSP_FIGH_FILE_NO ,MBSP_RECT_CODE ,MBSP_RWNO ,EXPN_CODE ,SESN_SNID ,RWNO ,
+      --                                    VALD_TYPE ,ACTN_DATE ,STRT_TIME ,END_TIME ,MEET_MINT_DNRM ,NUMB_OF_GAYS ,
+      --                                    EXPN_PRIC ,EXPN_EXTR_PRCT ,REMN_PRIC ,CBMT_CODE )
+      --   VALUES(@FileNo, '004', @Mbsp_Rwno, @EXPN_CODE, @NewSnId, 0, 
+      --          @VALD_TYPE, @ACTN_DATE, @STRT_TIME, @END_TIME, @MEET_MINT_DNRM, @NUMB_OF_GAYS, 
+      --          @EXPN_PRIC, @EXPN_EXTR_PRCT, @REMN_PRIC, @CBMT_CODE);
          
-         GOTO L$Loop1;
-         L$EndLoop1:
-         CLOSE [C$SesnMtng];
-         DEALLOCATE [C$SesnMtng];
+      --   GOTO L$Loop1;
+      --   L$EndLoop1:
+      --   CLOSE [C$SesnMtng];
+      --   DEALLOCATE [C$SesnMtng];
          
-         GOTO L$Loop;
-         L$EndLoop:
-         CLOSE [C$Sesn];
-         DEALLOCATE [C$Sesn];
+      --   GOTO L$Loop;
+      --   L$EndLoop:
+      --   CLOSE [C$Sesn];
+      --   DEALLOCATE [C$Sesn];
          
-      END
+      --END
       
       COMMIT TRAN T1;
       RETURN 0;

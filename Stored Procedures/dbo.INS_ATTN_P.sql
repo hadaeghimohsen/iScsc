@@ -18,7 +18,7 @@ AS
 BEGIN
    BEGIN TRY
    BEGIN TRAN INS_ATTN_P_T
-	DECLARE @AP BIT
+	/*DECLARE @AP BIT
 	       ,@AccessString VARCHAR(250);
 	SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>72</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
    EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
@@ -29,7 +29,7 @@ BEGIN
                1 -- State.
                );
       RETURN;
-   END
+   END*/
    
    IF ISNULL(@MbspRwno, 0) = 0
    BEGIN
@@ -328,6 +328,7 @@ BEGIN
          AND mb.FGPB_RWNO_DNRM = f.RWNO
          AND mb.FGPB_RECT_CODE_DNRM = f.RECT_CODE         
          AND mb.RWNO = @MbspRwno
+         AND mb.RECT_CODE = '004'
          AND F.[TYPE] IN ('001', '005', '006')
          AND F.CBMT_CODE = Cm.CODE
          AND Cm.CODE = cmw.CBMT_CODE
@@ -339,19 +340,47 @@ BEGIN
                --AND f.MBSP_RWNO_DNRM = a.MBSP_RWNO_DNRM
                AND a.MBSP_RWNO_DNRM = @MbspRwno
                AND a.MBSP_RECT_CODE_DNRM = '004'
-               AND a.ENTR_TIME IS NULL
+               AND a.EXIT_TIME IS NULL
          )
          AND ( 
                (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
-               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND CAST(GETDATE() AS TIME(0)) < CAST(cm.STRT_TIME AS TIME(0)) /* NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)) */)               
+               (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND (CAST(GETDATE() AS TIME(0)) < CAST(cm.STRT_TIME AS TIME(0)) OR CAST(GETDATE() AS TIME(0)) > CAST(cm.END_TIME AS TIME(0))) /* NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)) */)               
              )
          
    )
    BEGIN
+      DECLARE @MtodDesc NVARCHAR(250)
+             ,@CtgyDesc NVARCHAR(250)
+             ,@CochName NVARCHAR(250)
+             ,@StrtTime NVARCHAR(5)
+             ,@EndTime NVARCHAR(5)
+             ,@Wkdy NVARCHAR(50);
+      SELECT @MtodDesc = m.MTOD_DESC, 
+             @CtgyDesc = cb.CTGY_DESC, 
+             @CochName = c.NAME_DNRM, 
+             @StrtTime = CAST(cm.STRT_TIME AS VARCHAR(5)), 
+             @EndTime = CAST(cm.END_TIME AS VARCHAR(5)), 
+             @Wkdy = (SELECT dw.DOMN_DESC + ',' FROM dbo.Club_Method_Weekday cmw, dbo.[D$WKDY] dw WHERE cm.CODE = cmw.CBMT_CODE AND dw.VALU = cmw.WEEK_DAY AND cmw.STAT = '002' ORDER BY cmw.WEEK_DAY FOR XML PATH(''))
+        FROM dbo.Member_Ship mb, dbo.Fighter_Public f, dbo.Club_Method cm, dbo.Method m, dbo.Category_Belt cb, dbo.Fighter c
+       WHERE f.FIGH_FILE_NO = @Figh_File_No
+         AND mb.FIGH_FILE_NO = f.FIGH_FILE_NO
+         AND mb.FGPB_RWNO_DNRM = f.RWNO
+         AND mb.FGPB_RECT_CODE_DNRM = f.RECT_CODE         
+         AND mb.RWNO = @MbspRwno
+         AND mb.RECT_CODE = '004'
+         AND F.[TYPE] IN ('001', '005', '006')
+         AND F.CBMT_CODE = Cm.CODE
+         AND mb.VALD_TYPE = '002'         
+         AND f.MTOD_CODE = m.CODE
+         AND f.CTGY_CODE = cb.CODE
+         AND m.CODE = cb.MTOD_CODE
+         AND cm.COCH_FILE_NO = c.FILE_NO;
+   
       SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
                          @SexDesc + N' ' + @NameDnrm + CHAR(10) +
-                         N' برنامه کلاسی شما در امروز یا این ساعت تعریف نشده است.' + CHAR(10) +
-                         N'اگر مایل به جابه جا کردن ساعت کلاسی هستید با مدیریت باشگاه هماهنگی فرمایید'
+                         N'برنامه کلاسی شما در رشته "' + @MtodDesc + N'" در رسته "' + @CtgyDesc + N'" با مربی "' + @CochName + N'" در ساعت [ ' + @StrtTime + N' ] تا [ ' + @EndTime + N' ] در ایام هفته "' + @Wkdy + N'" می باشد ';
+                         --N' برنامه کلاسی شما در امروز یا این ساعت تعریف نشده است.' + CHAR(10) +
+                         --N'اگر مایل به جابه جا کردن ساعت کلاسی هستید با مدیریت باشگاه هماهنگی فرمایید'
                          ;
       RAISERROR (@MessageShow, 
                --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
@@ -583,7 +612,8 @@ BEGIN
        WHERE a.CLUB_CODE = cm.CLUB_CODE
          AND a.COCH_FILE_NO = cm.COCH_FILE_NO
          AND a.MTOD_CODE_DNRM = cm.MTOD_CODE
-         AND a.ENTR_TIME BETWEEN cm.STRT_TIME AND cm.END_TIME;
+         --AND a.ENTR_TIME BETWEEN cm.STRT_TIME AND cm.END_TIME
+         AND a.CODE = @AttnCode;
       
       
       UPDATE Attendance
