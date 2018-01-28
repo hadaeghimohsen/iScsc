@@ -65,6 +65,7 @@ AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
    IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
+   IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;   
    
 	INSERT INTO [dbo].[Fighter_Public]
            ([REGN_PRVN_CODE], [REGN_CODE], [DISE_CODE], [MTOD_CODE], [CTGY_CODE]

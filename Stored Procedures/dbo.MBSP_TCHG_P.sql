@@ -59,6 +59,8 @@ BEGIN
       
       UPDATE dbo.Member_Ship
          SET SUM_ATTN_MONT_DNRM = @SumNumbAttnMont
+            ,FGPB_RWNO_DNRM = CASE WHEN FGPB_RWNO_DNRM IS NULL THEN (SELECT FGPB_RWNO_DNRM FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RECT_CODE = '004') ELSE Member_Ship.FGPB_RWNO_DNRM END
+            ,FGPB_RECT_CODE_DNRM = '004'
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002';
          

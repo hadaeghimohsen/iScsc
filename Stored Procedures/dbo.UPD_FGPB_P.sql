@@ -65,6 +65,7 @@ AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
    IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
+   IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;
 	
 	UPDATE [dbo].[Fighter_Public]
 	   SET [REGN_PRVN_CODE] = @Prvn_Code

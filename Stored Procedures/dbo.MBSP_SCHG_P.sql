@@ -21,12 +21,17 @@ BEGIN
 	BEGIN TRAN T1;
 	BEGIN TRY
 	   DECLARE @Rqid     BIGINT,
+	           @OrgnRqid BIGINT,
 	           @RqroRwno SMALLINT,	           
-   	        @FileNo BIGINT;   	        
+   	        @FileNo BIGINT,
+   	        @CbmtCode BIGINT;
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqroRwno = @X.query('//Request_Row').value('(Request_Row/@rwno)[1]', 'SMALLINT')
-	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');	         
+	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT')
+	         ,@CbmtCode = @X.query('//Member_Ship').value('(Member_Ship/@cbmtcode)[1]', 'BIGINT');
+	   
+	   SET @OrgnRqid = @Rqid;
 	   
       DECLARE @StrtDate002 DATE
              ,@EndDate002  DATE
@@ -77,6 +82,75 @@ BEGIN
             ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont002
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004';
+      
+      -- 1396/11/08 * بررسی اینکه آیا برنامه کلاسی عوض شده است یا خیر
+      DECLARE @OldCbmtCode BIGINT;
+      SELECT @OldCbmtCode = fp.CBMT_CODE
+        FROM dbo.Member_Ship m, dbo.Fighter_Public fp
+       WHERE m.RQRO_RQST_RQID = @Rqid
+         AND m.RECT_CODE = '004'
+         AND m.FGPB_RWNO_DNRM = fp.RWNO
+         AND m.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+         AND m.FIGH_FILE_NO = fp.FIGH_FILE_NO;
+      
+      IF @CbmtCode != @OldCbmtCode
+      BEGIN
+         DECLARE @PrvnCode VARCHAR(3)
+                ,@RegnCode VARCHAR(3);
+         
+         SELECT @PrvnCode = REGN_PRVN_CODE
+               ,@RegnCode = REGN_CODE
+           FROM dbo.Fighter
+          WHERE FILE_NO = @FileNo;
+         -- اگر تغییری در سبک و رسته ایجاد نشده باشد باید تغییر مشخصات عمومی مجزایی برای ثبت ساعت کلاسی ذخیره کنیم
+         SET @X = N'<Process><Request rqstrqid="" rqtpcode="002" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش برنامه کلاسی مشترک پیرو تمدید مشترک بخاطر عوض شدن برنامه و ساعت کلاسی و مربی"><Request_Row fileno=""></Request_Row></Request></Process>';
+         SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
+         SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+         SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+         SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         --SET @CbmtCode = @CbmtCode;
+         EXEC PBL_RQST_F @X;
+         
+         SELECT @Rqid = R.RQID
+           FROM Request R
+          WHERE R.RQST_RQID = @Rqid
+            AND R.RQST_STAT = '001'
+            AND R.RQTP_CODE = '002'
+            AND R.RQTT_CODE = '004';
+         
+         UPDATE dbo.Fighter_Public
+            SET CBMT_CODE = @CbmtCode
+               ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
+          WHERE RQRO_RQST_RQID = @Rqid
+            AND FIGH_FILE_NO = @FileNo;
+         
+         SET @X = '<Process><Request rqid="" rqtpcode="002" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""></Request_Row></Request></Process>';
+         SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
+         SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+         SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+         SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         EXEC PBL_SAVE_F @X;
+         
+         DECLARE @FgpbRwno INT
+                ,@CochFileNo BIGINT;
+         
+         -- 1396/11/08 * بدست آوردن ردیف عمومی
+         SELECT @FgpbRwno = RWNO
+               ,@CochFileNo = COCH_FILE_NO
+           FROM dbo.Fighter_Public
+          WHERE RQRO_RQST_RQID = @Rqid
+            AND RECT_CODE = '004'; 
+         
+         UPDATE dbo.Member_Ship
+            SET FGPB_RWNO_DNRM = @FgpbRwno
+          WHERE RQRO_RQST_RQID = @OrgnRqid
+            AND RECT_CODE = '004';
+         
+         UPDATE dbo.Payment_Detail
+            SET CBMT_CODE_DNRM = @CbmtCode
+               ,FIGH_FILE_NO = @CochFileNo
+          WHERE PYMT_RQST_RQID = @OrgnRqid;          
+      END
          
       COMMIT TRAN T1;
    END TRY
