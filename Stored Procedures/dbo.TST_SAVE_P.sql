@@ -125,7 +125,8 @@ BEGIN
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
-             ,@DpstAcntSlry VARCHAR(50);
+             ,@DpstAcntSlry VARCHAR(50)
+             ,@ChatId BIGINT;
              
       SELECT @DiseCode = P.DISE_CODE
             ,@ClubCode = P.CLUB_CODE
@@ -171,6 +172,7 @@ BEGIN
             ,@CntrCode = P.CNTR_CODE
             ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
             ,@DpstAcntSlry = P.DPST_ACNT_SLRY
+            ,@ChatId = P.CHAT_ID
         FROM Fighter_Public P, Fighter F
        WHERE P.FIGH_FILE_NO = @FileNo
          AND P.FIGH_FILE_NO = F.FILE_NO
@@ -246,7 +248,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       
       SaveResultTest:      

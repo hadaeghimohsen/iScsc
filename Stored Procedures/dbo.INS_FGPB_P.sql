@@ -60,7 +60,8 @@ CREATE PROCEDURE [dbo].[INS_FGPB_P]
 	@Intr_File_No BIGINT,
 	@Cntr_Code BIGINT,
 	@Dpst_Acnt_Slry_Bank NVARCHAR(50),
-	@Dpst_Acnt_Slry VARCHAR(50)
+	@Dpst_Acnt_Slry VARCHAR(50),
+	@Chat_Id BIGINT
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -76,7 +77,7 @@ BEGIN
            ,[CBMT_CODE], [DAY_TYPE], [ATTN_TIME], [COCH_CRTF_DATE], [CALC_EXPN_TYPE],[ACTV_TAG], [BLOD_GROP]
            ,[FNGR_PRNT], [SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]
            ,[CORD_X], [CORD_Y], [MOST_DEBT_CLNG], [SERV_NO], BRTH_PLAC, ISSU_PLAC, FATH_WORK, HIST_DESC, INTR_FILE_NO
-           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY])
+           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY], CHAT_ID)
      VALUES
            (@Prvn_Code, @Regn_Code, @Dise_Code, @Mtod_Code, @Ctgy_Code 
            ,@Club_Code, @Rqro_Rqst_Rqid, @Rqro_Rwno, @File_No, 0, @Rect_Code
@@ -86,6 +87,6 @@ BEGIN
            ,@Cbmt_Code, @Day_Type, @Attn_Time, @Coch_Crtf_Date, @Calc_Expn_Type, @Actv_Tag, @Blod_Grop
            ,@Fngr_Prnt, @SUNT_BUNT_DEPT_ORGN_CODE, @SUNT_BUNT_DEPT_CODE, @SUNT_BUNT_CODE, @SUNT_CODE
            ,@CORD_X, @CORD_Y, @Most_Debt_Clng, @Serv_No, @BRTH_PLAC, @ISSU_PLAC, @FATH_WORK, @HIST_DESC, @INTR_FILE_NO
-           ,@Cntr_Code, @Dpst_Acnt_Slry_Bank, @Dpst_Acnt_Slry);
+           ,@Cntr_Code, @Dpst_Acnt_Slry_Bank, @Dpst_Acnt_Slry, @Chat_Id);
 END
 GO

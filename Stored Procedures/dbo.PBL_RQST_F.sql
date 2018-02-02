@@ -214,7 +214,8 @@ BEGIN
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
-             ,@DpstAcntSlry VARCHAR(50);
+             ,@DpstAcntSlry VARCHAR(50)
+             ,@ChatId BIGINT;
       
       IF EXISTS(
          SELECT *
@@ -266,6 +267,7 @@ BEGIN
              ,@CntrCode = r.query('Fighter_Public/Cntr_Code').value('.', 'BIGINT')             
              ,@DpstAcntSlryBank = r.query('Fighter_Public/Dpst_Acnt_Slry_Bank').value('.', 'NVARCHAR(50)')             
              ,@DpstAcntSlry = r.query('Fighter_Public/Dpst_Acnt_Slry').value('.', 'VARCHAR(50)')             
+             ,@ChatId = r.query('Fighter_Public/Chat_Id').value('.', 'BIGINT')             
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
          
@@ -407,6 +409,7 @@ BEGIN
              ,@CntrCode = P.CNTR_CODE
              ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
              ,@DpstAcntSlry = P.DPST_ACNT_SLRY
+             ,@ChatId = P.CHAT_ID
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -480,7 +483,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       ELSE
       BEGIN
@@ -536,7 +540,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       
       GOTO NextFromRqrv;

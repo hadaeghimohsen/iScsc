@@ -130,7 +130,8 @@ BEGIN
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
-             ,@DpstAcntSlry VARCHAR(50);
+             ,@DpstAcntSlry VARCHAR(50)
+             ,@ChatId BIGINT;
              
       SELECT @DiseCode = @X.query('//Dise_Code').value('.', 'BIGINT')
             ,@MtodCode = @X.query('//Mtod_Code').value('.', 'BIGINT')
@@ -173,7 +174,8 @@ BEGIN
             ,@IntrFileNo = @x.query('//Intr_File_No').value('.', 'BIGINT')
             ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
             ,@DpstAcntSlryBank = @x.query('//Dpst_Acnt_Slry_Bank').value('.', 'NVARCHAR(50)')
-            ,@DpstAcntSlry = @x.query('//Dpst_Acnt_Slry').value('.', 'VARCHAR(50)');
+            ,@DpstAcntSlry = @x.query('//Dpst_Acnt_Slry').value('.', 'VARCHAR(50)')
+            ,@ChatId       = @x.query('//Chat_Id').value('.', 'BIGINT');
             
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
 
@@ -269,7 +271,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       ELSE
       BEGIN
@@ -325,7 +328,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       UPDATE Request
          SET RQST_STAT = '002'

@@ -211,6 +211,7 @@ BEGIN
              ,@HistDesc NVARCHAR(500)
              ,@IntrFileNo BIGINT             
              ,@CntrCode BIGINT
+             ,@ChatId BIGINT
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -257,6 +258,7 @@ BEGIN
             ,@HistDesc = @x.query('//Hist_Desc').value('.', 'NVARCHAR(500)')
             ,@IntrFileNo = @x.query('//Intr_File_No').value('.', 'BIGINT')
             ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
+            ,@ChatId = @x.query('//Chat_Id').value('.', 'BIGINT')
             ,@StrtDate = @x.query('//Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
             ,@EndDate = @x.query('//Member_Ship').value('(Member_Ship/@enddate)[1]', 'DATE')
             ,@NumbMontOfer = @x.query('//Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')
@@ -382,7 +384,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
-           ,@Dpst_Acnt_Slry = NULL;
+           ,@Dpst_Acnt_Slry = NULL
+           ,@Chat_Id = @ChatId;
          
          EXEC dbo.INS_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint
@@ -451,7 +454,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
-           ,@Dpst_Acnt_Slry = NULL;
+           ,@Dpst_Acnt_Slry = NULL
+           ,@Chat_Id = @ChatId;
          
          EXEC dbo.UPD_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint

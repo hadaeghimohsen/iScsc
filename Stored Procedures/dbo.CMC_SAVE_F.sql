@@ -127,7 +127,8 @@ BEGIN
              ,@FathWork NVARCHAR(150)
              ,@HistDesc NVARCHAR(500)
              ,@IntrFileNo BIGINT
-             ,@CntrCode BIGINT;
+             ,@CntrCode BIGINT
+             ,@ChatId BIGINT;
              
       DECLARE @CrtfDate DATE
              ,@CrtfNumb VARCHAR(20)
@@ -177,6 +178,7 @@ BEGIN
              ,@HistDesc = P.HIST_DESC
              ,@IntrFileNo = P.INTR_FILE_NO             
              ,@CntrCode = P.CNTR_CODE
+             ,@ChatId = P.CHAT_ID
          FROM Fighter_Public P
         WHERE P.RQRO_RQST_RQID = @Rqid
           AND P.RQRO_RWNO = @RqroRwno
@@ -288,7 +290,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
-           ,@Dpst_Acnt_Slry = NULL;           
+           ,@Dpst_Acnt_Slry = NULL
+           ,@Chat_Id = @ChatId;           
       END
       
       /*DECLARE @AttnDate DATE;

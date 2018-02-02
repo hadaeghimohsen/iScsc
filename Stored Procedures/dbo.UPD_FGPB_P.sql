@@ -60,7 +60,8 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Intr_File_No BIGINT,
 	@Cntr_Code BIGINT,
 	@Dpst_Acnt_Slry_Bank NVARCHAR(50),
-	@Dpst_Acnt_Slry VARCHAR(50)
+	@Dpst_Acnt_Slry VARCHAR(50),
+	@Chat_Id BIGINT
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -117,6 +118,7 @@ BEGIN
          ,CNTR_CODE = @Cntr_Code
          ,DPST_ACNT_SLRY_BANK = @Dpst_Acnt_Slry_Bank
          ,DPST_ACNT_SLRY = @Dpst_Acnt_Slry
+         ,CHAT_ID = @Chat_Id
      WHERE Figh_File_No = @File_No
        AND [RQRO_RQST_RQID] = @Rqro_Rqst_Rqid
        AND [RQRO_RWNO] = @Rqro_Rwno;

@@ -206,7 +206,8 @@ BEGIN
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
-             ,@DpstAcntSlry VARCHAR(50);
+             ,@DpstAcntSlry VARCHAR(50)
+             ,@ChatId BIGINT;
 
       
       IF EXISTS(
@@ -265,6 +266,7 @@ BEGIN
               ,@CntrCode = P.CNTR_CODE
               ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
               ,@DpstAcntSlry = P.DPST_ACNT_SLRY
+              ,@ChatId = P.CHAT_ID
           FROM Fighter_Public P
          WHERE P.FIGH_FILE_NO = @FileNo
            AND P.RQRO_RQST_RQID = @Rqid
@@ -320,7 +322,8 @@ BEGIN
              ,@IntrFileNo = P.INTR_FILE_NO
              ,@CntrCode = P.CNTR_CODE
              ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
-             ,@DpstAcntSlry = P.DPST_ACNT_SLRY             
+             ,@DpstAcntSlry = P.DPST_ACNT_SLRY    
+             ,@ChatId = P.CHAT_ID         
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -394,7 +397,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
       END
       ELSE
       BEGIN
@@ -450,7 +454,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
-           ,@Dpst_Acnt_Slry = @DpstAcntSlry;
+           ,@Dpst_Acnt_Slry = @DpstAcntSlry
+           ,@Chat_Id = @ChatId;
 
       END
       

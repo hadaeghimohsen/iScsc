@@ -155,7 +155,8 @@ BEGIN
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
-             ,@DpstAcntSlry VARCHAR(50);
+             ,@DpstAcntSlry VARCHAR(50)
+             ,@ChatId BIGINT;
              
       SELECT @DiseCode = @X.query('//Dise_Code').value('.', 'BIGINT')
             ,@MtodCode = @X.query('//Mtod_Code').value('.', 'BIGINT')
@@ -196,7 +197,8 @@ BEGIN
             ,@FathWork = @x.query('//Fath_Work').value('.', 'NVARCHAR(150)')
             ,@HistDesc = @x.query('//Hist_Desc').value('.', 'NVARCHAR(500)')
             ,@IntrFileNo = @x.query('//Intr_File_No').value('.', 'BIGINT')
-            ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT');
+            ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
+            ,@ChatId = @x.query('//Chat_Id').value('.', 'BIGINT');
             
       
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
@@ -296,7 +298,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
-           ,@Dpst_Acnt_Slry = NULL;           
+           ,@Dpst_Acnt_Slry = NULL
+           ,@Chat_Id = @ChatId;           
       END
       ELSE
       BEGIN
@@ -352,7 +355,8 @@ BEGIN
            ,@Intr_File_No = @IntrFileNo
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
-           ,@Dpst_Acnt_Slry = NULL;
+           ,@Dpst_Acnt_Slry = NULL
+           ,@Chat_Id = @ChatId;
       END
       -- اگر ثبت نام هنرجوی قدیمی باشه
       IF EXISTS(

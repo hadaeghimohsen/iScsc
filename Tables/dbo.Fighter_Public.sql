@@ -54,6 +54,7 @@ CREATE TABLE [dbo].[Fighter_Public]
 [CNTR_CODE] [bigint] NULL,
 [DPST_ACNT_SLRY_BANK] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DPST_ACNT_SLRY] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CHAT_ID] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -131,7 +132,8 @@ BEGIN
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
-            ,GLOB_CODE_DNRM = s.GLOB_CODE;
+            ,GLOB_CODE_DNRM = s.GLOB_CODE
+            ,CHAT_ID_DNRM = s.CHAT_ID;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -172,6 +174,7 @@ BEGIN
             ,SERV_NO_DNRM = NULL
             ,NATL_CODE_DNRM = NULL
             ,GLOB_CODE_DNRM = NULL
+            ,CHAT_ID_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -247,7 +250,7 @@ BEGIN
           ,@BRTH_PLAC           NVARCHAR(100)       ,@ISSU_PLAC           NVARCHAR(100)
           ,@FATH_WORK           NVARCHAR(150)       ,@HIST_DESC           NVARCHAR(500)
           ,@INTR_FILE_NO        BIGINT              ,@DPST_ACNT_SLRY_BANK NVARCHAR(50)
-          ,@DPST_ACNT_SLRY      VARCHAR(50);
+          ,@DPST_ACNT_SLRY      VARCHAR(50)         ,@CHAT_ID             BIGINT;
    -- FETCH LAST INFORMATION;
    SELECT TOP 1
           @REGN_PRVN_CNTY_CODE = T.[REGN_PRVN_CNTY_CODE]          , @REGN_PRVN_CODE = T.[REGN_PRVN_CODE]
@@ -263,7 +266,7 @@ BEGIN
          ,@COCH_DEG            = T.[COCH_DEG]                     , @GUDG_DEG       = T.[GUDG_DEG]
          ,@GLOB_CODE           = T.[GLOB_CODE]                    , @TYPE           = T.[TYPE]
          ,@POST_ADRS           = T.[POST_ADRS]                    , @EMAL_ADRS      = T.[EMAL_ADRS]
-         ,@INSR_NUMB           = T.INSR_NUMB                      , @INSR_DATE      = T.INSR_DATE
+         ,@INSR_NUMB           = T.INSR_NUMB                      , @INSR_DATE   = T.INSR_DATE
          ,@COCH_FILE_NO        = T.[COCH_FILE_NO]                 , @CBMT_CODE      = T.[CBMT_CODE]
          ,@DAY_TYPE            = T.[DAY_TYPE]                     , @ATTN_TIME      = T.[ATTN_TIME]
          ,@EDUC_DEG            = T.[EDUC_DEG]                     , @COCH_CRTF_DATE = T.[COCH_CRTF_DATE]
@@ -276,7 +279,7 @@ BEGIN
          ,@BRTH_PLAC           = T.BRTH_PLAC                      , @ISSU_PLAC      = T.ISSU_PLAC
          ,@FATH_WORK           = T.FATH_WORK                      , @HIST_DESC      = T.HIST_DESC
          ,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
-         ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY
+         ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY                 , @CHAT_ID        = T.CHAT_ID
      FROM [dbo].[Fighter_Public] T , INSERTED S
      WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
      ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;
@@ -396,7 +399,8 @@ BEGIN
             ,HIST_DESC           = CASE S.HIST_DESC           WHEN NULL THEN @HIST_DESC           ELSE S.HIST_DESC           END
             ,INTR_FILE_NO        = CASE S.INTR_FILE_NO        WHEN NULL THEN @INTR_FILE_NO        ELSE S.INTR_FILE_NO        END
             ,DPST_ACNT_SLRY_BANK = CASE S.DPST_ACNT_SLRY_BANK WHEN NULL THEN @DPST_ACNT_SLRY_BANK ELSE S.DPST_ACNT_SLRY_BANK END
-            ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END;
+            ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END
+            ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END;
             
             
    -- UPDATE FIGHTER TABLE
@@ -442,7 +446,8 @@ BEGIN
             ,MOST_DEBT_CLNG_DNRM = S.MOST_DEBT_CLNG
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
-            ,GLOB_CODE_DNRM = S.GLOB_CODE;
+            ,GLOB_CODE_DNRM = S.GLOB_CODE
+            ,CHAT_ID_DNRM = S.CHAT_ID;
 END
 ;
 GO
@@ -473,6 +478,8 @@ GO
 ALTER TABLE [dbo].[Fighter_Public] WITH NOCHECK ADD CONSTRAINT [FK_FGPB_SUNT] FOREIGN KEY ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]) REFERENCES [dbo].[Sub_Unit] ([BUNT_DEPT_ORGN_CODE], [BUNT_DEPT_CODE], [BUNT_CODE], [CODE]) ON UPDATE CASCADE
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'محل تولد', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'BRTH_PLAC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد چت تلگرام', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CHAT_ID'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره قرارداد پرسنل', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CNTR_CODE'
 GO
