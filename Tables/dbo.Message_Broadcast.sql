@@ -4,6 +4,7 @@ CREATE TABLE [dbo].[Message_Broadcast]
 [LINE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MSGB_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Message_Broadcast_STAT] DEFAULT ('002'),
+[TELG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [INSR_FNAM_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Message_Broadcast_INSR_FNAM_STAT] DEFAULT ('001'),
 [INSR_CNAM_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Message_Broadcast_INSR_CNAM_STAT] DEFAULT ('002'),
 [CLUB_CODE] [bigint] NULL,

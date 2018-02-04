@@ -390,7 +390,53 @@ BEGIN
             );
             EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
          END;
-      END;      
+      END;
+      -- 1396/11/15 * ثبت پیامک تلگرام
+      IF @ChatId IS NOT NULL
+      BEGIN  
+         DECLARE @TelgStat VARCHAR(3);
+         
+         SELECT @TelgStat = TELG_STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '006';
+         
+         IF @TelgStat = '002'
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'');
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
+            
+            IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+	         BEGIN
+	            DECLARE @RoboServFileNo BIGINT;
+	            SELECT @RoboServFileNo = SERV_FILE_NO
+	              FROM iRoboTech.dbo.Service_Robot
+	             WHERE ROBO_RBID = 391
+	               AND CHAT_ID = @ChatId;
+	            
+	            IF @RoboServFileNo IS NOT NULL
+	               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+	                   @SRBT_ROBO_RBID = 391, -- bigint
+	                   @RWNO = 0, -- bigint
+	                   @SRMG_RWNO = NULL, -- bigint
+	                   @Ordt_Ordr_Code = NULL, -- bigint
+	                   @Ordt_Rwno = NULL, -- bigint
+	                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+	                   @FILE_ID = NULL, -- varchar(200)
+	                   @FILE_PATH = NULL, -- nvarchar(max)
+	                   @MESG_TYPE = '001', -- varchar(3)
+	                   @LAT = NULL, -- float
+	                   @LON = NULL, -- float
+	                   @CONT_CELL_PHON = NULL; -- varchar(11)	            
+	         END;
+         END;
+      END;
       
       COMMIT TRAN T$ADM_TSAV_F;
    END TRY

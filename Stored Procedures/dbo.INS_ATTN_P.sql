@@ -597,9 +597,90 @@ BEGIN
          SET @ExitTime = GETDATE();
       ELSE
          SET @ExitTime = NULL;
+      
+      SET @AttnCode = dbo.GNRT_NVID_U();
          
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM)
-      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, dbo.GNRT_NVID_U(), @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004');
+      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004');
+
+      -- 1396/11/15 * ثبت پیامک تلگرام
+      DECLARE @ChatId BIGINT
+             ,@SexType VARCHAR(3)
+             ,@FrstName NVARCHAR(250)
+             ,@LastName NVARCHAR(250);
+             
+      SELECT @ChatId = CHAT_ID_DNRM
+            ,@SexType = SEX_TYPE_DNRM
+            ,@FrstName = FRST_NAME_DNRM
+            ,@LastName = LAST_NAME_DNRM
+        FROM dbo.Fighter
+       WHERE FILE_NO = @Figh_File_No;       
+
+      IF @ChatId IS NOT NULL
+      BEGIN
+         DECLARE @TelgStat VARCHAR(3)
+                ,@MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@ClubName NVARCHAR(250)
+                ,@InsrCnamStat VARCHAR(3)
+                ,@InsrFnamStat VARCHAR(3);
+                
+         SELECT @TelgStat = TELG_STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '008';
+         
+         IF @TelgStat = '002'
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+            
+            SET @MsgbText += (
+               SELECT CHAR(10) + N' شما در ساعت ' + CAST(ENTR_TIME AS VARCHAR(5)) + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' وارد باشگاه شده اید '
+                 FROM dbo.Attendance a, dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Fighter c
+                WHERE a.CODE = @AttnCode
+                  AND a.FIGH_FILE_NO = ms.FIGH_FILE_NO
+                  AND ms.RWNO = @MbspRwno
+                  AND ms.RECT_CODE = '004'
+                  AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                  AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                  AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                  AND fp.MTOD_CODE = m.CODE
+                  AND fp.COCH_FILE_NO = c.FILE_NO
+            );   
+            
+            IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+	         BEGIN
+	            DECLARE @RoboServFileNo BIGINT;
+	            SELECT @RoboServFileNo = SERV_FILE_NO
+	              FROM iRoboTech.dbo.Service_Robot
+	             WHERE ROBO_RBID = 391
+	               AND CHAT_ID = @ChatId;
+	            
+	            IF @RoboServFileNo IS NOT NULL
+	               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+	                   @SRBT_ROBO_RBID = 391, -- bigint
+	                   @RWNO = 0, -- bigint
+	                   @SRMG_RWNO = NULL, -- bigint
+	                   @Ordt_Ordr_Code = NULL, -- bigint
+	                   @Ordt_Rwno = NULL, -- bigint
+	                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+	                   @FILE_ID = NULL, -- varchar(200)
+	                   @FILE_PATH = NULL, -- nvarchar(max)
+	                   @MESG_TYPE = '001', -- varchar(3)
+	                   @LAT = NULL, -- float
+	                   @LON = NULL, -- float
+	                   @CONT_CELL_PHON = NULL; -- varchar(11)	            
+	         END;
+         END;
+      END;      
+      -- 1396/11/15 * ثبت پیامک تلگرام
    END
    ELSE
    BEGIN
@@ -623,18 +704,144 @@ BEGIN
                            ELSE CAST(GETDATE() AS TIME(0)) 
                          END
        WHERE CODE = @AttnCode;            
-     
+      
+      SELECT @ChatId = CHAT_ID_DNRM
+            ,@SexType = SEX_TYPE_DNRM
+            ,@FrstName = FRST_NAME_DNRM
+            ,@LastName = LAST_NAME_DNRM
+        FROM dbo.Fighter
+       WHERE FILE_NO = @Figh_File_No;       
+
+      IF @ChatId IS NOT NULL
+      BEGIN                
+         SELECT @TelgStat = TELG_STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '008';
+         
+         IF @TelgStat = '002'
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+            
+            SET @MsgbText += (
+               SELECT CHAR(10) + N' شما در ساعت ' + CAST(a.EXIT_TIME AS VARCHAR(5)) + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' از باشگاه خارج شده اید '
+                 FROM dbo.Attendance a, dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Fighter c
+                WHERE a.CODE = @AttnCode
+                  AND a.FIGH_FILE_NO = ms.FIGH_FILE_NO
+                  AND ms.RWNO = @MbspRwno
+                  AND ms.RECT_CODE = '004'
+                  AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                  AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                  AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                  AND fp.MTOD_CODE = m.CODE
+                  AND fp.COCH_FILE_NO = c.FILE_NO
+            );   
+            
+            IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+	         BEGIN
+	            --DECLARE @RoboServFileNo BIGINT;
+	            SELECT @RoboServFileNo = SERV_FILE_NO
+	              FROM iRoboTech.dbo.Service_Robot
+	             WHERE ROBO_RBID = 391
+	               AND CHAT_ID = @ChatId;
+	            
+	            IF @RoboServFileNo IS NOT NULL
+	               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+	                   @SRBT_ROBO_RBID = 391, -- bigint
+	                   @RWNO = 0, -- bigint
+	                   @SRMG_RWNO = NULL, -- bigint
+	                   @Ordt_Ordr_Code = NULL, -- bigint
+	                   @Ordt_Rwno = NULL, -- bigint
+	                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+	                   @FILE_ID = NULL, -- varchar(200)
+	                   @FILE_PATH = NULL, -- nvarchar(max)
+	                   @MESG_TYPE = '001', -- varchar(3)
+	                   @LAT = NULL, -- float
+	                   @LON = NULL, -- float
+	                   @CONT_CELL_PHON = NULL; -- varchar(11)	            
+	         END;
+         END;
+      END;      
+      -- 1396/11/15 * ثبت پیامک تلگرام      
+      
       -- 1396/10/09 * بررسی اینکه آیا بیش از حد مجاز در کلاس بوده
       IF ISNULL(@CbmtTimeStat, '001') = '002' AND @ClasTime < ( SELECT DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) FROM dbo.Attendance WHERE Code = @AttnCode)
       BEGIN
          DECLARE @TempAttnCode BIGINT = dbo.GNRT_NVID_U();
          
          INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC)
-         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه');
+         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه ' + ( SELECT CAST(DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) AS VARCHAR(10)) FROM dbo.Attendance WHERE Code = @AttnCode) );
          
          UPDATE dbo.Attendance
             SET EXIT_TIME = DATEADD(MINUTE, @ClasTime, GETDATE())
-          WHERE CODE = @TempAttnCode;         
+          WHERE CODE = @TempAttnCode;   
+         
+         -- 1396/11/15 * ثبت پیامک تلگرام      
+         IF @ChatId IS NOT NULL
+         BEGIN                
+            SELECT @TelgStat = TELG_STAT
+                  ,@MsgbText = MSGB_TEXT
+                  ,@ClubName = CLUB_NAME
+                  ,@InsrCnamStat = INSR_CNAM_STAT
+                  ,@InsrFnamStat = INSR_FNAM_STAT
+              FROM dbo.Message_Broadcast
+             WHERE MSGB_TYPE = '008';
+            
+            IF @TelgStat = '002'
+            BEGIN
+               IF @InsrFnamStat = '002'
+                  SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
+               
+               IF @InsrCnamStat = '002'
+                  SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+               
+               SET @MsgbText += (
+                  SELECT CHAR(10) + N' شما بخاطر تجاوز از ساعت حضور در باشگاه' + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' از باشگاه خارج شده اید و یک جلسه دیگر از شما کسر شد'
+                    FROM dbo.Attendance a, dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Fighter c
+                   WHERE a.CODE = @TempAttnCode
+                     AND a.FIGH_FILE_NO = ms.FIGH_FILE_NO
+                     AND ms.RWNO = @MbspRwno
+                     AND ms.RECT_CODE = '004'
+                     AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                     AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                     AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                     AND fp.MTOD_CODE = m.CODE
+                     AND fp.COCH_FILE_NO = c.FILE_NO
+               );   
+               
+               IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+	            BEGIN
+	               --DECLARE @RoboServFileNo BIGINT;
+	               SELECT @RoboServFileNo = SERV_FILE_NO
+	                 FROM iRoboTech.dbo.Service_Robot
+	                WHERE ROBO_RBID = 391
+	                  AND CHAT_ID = @ChatId;
+   	            
+	               IF @RoboServFileNo IS NOT NULL
+	                  EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+	                      @SRBT_ROBO_RBID = 391, -- bigint
+	                      @RWNO = 0, -- bigint
+	                      @SRMG_RWNO = NULL, -- bigint
+	                      @Ordt_Ordr_Code = NULL, -- bigint
+	                      @Ordt_Rwno = NULL, -- bigint
+	                      @MESG_TEXT = @MsgbText, -- nvarchar(max)
+	                      @FILE_ID = NULL, -- varchar(200)
+	                      @FILE_PATH = NULL, -- nvarchar(max)
+	                      @MESG_TYPE = '001', -- varchar(3)
+	                      @LAT = NULL, -- float
+	                      @LON = NULL, -- float
+	                      @CONT_CELL_PHON = NULL; -- varchar(11)	            
+	            END;
+            END;
+         END;      
+         -- 1396/11/15 * ثبت پیامک تلگرام            
       END
            
       IF @AttnDate != CAST(/*GETDATE()*/@Attn_Date AS DATE) AND @Attn_Type != '003' -- خروج بدون حضور مجدد
