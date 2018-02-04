@@ -344,7 +344,7 @@ BEGIN
          DECLARE @TelgStat VARCHAR(3);
          
          SELECT @TelgStat = TELG_STAT
-               ,@MsgbText = MSGB_TEXT
+               --,@MsgbText = MSGB_TEXT
                ,@ClubName = CLUB_NAME
                ,@InsrCnamStat = INSR_CNAM_STAT
                ,@InsrFnamStat = INSR_FNAM_STAT
@@ -354,7 +354,24 @@ BEGIN
          IF @TelgStat = '002'
          BEGIN
             IF @InsrFnamStat = '002'
-               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'');
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ';--+ ISNULL(@MsgbText, N'');
+
+            SELECT @MsgbText += (            
+               SELECT CHAR(10) + N' شما در رشته ' + m.MTOD_DESC + N' با مربی ' + c.NAME_DNRM + N' برای ایام ' + d.DOMN_DESC + N' از ' + CAST(cm.STRT_TIME AS VARCHAR(5)) + N' تا ' + CAST(cm.END_TIME AS VARCHAR(5)) + N' ثبت نام کرده اید.' + 
+                      CHAR(10) + N' از اینکه دوره جدید ورزشی خود را با ما انجام میدهید بسیار خرسندیم. با آرزوی موفقیت و سلامتی برای شما' + 
+                      CHAR(10)                      
+                 FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Fighter c, dbo.[D$DYTP] d, dbo.Club_Method cm
+                WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                  AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                  AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                  AND fp.MTOD_CODE = m.CODE
+                  AND fp.COCH_FILE_NO = c.FILE_NO
+                  AND cm.CODE = fp.CBMT_CODE
+                  AND cm.DAY_TYPE = d.VALU
+                  AND ms.FIGH_FILE_NO = @FileNo
+                  AND ms.RQRO_RQST_RQID = @OrgnRqid
+                  AND ms.RECT_CODE = '004'
+            );
             
             IF @InsrCnamStat = '002'
                SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
