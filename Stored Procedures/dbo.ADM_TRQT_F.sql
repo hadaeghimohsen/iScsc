@@ -236,7 +236,7 @@ BEGIN
             ,@TellPhon = @X.query('//Tell_Phon').value('.', 'VARCHAR(11)')
             --,@CochDeg  = @X.query('//Coch_Deg').value('.', 'VARCHAR(3)')
             --,@GudgDeg  = @X.query('//Gudg_Deg').value('.', 'VARCHAR(3)')
-            --,@GlobCode = @X.query('//Glob_Code').value('.', 'VARCHAR(20)')
+            ,@GlobCode = @X.query('//Glob_Code').value('.', 'VARCHAR(20)')
             ,@Type     = @X.query('//Type').value('.', 'VARCHAR(3)')
             ,@PostAdrs = @X.query('//Post_Adrs').value('.', 'NVARCHAR(1000)')
             ,@EmalAdrs = @X.query('//Emal_Adrs').value('.', 'VARCHAR(250)')
