@@ -62,6 +62,9 @@ BEGIN
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)');
       
+      IF @RqttCode IS NULL OR @RqttCode = ''
+         SET @RqttCode = '001';
+      
       IF @RegnCode IS NULL OR @PrvnCode IS NULL 
       BEGIN
          /*SELECT TOP 1 @RegnCode = CODE
