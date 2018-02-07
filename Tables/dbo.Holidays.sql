@@ -4,6 +4,8 @@ CREATE TABLE [dbo].[Holidays]
 [YEAR] [int] NULL,
 [CYCL] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [HLDY_DATE] [date] NULL,
+[WEEK_DAY] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[HLDY_DESC] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -56,7 +58,8 @@ BEGIN
 	      t.MDFY_BY = UPPER(SUSER_NAME())
 	     ,t.MDFY_DATE = GETDATE()
 	     ,T.YEAR = SUBSTRING(dbo.GET_MTOS_U(s.HLDY_DATE), 1, 4)
-	     ,T.CYCL = SUBSTRING(dbo.GET_MTOS_U(s.HLDY_DATE), 6, 2);
+	     ,T.CYCL = dbo.GET_PSTR_U(SUBSTRING(dbo.GET_MTOS_U(s.HLDY_DATE), 6, 2), 3)
+	     ,T.WEEK_DAY = dbo.GET_PSTR_U( DATEPART(WEEKDAY, s.HLDY_DATE), 3);
 END
 GO
 ALTER TABLE [dbo].[Holidays] ADD CONSTRAINT [PK_HLDY] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

@@ -232,10 +232,20 @@ BEGIN
            FROM dbo.Fighter
           WHERE FILE_NO = @FileNo;
       
+      -- 1396/11/18 * اضافه شدن تاریخ تعطیلی ها در سیستم
+      DECLARE @HldyNumb INT;
+      SELECT @HldyNumb = COUNT(h.CODE)
+        FROM dbo.Holidays h, dbo.Member_Ship ms
+       WHERE ms.RQRO_RQST_RQID = @Rqid
+         AND ms.RECT_CODE = '004'
+         AND ms.VALD_TYPE = '002'
+         AND h.HLDY_DATE BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+      
       -- 1396/10/13 * ثبت گزینه ردیف عمومی در جدول تمدید
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,END_DATE = DATEADD(DAY, @HldyNumb, END_DATE)
        WHERE RQRO_RQST_RQID = @OrgnRqid;
          --AND RECT_CODE = '004';
       
