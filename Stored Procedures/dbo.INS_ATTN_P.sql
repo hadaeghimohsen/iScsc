@@ -116,8 +116,9 @@ BEGIN
    DECLARE @NameDnrm NVARCHAR(500)
           ,@EndDate VARCHAR(10)
           ,@SexDesc NVARCHAR(10)
+          ,@GlobCode NVARCHAR(50)
           ,@MessageShow NVARCHAR(MAX)
-          ,@StrtDateStr VARCHAR(10)
+          ,@StrtDateStr VARCHAR(10)          
           --,@EndDate DATE
           ,@NumbOfAttnMont INT
           ,@SumAttnMontDnrm INT;
@@ -125,6 +126,7 @@ BEGIN
    SELECT @NameDnrm = NAME_DNRM
          ,@EndDate = dbo.GET_MTOS_U(MBSP_END_DATE)
          ,@SexDesc = sxdc.DOMN_DESC
+         ,@GlobCode = f.GLOB_CODE_DNRM
          ,@StrtDateStr = dbo.GET_MTOS_U(MBSP_STRT_DATE)
          ,@NumbOfAttnMont = M.NUMB_OF_ATTN_MONT
          ,@SumAttnMontDnrm = M.SUM_ATTN_MONT_DNRM
@@ -186,7 +188,30 @@ BEGIN
                1 -- State.
                );
    END 
-              
+   
+   -- 1396/11/23 * بررسی اینکه آیا مشترکین اشتراکی جلسه باقیمانده دارند یا خیر
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Settings
+       WHERE CLUB_CODE = @Club_Code
+         AND SHAR_MBSP_STAT = '002'
+   )
+   BEGIN
+      IF @GlobCode IS NOT NULL AND @GlobCode != ''
+      BEGIN
+         DECLARE @SumAttnCont INT;
+         SELECT @SumAttnCont = COUNT(*)           
+           FROM dbo.Attendance a, dbo.Method m
+          WHERE GLOB_CODE_DNRM = @GlobCode
+            AND a.MTOD_CODE_DNRM = m.CODE
+            AND m.CHCK_ATTN_ALRM = '002'
+            AND SUBSTRING(dbo.GET_MTOS_U(ATTN_DATE), 1, 7) = SUBSTRING(dbo.GET_MTOS_U(@Attn_Date), 1, 7);
+         
+         IF @SumAttnCont >= @NumbOfAttnMont
+            GOTO L$AttnEror_EndOfCycl;
+      END
+   END
+   
    -- کردن زمان شروع و پایان کار هنرجو
    IF EXISTS(
       SELECT *
@@ -201,6 +226,7 @@ BEGIN
          AND CAST(M.END_DATE AS DATE) < CAST(/*GETDATE()*/@Attn_Date AS DATE)
    )
    BEGIN
+      L$AttnEror_EndOfCycl:
       SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
                          @SexDesc + N' ' + @NameDnrm + CHAR(10) +
                          N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +

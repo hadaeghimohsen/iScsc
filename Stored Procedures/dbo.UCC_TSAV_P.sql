@@ -107,6 +107,7 @@ BEGIN
              ,@CtgyCode BIGINT
              ,@CbmtCode BIGINT
              ,@FgpbRwnoDnrm INT
+             ,@GlobCode NVARCHAR(50)
              ,@RegnCode VARCHAR(3)
              ,@PrvnCode VARCHAR(3)
              ,@ExistsNewPublic BIT;
@@ -115,6 +116,7 @@ BEGIN
             ,@CtgyCode = CTGY_CODE_DNRM
             ,@CbmtCode = CBMT_CODE_DNRM
             ,@FgpbRwnoDnrm = FGPB_RWNO_DNRM
+            ,@GlobCode = GLOB_CODE_DNRM
             ,@RegnCode = REGN_CODE
             ,@PrvnCode = REGN_PRVN_CODE
         FROM dbo.Fighter
@@ -240,53 +242,65 @@ BEGIN
          AND ms.RECT_CODE = '004'
          AND ms.VALD_TYPE = '002'
          AND h.HLDY_DATE BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+
+      -- 1396/11/23 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
+      DECLARE @SharGlobCont INT = 1;
+      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND cm.CODE = @CbmtCode AND s.SHAR_MBSP_STAT = '002') AND @GlobCode IS NOT NULL OR @GlobCode != ''
+      BEGIN         
+         SELECT @SharGlobCont = COUNT(*)
+           FROM dbo.Fighter
+          WHERE CONF_STAT = '002'
+            AND ACTV_TAG_DNRM >= '101'
+            AND GLOB_CODE_DNRM = @GlobCode;
+      END
       
       -- 1396/10/13 * ثبت گزینه ردیف عمومی در جدول تمدید
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
             ,END_DATE = DATEADD(DAY, @HldyNumb, END_DATE)
+            ,NUMB_OF_ATTN_MONT = NUMB_OF_ATTN_MONT * @SharGlobCont
        WHERE RQRO_RQST_RQID = @OrgnRqid;
-         --AND RECT_CODE = '004';
+
       
       -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
-      IF EXISTS(
-         SELECT *
-           FROM dbo.Request R, dbo.Request_Row Rr, dbo.Payment P, dbo.Payment_Detail Pd, dbo.Expense E
-          WHERE R.RQID = Rr.RQST_RQID
-            AND R.RQID = P.RQST_RQID
-            AND Rr.RQST_RQID = Pd.PYMT_RQST_RQID
-            AND Rr.RWNO = Pd.RQRO_RWNO
-            AND Pd.EXPN_CODE = E.CODE
-            AND R.RQID = @OrgnRqid -- درخواست ثبت نام هنرجو
-            AND E.PRVT_COCH_EXPN = '002' -- هزینه مربی خصوصی            
-      )
-      BEGIN
-         -- ثبت درخواست جلسه خصوصی با مربی
-         SET @X = N'<Process><Request rqstrqid="" rqtpcode="021" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست کلاس خصوصی اعضا پیرو تمدید اعضا بخاطر استفاده از هزینه جلسه خصوصی"><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
-         SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
-         SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-         SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
-         EXEC MBC_TRQT_P @X;
+      --IF EXISTS(
+      --   SELECT *
+      --     FROM dbo.Request R, dbo.Request_Row Rr, dbo.Payment P, dbo.Payment_Detail Pd, dbo.Expense E
+      --    WHERE R.RQID = Rr.RQST_RQID
+      --      AND R.RQID = P.RQST_RQID
+      --      AND Rr.RQST_RQID = Pd.PYMT_RQST_RQID
+      --      AND Rr.RWNO = Pd.RQRO_RWNO
+      --      AND Pd.EXPN_CODE = E.CODE
+      --      AND R.RQID = @OrgnRqid -- درخواست ثبت نام هنرجو
+      --      AND E.PRVT_COCH_EXPN = '002' -- هزینه مربی خصوصی            
+      --)
+      --BEGIN
+      --   -- ثبت درخواست جلسه خصوصی با مربی
+      --   SET @X = N'<Process><Request rqstrqid="" rqtpcode="021" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست کلاس خصوصی اعضا پیرو تمدید اعضا بخاطر استفاده از هزینه جلسه خصوصی"><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
+      --   SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
+      --   SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+      --   SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
+      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
+      --   EXEC MBC_TRQT_P @X;
          
-         SELECT @Rqid = R.RQID
-           FROM Request R
-          WHERE R.RQST_RQID = @Rqid
-            AND R.RQST_STAT = '001'
-            AND R.RQTP_CODE = '021'
-            AND R.RQTT_CODE = '004';
+      --   SELECT @Rqid = R.RQID
+      --     FROM Request R
+      --    WHERE R.RQST_RQID = @Rqid
+      --      AND R.RQST_STAT = '001'
+      --      AND R.RQTP_CODE = '021'
+      --      AND R.RQTT_CODE = '004';
 
-         SET @X = '<Process><Request rqid=""></Request></Process>';
-         SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
-         EXEC MBC_TSAV_P @X;
-      END 
+      --   SET @X = '<Process><Request rqid=""></Request></Process>';
+      --   SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
+      --   EXEC MBC_TSAV_P @X;
+      --END 
       
       DECLARE @CellPhon VARCHAR(11)
              ,@ChatId BIGINT
