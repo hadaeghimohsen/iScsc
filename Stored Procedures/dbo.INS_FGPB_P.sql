@@ -77,7 +77,7 @@ BEGIN
            ,[CBMT_CODE], [DAY_TYPE], [ATTN_TIME], [COCH_CRTF_DATE], [CALC_EXPN_TYPE],[ACTV_TAG], [BLOD_GROP]
            ,[FNGR_PRNT], [SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]
            ,[CORD_X], [CORD_Y], [MOST_DEBT_CLNG], [SERV_NO], BRTH_PLAC, ISSU_PLAC, FATH_WORK, HIST_DESC, INTR_FILE_NO
-           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY], CHAT_ID)
+           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY], [CHAT_ID])
      VALUES
            (@Prvn_Code, @Regn_Code, @Dise_Code, @Mtod_Code, @Ctgy_Code 
            ,@Club_Code, @Rqro_Rqst_Rqid, @Rqro_Rwno, @File_No, 0, @Rect_Code

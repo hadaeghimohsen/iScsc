@@ -16,6 +16,7 @@ CREATE TABLE [dbo].[Attendance]
 [NAME_DNRM] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CELL_PHON_DNRM] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FGPB_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CBMT_CODE_DNRM] [bigint] NULL,
 [MTOD_CODE_DNRM] [bigint] NULL,
 [CTGY_CODE_DNRM] [bigint] NULL,
 [IMAG_RCDC_RCID_DNRM] [bigint] NULL,
@@ -31,11 +32,13 @@ CREATE TABLE [dbo].[Attendance]
 [MBCO_RWNO_DNRM] [smallint] NULL,
 [SESN_SNID_DNRM] [bigint] NULL,
 [ATTN_DESC] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[GLOB_CODE_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[FMLY_NUMB_DNRM] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+) ON [BLOB] TEXTIMAGE_ON [BLOB]
 GO
 SET QUOTED_IDENTIFIER ON
 GO
@@ -76,7 +79,10 @@ AS
                         m.STRT_DATE AS MBSP_STRT_DATE,
                         m.END_DATE AS MBSP_END_DATE,
                         i.ATTN_TYPE,
-                        i.ATTN_DESC
+                        i.ATTN_DESC,
+                        fp.CBMT_CODE,
+                        fp.GLOB_CODE,
+                        fp.FMLY_NUMB
               FROM      INSERTED i ,
                         dbo.Fighter f,
                         dbo.Fighter_Public fp
@@ -122,7 +128,7 @@ AS
                     T.NUMB_OF_ATTN_MONT = S.NUMB_OF_ATTN_MONT ,
                     T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
                                                      '002', '003' )
-                                                     AND S.ATTN_TYPE != '008'
+                                                 AND S.ATTN_TYPE != '008'
                                                 THEN ISNULL(S.SUM_ATTN_MONT_DNRM,
                                                             0) + 1
                                                 WHEN S.FGPB_TYPE_DNRM NOT IN (
@@ -133,6 +139,9 @@ AS
                                                 ELSE NULL
                                            END ,
                     T.MBCO_RWNO_DNRM = S.MBCO_RWNO_DNRM ,
+                    T.CBMT_CODE_DNRM = s.CBMT_CODE,
+                    T.GLOB_CODE_DNRM = s.GLOB_CODE,
+                    t.FMLY_NUMB_DNRM = s.FMLY_NUMB,
                     T.ATTN_DESC = CASE WHEN S.ATTN_TYPE = '007'
                                        THEN N'ثبت جلسه حضوری با همراه با کسر جلسه از اعضا'
                                        WHEN S.ATTN_TYPE = '008'
@@ -177,18 +186,18 @@ AS
                     BEGIN         
                         UPDATE  dbo.Member_Ship
                         SET     SUM_ATTN_MONT_DNRM = ISNULL(SUM_ATTN_MONT_DNRM,
-                                                            0) + 1 ,
+                                                            0) + 1 /*,
                                 SUM_ATTN_WEEK_DNRM = dbo.GET_SATN_F('<Fighter fileno="'
                                                               + CAST(FIGH_FILE_NO AS VARCHAR(14))
                                                               + '"/>').query('//Attendance').value('(Attendance/@d)[1]',
-                                                              'BIGINT')
+                                                              'BIGINT')*/
                         WHERE RWNO = @mbsprwno 
                           AND RECT_CODE = '004'
                           AND EXISTS ( SELECT *
                                          FROM   INSERTED I ,
                                                 Attendance A ,
-                                                dbo.Method m
-                                         WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
+                       dbo.Method m
+                              WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
                                                 AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
                                                 AND dbo.Member_Ship.RECT_CODE = A.MBSP_RECT_CODE_DNRM
                                                 AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
@@ -250,9 +259,9 @@ AS
       --                                      AND DATEDIFF(DAY, M.STRT_DATE,
       --                                                   M.END_DATE) = 0
       --                                      AND S.TOTL_SESN > ISNULL(S.SUM_MEET_HELD_DNRM,
-      --                                                        0) )
+      --                        0) )
       --                      BEGIN
-      --                          MERGE Session_Meeting T
+      --                     MERGE Session_Meeting T
       --                          USING
       --                              ( SELECT    S.MBSP_FIGH_FILE_NO ,
       --                                          S.MBSP_RECT_CODE ,
@@ -314,10 +323,10 @@ AS
       --                      BEGIN
       --                          RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
       --                          RETURN;
-      --                      END;
+   --                      END;
          
       --              END;
-      --          ELSE -- ثبت جلسه حضور برای هنرجویان چندجلسه ای
+      --        ELSE -- ثبت جلسه حضور برای هنرجویان چندجلسه ای
       --              IF EXISTS ( SELECT  *
       --                          FROM    Fighter F ,
       --                                  Member_Ship M ,
@@ -369,9 +378,9 @@ AS
       --                                                        AND M.RECT_CODE = '004'
       --                                                        AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
       --                                                        AND M.RECT_CODE = S.MBSP_RECT_CODE
-      --                                                        AND M.RWNO = S.MBSP_RWNO
+      --                    AND M.RWNO = S.MBSP_RWNO
       --                                                        AND S.SNID = Sm.SESN_SNID
-      --                                                        AND S.MBSP_FIGH_FILE_NO = Sm.MBSP_FIGH_FILE_NO
+      --                                         AND S.MBSP_FIGH_FILE_NO = Sm.MBSP_FIGH_FILE_NO
       --                                                        AND S.MBSP_RECT_CODE = Sm.MBSP_RECT_CODE
       --                                                        AND S.MBSP_RWNO = Sm.MBSP_RWNO
       --                                                        AND CAST(Sm.ACTN_DATE AS DATE) = CAST(GETDATE() AS DATE) )
@@ -419,7 +428,7 @@ AS
       --                          BEGIN
       --                              RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
       --                              RETURN;
-      --                          END;         
+ --                          END;         
       --                  END;
       --      END;
     END;
@@ -560,7 +569,7 @@ BEGIN
         END;
 END;
 GO
-ALTER TABLE [dbo].[Attendance] ADD CONSTRAINT [PK_ATTN] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+ALTER TABLE [dbo].[Attendance] ADD CONSTRAINT [PK_ATTN] PRIMARY KEY CLUSTERED  ([CODE]) ON [BLOB]
 GO
 ALTER TABLE [dbo].[Attendance] ADD CONSTRAINT [FK_ATTN_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE])
 GO

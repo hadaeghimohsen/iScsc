@@ -55,6 +55,7 @@ CREATE TABLE [dbo].[Fighter_Public]
 [DPST_ACNT_SLRY_BANK] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DPST_ACNT_SLRY] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHAT_ID] [bigint] NULL,
+[FMLY_NUMB] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -133,7 +134,8 @@ BEGIN
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = s.GLOB_CODE
-            ,CHAT_ID_DNRM = s.CHAT_ID;
+            ,CHAT_ID_DNRM = s.CHAT_ID
+            ,FMLY_NUMB_DNRM = s.FMLY_NUMB;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -175,6 +177,7 @@ BEGIN
             ,NATL_CODE_DNRM = NULL
             ,GLOB_CODE_DNRM = NULL
             ,CHAT_ID_DNRM = NULL
+            ,FMLY_NUMB_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -250,7 +253,8 @@ BEGIN
           ,@BRTH_PLAC           NVARCHAR(100)       ,@ISSU_PLAC           NVARCHAR(100)
           ,@FATH_WORK           NVARCHAR(150)       ,@HIST_DESC           NVARCHAR(500)
           ,@INTR_FILE_NO        BIGINT              ,@DPST_ACNT_SLRY_BANK NVARCHAR(50)
-          ,@DPST_ACNT_SLRY      VARCHAR(50)         ,@CHAT_ID             BIGINT;
+          ,@DPST_ACNT_SLRY      VARCHAR(50)         ,@CHAT_ID             BIGINT
+          ,@FMLY_NUMB           INT ;
    -- FETCH LAST INFORMATION;
    SELECT TOP 1
           @REGN_PRVN_CNTY_CODE = T.[REGN_PRVN_CNTY_CODE]          , @REGN_PRVN_CODE = T.[REGN_PRVN_CODE]
@@ -280,9 +284,28 @@ BEGIN
          ,@FATH_WORK           = T.FATH_WORK                      , @HIST_DESC      = T.HIST_DESC
          ,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
          ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY                 , @CHAT_ID        = T.CHAT_ID
+         ,@FMLY_NUMB           = T.FMLY_NUMB
      FROM [dbo].[Fighter_Public] T , INSERTED S
      WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
      ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;
+   
+   -- 1396/11/22 * بررسی اینکه ستون هایی که اطلاعات آنها خالی می باشند مقدار "نال" به انها داده شود
+   /*IF @FATH_NAME = '' SET @FATH_NAME = NULL;
+   IF @POST_ADRS = '' SET @POST_ADRS = NULL;
+   IF @CELL_PHON = '' SET @CELL_PHON = NULL;
+   IF @TELL_PHON = '' SET @TELL_PHON = NULL;  
+   IF @INSR_NUMB = '' SET @INSR_NUMB = NULL;
+   IF CAST(@INSR_DATE AS DATE) = '1900-01-01' SET @INSR_DATE = NULL;
+   IF @BLOD_GROP = '' SET @BLOD_GROP = NULL;
+   IF @FNGR_PRNT = '' SET @FNGR_PRNT = NULL;
+   IF @CORD_X = 0 SET @CORD_X = NULL;
+   IF @CORD_Y = 0 SET @CORD_Y = NULL;
+   IF @SERV_NO = '' SET @SERV_NO = NULL;
+   IF @NATL_CODE = '0' OR @NATL_CODE = '' SET @NATL_CODE = NULL;
+   IF @GLOB_CODE = '' SET @GLOB_CODE = NULL;*/
+   IF @CHAT_ID = 0 SET @CHAT_ID = NULL;
+   
+   
    
    IF @TYPE IN ( '001', '004', '005', '006' ) AND 
       NOT EXISTS(SELECT * FROM Request WHERE RQID = @RQRO_RQST_RQID AND RQTP_CODE IN ('013', '014', '022', '023', '025')) -- درخواست استخدامی نباشد
@@ -343,6 +366,18 @@ BEGIN
       SET @Most_Debt_Clng = ISNULL(@Most_Debt_Clng, 0);
    END
    
+   -- 1396/11/22 * بررسی تعداد کد خانوار مشترکین
+   IF @GLOB_CODE IS NOT NULL AND @GLOB_CODE != ''
+   BEGIN      
+      SELECT @FMLY_NUMB = COUNT(*) 
+        FROM dbo.Fighter_Public fp
+       WHERE fp.RECT_CODE = '004'
+         AND fp.GLOB_CODE = @GLOB_CODE
+         AND fp.ACTV_TAG >= '101';
+   END
+   ELSE
+      SET @FMLY_NUMB = NULL;
+   
    MERGE dbo.Fighter_Public T
    USING (SELECT * FROM INSERTED) S
    ON (T.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND
@@ -384,7 +419,7 @@ BEGIN
             ,CALC_EXPN_TYPE      = CASE S.CALC_EXPN_TYPE      WHEN NULL THEN @CALC_EXPN_TYPE      ELSE S.CALC_EXPN_TYPE      END
             ,ACTV_TAG            = CASE S.ACTV_TAG            WHEN NULL THEN @ACTV_TAG            ELSE S.ACTV_TAG            END
             ,BLOD_GROP           = CASE S.BLOD_GROP           WHEN NULL THEN @BLOD_GROP           ELSE S.BLOD_GROP           END
-            ,FNGR_PRNT       = CASE S.FNGR_PRNT           WHEN NULL THEN @FNGR_PRNT           ELSE S.FNGR_PRNT           END
+            ,FNGR_PRNT           = CASE S.FNGR_PRNT           WHEN NULL THEN @FNGR_PRNT           ELSE S.FNGR_PRNT           END
             ,SUNT_BUNT_DEPT_ORGN_CODE = CASE S.SUNT_BUNT_DEPT_ORGN_CODE WHEN NULL THEN @SUNT_BUNT_DEPT_ORGN_CODE ELSE S.SUNT_BUNT_DEPT_ORGN_CODE END
             ,SUNT_BUNT_DEPT_CODE = CASE S.SUNT_BUNT_DEPT_CODE WHEN NULL THEN @SUNT_BUNT_DEPT_CODE ELSE S.SUNT_BUNT_DEPT_CODE END
             ,SUNT_BUNT_CODE      = CASE S.SUNT_BUNT_CODE      WHEN NULL THEN @SUNT_BUNT_CODE      ELSE S.SUNT_BUNT_CODE      END
@@ -400,7 +435,8 @@ BEGIN
             ,INTR_FILE_NO        = CASE S.INTR_FILE_NO        WHEN NULL THEN @INTR_FILE_NO        ELSE S.INTR_FILE_NO        END
             ,DPST_ACNT_SLRY_BANK = CASE S.DPST_ACNT_SLRY_BANK WHEN NULL THEN @DPST_ACNT_SLRY_BANK ELSE S.DPST_ACNT_SLRY_BANK END
             ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END
-            ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END;
+            ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END
+            ,FMLY_NUMB           = @FMLY_NUMB;--CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END;
             
             
    -- UPDATE FIGHTER TABLE
@@ -447,7 +483,8 @@ BEGIN
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = S.GLOB_CODE
-            ,CHAT_ID_DNRM = S.CHAT_ID;
+            ,CHAT_ID_DNRM = @CHAT_ID--S.CHAT_ID
+            ,FMLY_NUMB_DNRM = @FMLY_NUMB;
 END
 ;
 GO
@@ -488,6 +525,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'بانک حساب واریز حقوق و دستمزد', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'DPST_ACNT_SLRY_BANK'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شغل پدر', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'FATH_WORK'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد خانوار', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'FMLY_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'سابقه ورزشی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIST_DESC'
 GO

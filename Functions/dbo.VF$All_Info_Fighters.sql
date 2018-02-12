@@ -8,7 +8,7 @@ CREATE FUNCTION [dbo].[VF$All_Info_Fighters] (
 AS
 RETURN
 (
-SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter_Public.RQRO_RQST_RQID, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.POST_ADRS, 
+SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter_Public.RQRO_RQST_RQID, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.FMLY_NUMB, dbo.Fighter_Public.POST_ADRS, 
        dbo.Fighter_Public.EMAL_ADRS, dbo.Fighter_Public.BRTH_DATE, dbo.Fighter_Public.CELL_PHON, dbo.Fighter_Public.TELL_PHON, dbo.Fighter_Public.COCH_DEG, dbo.Fighter_Public.GUDG_DEG, 
        dbo.Fighter_Public.TYPE, dbo.Fighter_Public.INSR_NUMB, dbo.Fighter_Public.INSR_DATE, dbo.Fighter_Public.FATH_NAME, dbo.Fighter_Public.LAST_NAME, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.COCH_FILE_NO,
        dbo.Diseases_Type.DISE_DESC, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC, dbo.Club.NAME AS CLUB_NAME, dbo.D$FGTP.DOMN_DESC AS TYPE_DESC, 
@@ -39,13 +39,8 @@ FROM   --dbo.Category_Belt INNER JOIN
        dbo.Organ ON (dbo.Fighter_Public.SUNT_BUNT_DEPT_ORGN_CODE = dbo.Organ.CODE) LEFT OUTER JOIN
        dbo.Department ON (dbo.Fighter_Public.SUNT_BUNT_DEPT_CODE = dbo.Department.CODE AND dbo.Department.ORGN_CODE = dbo.Organ.CODE ) LEFT OUTER JOIN
        dbo.Base_Unit ON (dbo.Fighter_Public.SUNT_BUNT_CODE = dbo.Base_Unit.CODE AND dbo.Base_Unit.DEPT_ORGN_CODE = dbo.Organ.CODE AND dbo.Base_Unit.DEPT_CODE = dbo.Department.CODE) LEFT OUTER JOIN
-       dbo.Sub_Unit ON (dbo.Fighter_Public.SUNT_CODE = dbo.Sub_Unit.CODE AND dbo.Sub_Unit.BUNT_DEPT_ORGN_CODE = dbo.Organ.CODE AND dbo.Sub_Unit.BUNT_DEPT_CODE = dbo.Department.CODE AND dbo.Sub_Unit.BUNT_CODE = dbo.Base_Unit.CODE) 
-       
-       
-       
-
+       dbo.Sub_Unit ON (dbo.Fighter_Public.SUNT_CODE = dbo.Sub_Unit.CODE AND dbo.Sub_Unit.BUNT_DEPT_ORGN_CODE = dbo.Organ.CODE AND dbo.Sub_Unit.BUNT_DEPT_CODE = dbo.Department.CODE AND dbo.Sub_Unit.BUNT_CODE = dbo.Base_Unit.CODE)        
 WHERE     (dbo.Fighter_Public.RECT_CODE = '004') AND (dbo.Fighter.CONF_STAT = '002')
   AND     (@FileNo IS NULL OR dbo.Fighter.FILE_NO = @FileNo)
---ORDER BY dbo.Fighter.FILE_NO, dbo.Fighter_Public.RWNO
 )
 GO
