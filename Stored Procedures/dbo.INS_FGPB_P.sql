@@ -29,7 +29,7 @@ CREATE PROCEDURE [dbo].[INS_FGPB_P]
 	@Tell_Phon VARCHAR(11),
 	@Coch_Deg  VARCHAR(3),
 	@Gudg_Deg  VARCHAR(3),
-	@Glob_Code VARCHAR(20),
+	@Glob_Code NVARCHAR(50),
 	@Type      VARCHAR(3),
 	@Post_Adrs NVARCHAR(1000),
 	@Emal_Adrs NVARCHAR(250),
@@ -67,6 +67,21 @@ BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
    IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
    IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;   
+   IF @Serv_No = '' SET @Serv_No = NULL;
+   IF @Glob_Code = '' OR @Glob_Code = '0' SET @Glob_Code = NULL;
+   IF @Fath_Name = '' SET @Fath_Name = NULL;
+   IF @Natl_Code = '' SET @Natl_Code = NULL;
+   IF @Brth_Date = '1900-01-01' SET @Brth_Date = NULL;
+   IF @Cell_Phon = '' SET @Cell_Phon = NULL;
+   IF @Tell_Phon = '' SET @Tell_Phon = NULL;
+   IF @Post_Adrs = '' SET @Post_Adrs = NULL;
+   IF @Emal_Adrs = '' SET @Emal_Adrs = NULL;
+   IF @Insr_Numb = '' SET @Insr_Numb = NULL;
+   IF @Insr_Date = '1900-01-01' SET @Insr_Date = NULL;
+   IF @CORD_X = 0 SET @CORD_X = NULL;
+   IF @CORD_Y = 0 SET @CORD_Y = NULL;
+   IF @Chat_Id = 0 SET @Chat_Id = NULL;   
+   IF @Blod_Grop = '' SET @Blod_Grop = NULL;
    
 	INSERT INTO [dbo].[Fighter_Public]
            ([REGN_PRVN_CODE], [REGN_CODE], [DISE_CODE], [MTOD_CODE], [CTGY_CODE]

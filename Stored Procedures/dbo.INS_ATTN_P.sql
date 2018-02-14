@@ -197,7 +197,7 @@ BEGIN
          AND SHAR_MBSP_STAT = '002'
    )
    BEGIN
-      IF @GlobCode IS NOT NULL AND @GlobCode != ''
+      IF @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2
       BEGIN
          DECLARE @SumAttnCont INT;
          SELECT @SumAttnCont = COUNT(*)           
