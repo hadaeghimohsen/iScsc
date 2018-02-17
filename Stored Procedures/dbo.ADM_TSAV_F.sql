@@ -315,7 +315,7 @@ BEGIN
       
       -- 1396/11/23 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
       DECLARE @SharGlobCont INT = 1;
-      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND s.SHAR_MBSP_STAT = '002' AND cm.CODE = @CbmtCode) AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2
+      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND s.SHAR_MBSP_STAT = '002' AND cm.CODE = @CbmtCode) AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE MTOD_CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
       BEGIN         
          SELECT @SharGlobCont = COUNT(*)
            FROM dbo.Fighter
