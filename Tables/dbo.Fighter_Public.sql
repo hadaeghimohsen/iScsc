@@ -367,16 +367,16 @@ BEGIN
    END
    
    -- 1396/11/22 * بررسی تعداد کد خانوار مشترکین
-   IF @GLOB_CODE IS NOT NULL AND @GLOB_CODE != ''
-   BEGIN      
-      SELECT @FMLY_NUMB = COUNT(*) 
-        FROM dbo.Fighter_Public fp
-       WHERE fp.RECT_CODE = '004'
-         AND fp.GLOB_CODE = @GLOB_CODE
-         AND fp.ACTV_TAG >= '101';
-   END
-   ELSE
-      SET @FMLY_NUMB = NULL;
+   --IF @GLOB_CODE IS NOT NULL AND @GLOB_CODE != ''
+   --BEGIN      
+   --   SELECT @FMLY_NUMB = COUNT(*) 
+   --     FROM dbo.Fighter_Public fp
+   --    WHERE fp.RECT_CODE = '004'
+   --      AND fp.GLOB_CODE = @GLOB_CODE
+   --      AND fp.ACTV_TAG >= '101';
+   --END
+   --ELSE
+   --   SET @FMLY_NUMB = NULL;
    
    MERGE dbo.Fighter_Public T
    USING (SELECT * FROM INSERTED) S
@@ -436,7 +436,7 @@ BEGIN
             ,DPST_ACNT_SLRY_BANK = CASE S.DPST_ACNT_SLRY_BANK WHEN NULL THEN @DPST_ACNT_SLRY_BANK ELSE S.DPST_ACNT_SLRY_BANK END
             ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END
             ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END
-            ,FMLY_NUMB           = @FMLY_NUMB;--CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END;
+            ,FMLY_NUMB           = CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END;
             
             
    -- UPDATE FIGHTER TABLE
@@ -483,8 +483,7 @@ BEGIN
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = S.GLOB_CODE
-            ,CHAT_ID_DNRM = @CHAT_ID--S.CHAT_ID
-            ,FMLY_NUMB_DNRM = @FMLY_NUMB;
+            ,CHAT_ID_DNRM = S.CHAT_ID;
 END
 ;
 GO

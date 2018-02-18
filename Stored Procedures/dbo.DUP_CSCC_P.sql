@@ -13,20 +13,24 @@ CREATE PROCEDURE [dbo].[DUP_CSCC_P]
 AS
 BEGIN
 	DECLARE @SorcCochFileNo BIGINT
-	       ,@TrgtCochFileNo BIGINT;
+	       ,@TrgtCochFileNo BIGINT
+	       ,@TrgtClubCode BIGINT;
    
    SELECT @SorcCochFileNo = @X.query('/Duplicate').value('(Duplicate/@sorccochfileno)[1]', 'BIGINT')
-         ,@TrgtCochFileNo = @X.query('/Duplicate').value('(Duplicate/@trgtcochfileno)[1]', 'BIGINT');
+         ,@TrgtCochFileNo = @X.query('/Duplicate').value('(Duplicate/@trgtcochfileno)[1]', 'BIGINT')
+         ,@TrgtClubCode = @X.query('/Duplicate').value('(Duplicate/@trgtclubcode)[1]', 'BIGINT');
    
-   IF @SorcCochFileNo = '0' AND @SorcCochFileNo IS NULL
+   IF @SorcCochFileNo = 0 AND @SorcCochFileNo IS NULL
       RETURN;
    
-   IF @TrgtCochFileNo = '0' AND @TrgtCochFileNo IS NULL
+   IF @TrgtCochFileNo = 0 AND @TrgtCochFileNo IS NULL
+      RETURN;
+   
+   IF @TrgtClubCode = 0 AND @TrgtClubCode IS NULL
       RETURN;
    
    DECLARE C$Cbmt CURSOR FOR
-      SELECT CLUB_CODE, 
-             MTOD_CODE, 
+      SELECT MTOD_CODE, 
              DAY_TYPE,
              STRT_TIME,
              END_TIME,
@@ -50,12 +54,11 @@ BEGIN
                AND cmt.END_TIME = cms.END_TIME
                AND cmt.SEX_TYPE = cms.SEX_TYPE
                AND cmt.DAY_TYPE = cms.DAY_TYPE
-               AND cmt.CLUB_CODE = cms.CLUB_CODE
+               AND cmt.CLUB_CODE = @TrgtClubCode
          );
    
-   DECLARE @ClubCode BIGINT
-          ,@MtodCode BIGINT
-          ,@DayType BIGINT
+   DECLARE @MtodCode BIGINT
+          ,@DayType VARCHAR(3)
           ,@StrtTime TIME(0)
           ,@EndTime TIME(0)
           ,@MtodStat VARCHAR(3)
@@ -71,7 +74,6 @@ BEGIN
    OPEN [C$Cbmt];
    L$Loop:
    FETCH [C$Cbmt] INTO 
-      @ClubCode, 
       @MtodCode, 
       @DayType, 
       @StrtTime, 
@@ -107,7 +109,7 @@ BEGIN
      CBMT_TIME_STAT ,
      CLAS_TIME )
    VALUES
-   ( @ClubCode, 
+   ( @TrgtClubCode, 
      @MtodCode, 
      @TrgtCochFileNo,
      0,

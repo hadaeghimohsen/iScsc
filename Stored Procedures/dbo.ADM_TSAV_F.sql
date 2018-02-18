@@ -432,8 +432,27 @@ BEGIN
             IF @InsrFnamStat = '002'
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' ;--+ ISNULL(@MsgbText, N'');
             
+            -- 1396/11/29 * اضافه کردن مبلغ هزینه دوره ثبت نامی 
+            DECLARE @ExpnAmnt BIGINT
+                   ,@DscnPymt BIGINT
+                   ,@PymtAmnt BIGINT;
+            
+            SELECT @ExpnAmnt = ISNULL(SUM( EXPN_PRIC + ISNULL(EXPN_EXTR_PRCT, 0) ), 0)
+              FROM dbo.Payment_Detail
+             WHERE PYMT_RQST_RQID = @OrgnRqid;
+            
+            SELECT @DscnPymt = ISNULL(SUM(AMNT), 0)
+              FROM dbo.Payment_Discount
+             WHERE PYMT_RQST_RQID = @OrgnRqid;             
+            
+            SELECT @PymtAmnt = ISNULL(SUM(AMNT), 0)
+              FROM dbo.Payment_Method
+             WHERE PYMT_RQST_RQID = @OrgnRqid;
+            
             SELECT @MsgbText += (            
                SELECT CHAR(10) + N' شما در رشته ' + m.MTOD_DESC + N' با مربی ' + c.NAME_DNRM + N' برای ایام ' + d.DOMN_DESC + N' از ' + CAST(cm.STRT_TIME AS VARCHAR(5)) + N' تا ' + CAST(cm.END_TIME AS VARCHAR(5)) + N' ثبت نام کرده اید.' + 
+                      CHAR(10) + N' مبلغ دوره شما ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, @ExpnAmnt), 1), '.00', '') + N' مبلغ پرداختی ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, @PymtAmnt), 1), '.00', '') + N' مبلغ تخفیف ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, @DscnPymt), 1), '.00', '') + 
+                      CASE WHEN (@ExpnAmnt - (@PymtAmnt - @DscnPymt)) > 0 THEN CHAR(10) + N' میزان بدهی شما برای دوره ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, @ExpnAmnt - (@PymtAmnt - @DscnPymt)), 1), '.00', '') ELSE N' از پرداخت شما متشکریم ' END + 
                       CHAR(10) + N' از اینکه به جمع ما پیوستین بسیار خرسندیم. با آرزوی موفقیت و سلامتی برای شما' + 
                       CHAR(10)
                  FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Fighter c, dbo.[D$DYTP] d, dbo.Club_Method cm
@@ -448,7 +467,9 @@ BEGIN
                   AND ms.RWNO = 1
                   AND ms.RECT_CODE = '004'
             );
-
+            
+            --RAISERROR(@MsgbText, 16, 1);
+            
             IF @InsrCnamStat = '002'
                SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
             
