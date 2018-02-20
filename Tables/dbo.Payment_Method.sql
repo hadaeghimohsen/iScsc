@@ -56,7 +56,7 @@ BEGIN
       SET CONF_STAT = CONF_STAT
     WHERE FILE_NO IN (
       SELECT FIGH_FILE_NO
-        FROM dbo.Request_Row Rr, INSERTED I
+        FROM dbo.Request_Row Rr, Deleted I
        WHERE Rr.Rqst_rqid = I.Pymt_Rqst_Rqid       
     );
 END

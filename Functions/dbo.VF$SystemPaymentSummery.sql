@@ -56,11 +56,12 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         f.DEBT_DNRM,
         f.NAME_DNRM ,
         f.FNGR_PRNT_DNRM ,
-        f.CELL_PHON_DNRM ,
+        f.CELL_PHON_DNRM , 
+        su.SUNT_DESC,       
         f.MBSP_STRT_DATE ,
         f.MBSP_END_DATE ,
         dbo.GET_MTOS_U(f.MBSP_STRT_DATE) AS PERS_MBSP_STRT_DATE,
-        dbo.GET_MTOS_U(f.MBSP_END_DATE) AS PERS_MBSP_END_DATE,
+        dbo.GET_MTOS_U(f.MBSP_END_DATE) AS PERS_MBSP_END_DATE,        
         cb.MTOD_CODE,
         (SELECT m.MTOD_DESC FROM dbo.Method m WHERE m.CODE = cb.MTOD_CODE ) AS MTOD_DESC,
         CAST(cb.STRT_TIME AS TIME(0)) STRT_TIME,
@@ -99,6 +100,7 @@ FROM    dbo.Request_Type rqtp ,
         dbo.Request r ,
         dbo.Request_Row rr ,
         dbo.Fighter f ,
+        dbo.Sub_Unit su,
         dbo.Payment p ,
         dbo.Payment_Detail pd 
         LEFT OUTER JOIN dbo.Club_Method cb ON cb.CODE = pd.CBMT_CODE_DNRM,
@@ -112,6 +114,10 @@ WHERE   rqtp.CODE = r.RQTP_CODE
         AND p.CASH_CODE = pd.PYMT_CASH_CODE
         AND r.RQST_STAT = '002'
         AND r.RQTP_CODE IN ( '001', '009' )
+        AND f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM = su.BUNT_DEPT_ORGN_CODE
+        AND f.SUNT_BUNT_DEPT_CODE_DNRM = su.BUNT_DEPT_CODE
+        AND f.SUNT_BUNT_CODE_DNRM = su.BUNT_CODE
+        AND f.SUNT_CODE_DNRM = su.CODE
         
         AND (Qx.FROM_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
         AND (Qx.TO_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))
