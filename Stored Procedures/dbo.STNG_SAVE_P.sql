@@ -78,7 +78,8 @@ BEGIN
                 ,@ExpnBandRate INT
                 ,@RunQury VARCHAR(3)
                 ,@AttnPrntStat VARCHAR(3)
-                ,@SharMbspStat VARCHAR(3);
+                ,@SharMbspStat VARCHAR(3)
+                ,@RunRbot VARCHAR(3);
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -133,7 +134,8 @@ BEGIN
 	             
 	             ,@RunQury = @X.query('//Settings').value('(Settings/@runqury)[1]', 'VARCHAR(3)')
 	             ,@AttnPrntStat = @X.query('//Settings').value('(Settings/@attnprntstat)[1]', 'VARCHAR(3)')
-	             ,@SharMbspStat = @X.query('//Settings').value('(Settings/@sharmbspstat)[1]', 'VARCHAR(3)');
+	             ,@SharMbspStat = @X.query('//Settings').value('(Settings/@sharmbspstat)[1]', 'VARCHAR(3)')
+	             ,@RunRbot = @X.query('//Settings').value('(Settings/@runrbot)[1]', 'VARCHAR(3)');
          
          IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
@@ -193,6 +195,7 @@ BEGIN
                ,RUN_QURY = @RunQury
                ,ATTN_PRNT_STAT = @AttnPrntStat
                ,SHAR_MBSP_STAT = @SharMbspStat
+               ,RUN_RBOT = @RunRbot
           WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN
