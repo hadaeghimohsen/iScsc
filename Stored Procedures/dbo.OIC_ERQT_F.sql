@@ -54,7 +54,9 @@ BEGIN
    	       ,@FrstName NVARCHAR(250)
    	       ,@LastName NVARCHAR(250)
    	       ,@NatlCode VARCHAR(10)
-   	       ,@CellPhon VARCHAR(11);
+   	       ,@CellPhon VARCHAR(11)
+   	       ,@SuntCode VARCHAR(4)
+   	       ,@ServNo NVARCHAR(50);
    	       
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
@@ -66,7 +68,9 @@ BEGIN
 	         ,@FrstName = @X.query('//Fighter_Public').value('(Fighter_Public/@frstname)[1]', 'NVARCHAR(250)')
 	         ,@LastName = @X.query('//Fighter_Public').value('(Fighter_Public/@lastname)[1]', 'NVARCHAR(250)')
 	         ,@NatlCode = @X.query('//Fighter_Public').value('(Fighter_Public/@natlcode)[1]', 'VARCHAR(10)')
-	         ,@CellPhon = @X.query('//Fighter_Public').value('(Fighter_Public/@cellphon)[1]', 'VARCHAR(11)');
+	         ,@CellPhon = @X.query('//Fighter_Public').value('(Fighter_Public/@cellphon)[1]', 'VARCHAR(11)')
+	         ,@SuntCode = @X.query('//Fighter_Public').value('(Fighter_Public/@suntcode)[1]', 'VARCHAR(4)')
+	         ,@ServNo   = @X.query('//Fighter_Public').value('(Fighter_Public/@servno)[1]', 'NVARCHAR(50)');
       
       IF @FileNo = 0 OR @FileNo IS NULL 
          SELECT TOP 1 @FileNo = FILE_NO
@@ -135,6 +139,11 @@ BEGIN
                     ,LAST_NAME = @LastName
                     ,CELL_PHON = @CellPhon
                     ,NATL_CODE = @NatlCode
+                    ,SUNT_BUNT_DEPT_ORGN_CODE = '00'
+                    ,SUNT_BUNT_DEPT_CODE = '00'
+                    ,SUNT_BUNT_CODE = '00'
+                    ,SUNT_CODE = @SuntCode
+                    ,SERV_NO = @ServNo
                 WHERE RQRO_RQST_RQID = @Rqid
                   AND FIGH_FILE_NO = @FileNo
                   AND RECT_CODE = '001';

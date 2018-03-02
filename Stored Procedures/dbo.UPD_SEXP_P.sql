@@ -60,6 +60,7 @@ BEGIN
       END
       ELSE
          SELECT @FighFileNo = COCH_FILE_NO
+               ,@MtodCodeDnrm = MTOD_CODE
            FROM dbo.Club_Method
           WHERE code = @CbmtCodeDnrm;
       

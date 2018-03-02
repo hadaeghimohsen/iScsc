@@ -51,6 +51,7 @@ BEGIN
             SET QNTY += @Qnty
                ,FIGH_FILE_NO = @FighFileNo
                ,CBMT_CODE_DNRM = @CbmtCodeDnrm
+               ,MTOD_CODE_DNRM = (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCodeDnrm)
           WHERE PYMT_CASH_CODE = @PymtCashCode
             AND PYMT_RQST_RQID = @Rqid
             AND EXPN_CODE = @PymtPydtExpnCode;   
