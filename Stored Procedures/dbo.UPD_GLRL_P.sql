@@ -20,6 +20,7 @@ CREATE PROCEDURE [dbo].[UPD_GLRL_P]
 	@PaidDate DATETIME,
 	@ChngResn VARCHAR(3),
 	@ResnDesc NVARCHAR(250),
+	@DpstStat VARCHAR(3),
 	@Glid BIGINT
 AS
 BEGIN
@@ -32,6 +33,7 @@ BEGIN
 	      ,PAID_DATE = @PaidDate
 	      ,CHNG_RESN = @ChngResn
 	      ,RESN_DESC = @ResnDesc
+	      ,DPST_STAT = @DpstStat
     WHERE RQRO_RQST_RQID = @RqroRqstRqid
       AND RQRO_RWNO = @RqroRwno
       AND FIGH_FILE_NO = @FighFileNo;    

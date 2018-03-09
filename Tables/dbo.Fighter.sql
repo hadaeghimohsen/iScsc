@@ -8,6 +8,7 @@ CREATE TABLE [dbo].[Fighter]
 [MOST_DEBT_CLNG_DNRM] [bigint] NULL,
 [DEBT_DNRM] [bigint] NULL,
 [BUFE_DEBT_DNTM] [bigint] NULL,
+[DPST_AMNT_DNRM] [bigint] NULL,
 [FGPB_RWNO_DNRM] [int] NULL,
 [MBSP_RWNO_DNRM] [smallint] NULL,
 [MBCO_RWNO_DNRM] [smallint] NULL,
@@ -157,6 +158,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'بدهی بوفه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'BUFE_DEBT_DNTM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره کارت مشتریان جلسه ای', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'CARD_NUMB_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ سپرده', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'DPST_AMNT_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف جلسه خصوصی با مربی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'MBCO_RWNO_DNRM'
 GO

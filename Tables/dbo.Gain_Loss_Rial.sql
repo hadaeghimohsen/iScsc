@@ -17,6 +17,7 @@ CREATE TABLE [dbo].[Gain_Loss_Rial]
 [RESN_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQRO_RQST_RQID_DNRM] [bigint] NULL,
 [RQRO_RWNO_DNRM] [smallint] NULL,
+[DPST_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -171,4 +172,8 @@ GO
 ALTER TABLE [dbo].[Gain_Loss_Rial] ADD CONSTRAINT [FK_GLRL_RQDN] FOREIGN KEY ([RQRO_RQST_RQID_DNRM], [RQRO_RWNO_DNRM]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO])
 GO
 ALTER TABLE [dbo].[Gain_Loss_Rial] ADD CONSTRAINT [FK_GLRL_RQRO] FOREIGN KEY ([RQRO_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع سپرده گذاری
+افزایش سپرده گذاری
+برداشت سپرده گذاری', 'SCHEMA', N'dbo', 'TABLE', N'Gain_Loss_Rial', 'COLUMN', N'DPST_STAT'
 GO

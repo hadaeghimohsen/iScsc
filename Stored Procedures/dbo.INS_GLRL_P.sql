@@ -20,6 +20,7 @@ CREATE PROCEDURE [dbo].[INS_GLRL_P]
 	@PaidDate DATETIME,
 	@ChngResn VARCHAR(3),
 	@ResnDesc NVARCHAR(250),
+	@DpstStat VARCHAR(3),
 	@Glid BIGINT OUT
 AS
 BEGIN
@@ -35,7 +36,8 @@ BEGIN
 	          AGRE_DATE ,
 	          PAID_DATE ,
 	          CHNG_RESN ,
-	          RESN_DESC 
+	          RESN_DESC ,
+	          DPST_STAT
 	        )
 	VALUES  ( 0 , -- GLID - bigint
 	          @RqroRqstRqid , -- RQRO_RQST_RQID - bigint
@@ -48,7 +50,8 @@ BEGIN
 	          @AgreDate , -- AGRE_DATE - datetime
 	          @PaidDate , -- PAID_DATE - datetime
 	          @ChngResn , -- CHNG_RESN - varchar(3)
-	          @ResnDesc  -- RESN_DESC - nvarchar(250)
+	          @ResnDesc , -- RESN_DESC - nvarchar(250)
+	          @DpstStat
 	        );
 	        
    SELECT @Glid = GLID
