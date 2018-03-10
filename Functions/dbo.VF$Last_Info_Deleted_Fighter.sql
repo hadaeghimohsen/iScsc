@@ -19,6 +19,7 @@ RETURN
 (
 SELECT     f.FILE_NO, 
            f.DEBT_DNRM, 
+           f.DPST_AMNT_DNRM,
            f.BUFE_DEBT_DNTM, 
            f.REGN_PRVN_CODE, 
            f.REGN_CODE, 

@@ -102,58 +102,58 @@ BEGIN
    
    /* 1395/03/29 * باید برای ذخیره کردن کد های مربوط به تغییرات ریالی در جدول حسابداری اطلاعات ذخیره شود */
    -- ثبت اطلاعات هزینه های ثبت شده در جدول حسابداری برای باشگاه
-	IF EXISTS(
-	   SELECT *
-	     FROM dbo.Gain_Loss_Rial T, INSERTED S
-	    WHERE T.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND             
-             T.RQRO_RWNO      = S.RQRO_RWNO      AND
-             T.FIGH_FILE_NO   = S.FIGH_FILE_NO   AND
-             T.CONF_STAT      = '002'            AND -- تایید پرداخت
-             T.DEBT_TYPE      IN ('000', '002', '004', '005') 
-	)
-	BEGIN	
-	   DECLARE @Rwno BIGINT
-	          ,@AcdtRwno INT
-	          ,@ActnDate DATETIME
-	          ,@RegnPrvnCntyCode VARCHAR(3)
-	          ,@RegnPrvnCode VARCHAR(3)
-	          ,@RegnCode VARCHAR(3)
-	          ,@ClubCode BIGINT
-	          ,@ExpnAmnt BIGINT
-	          ,@Rqid BIGINT
-	          ,@AmntType VARCHAR(3);	   
+	--IF EXISTS(
+	--   SELECT *
+	--     FROM dbo.Gain_Loss_Rial T, INSERTED S
+	--    WHERE T.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND             
+ --            T.RQRO_RWNO      = S.RQRO_RWNO      AND
+ --            T.FIGH_FILE_NO   = S.FIGH_FILE_NO   AND
+ --            T.CONF_STAT      = '002'            AND -- تایید پرداخت
+ --            T.DEBT_TYPE      IN ('000', '002', '004', '005') 
+	--)
+	--BEGIN	
+	--   DECLARE @Rwno BIGINT
+	--          ,@AcdtRwno INT
+	--          ,@ActnDate DATETIME
+	--          ,@RegnPrvnCntyCode VARCHAR(3)
+	--          ,@RegnPrvnCode VARCHAR(3)
+	--          ,@RegnCode VARCHAR(3)
+	--          ,@ClubCode BIGINT
+	--          ,@ExpnAmnt BIGINT
+	--          ,@Rqid BIGINT
+	--          ,@AmntType VARCHAR(3);	   
 	          
-	   SET @ActnDate = GETDATE();
-	   SELECT @RegnPrvnCntyCode = R.REGN_PRVN_CNTY_CODE
-	         ,@RegnPrvnCode = R.REGN_PRVN_CODE
-	         ,@RegnCode = R.REGN_CODE
-	         ,@ClubCode = F.CLUB_CODE_DNRM
-	         ,@ExpnAmnt = P.AMNT
-	         ,@Rqid = R.RQID
-	         ,@AmntType = CASE P.DEBT_TYPE 
-	                        WHEN '000' THEN '001'
-	                        WHEN '002' THEN '002' 
-	                        WHEN '004' THEN '001' 
-	                        WHEN '005' THEN '002'
-	                      END 
-	     FROM Request R, dbo.Gain_Loss_Rial P, INSERTED G, dbo.Fighter F
-	    WHERE R.RQID = P.RQRO_RQST_RQID
-	      AND P.RQRO_RQST_RQID = G.Rqro_Rqst_Rqid
-	      AND p.FIGH_FILE_NO = f.FILE_NO;
+	--   SET @ActnDate = GETDATE();
+	--   SELECT @RegnPrvnCntyCode = R.REGN_PRVN_CNTY_CODE
+	--         ,@RegnPrvnCode = R.REGN_PRVN_CODE
+	--         ,@RegnCode = R.REGN_CODE
+	--         ,@ClubCode = F.CLUB_CODE_DNRM
+	--         ,@ExpnAmnt = P.AMNT
+	--         ,@Rqid = R.RQID
+	--         ,@AmntType = CASE P.DEBT_TYPE 
+	--                        WHEN '000' THEN '001'
+	--                        WHEN '002' THEN '002' 
+	--                        WHEN '004' THEN '001' 
+	--                        WHEN '005' THEN '002'
+	--                      END 
+	--     FROM Request R, dbo.Gain_Loss_Rial P, INSERTED G, dbo.Fighter F
+	--    WHERE R.RQID = P.RQRO_RQST_RQID
+	--      AND P.RQRO_RQST_RQID = G.Rqro_Rqst_Rqid
+	--      AND p.FIGH_FILE_NO = f.FILE_NO;
       
-      --PRINT @ExpnAmnt;
+ --     --PRINT @ExpnAmnt;
       
-	   IF NOT EXISTS(
-	      SELECT *
-	        FROM Request R, Account_Detail ad
-	       WHERE R.RQID = Ad.PYMT_RQST_RQID
-	         AND R.RQID = @Rqid
-	   )  
-	   BEGIN 
-	      EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, @AmntType, @ActnDate, @Rwno OUT;
-	      EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, @AmntType, @ActnDate, NULL, @Rqid, NULL, @AcdtRwno OUT;
-	   END
-	END         
+	--   IF NOT EXISTS(
+	--      SELECT *
+	--        FROM Request R, Account_Detail ad
+	--       WHERE R.RQID = Ad.PYMT_RQST_RQID
+	--         AND R.RQID = @Rqid
+	--   )  
+	--   BEGIN 
+	--      EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, @AmntType, @ActnDate, @Rwno OUT;
+	--      EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, @AmntType, @ActnDate, NULL, @Rqid, NULL, @AcdtRwno OUT;
+	--   END
+	--END         
    
    UPDATE dbo.Fighter
       SET CONF_STAT = CONF_STAT

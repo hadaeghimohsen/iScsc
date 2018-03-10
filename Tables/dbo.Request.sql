@@ -453,61 +453,61 @@ BEGIN
       CLOSE C#RQSTCHNGMSSS;
       DEALLOCATE C#RQSTCHNGMSSS;
       
-      IF @Rqst_Stat IN ('002')
-      BEGIN
-         -- ثبت تغییرات ریالی به صورت اتوماتیک بابت کسر مبلغ اعتبار
-         DECLARE @RqttCode VARCHAR(3);
-         SELECT @RqttCode = Rqtt_Code FROM INSERTED WHERE Rqid = @Rqid;
-         IF @RqttCode IN ('001')
-         BEGIN
-            DECLARE @SumAmntDeposit BIGINT;
-            SELECT @SumAmntDeposit = SUM(AMNT)
-              FROM dbo.Payment_Method
-             WHERE RCPT_MTOD = '005' -- برداشت از مبلغ سپرده
-               AND PYMT_RQST_RQID = @Rqid;
+      --IF @Rqst_Stat IN ('002')
+      --BEGIN
+      --   -- ثبت تغییرات ریالی به صورت اتوماتیک بابت کسر مبلغ اعتبار
+      --   DECLARE @RqttCode VARCHAR(3);
+      --   SELECT @RqttCode = Rqtt_Code FROM INSERTED WHERE Rqid = @Rqid;
+      --   IF @RqttCode IN ('001')
+      --   BEGIN
+      --      DECLARE @SumAmntDeposit BIGINT;
+      --      SELECT @SumAmntDeposit = SUM(AMNT)
+      --        FROM dbo.Payment_Method
+      --       WHERE RCPT_MTOD = '005' -- برداشت از مبلغ سپرده
+      --         AND PYMT_RQST_RQID = @Rqid;
             
-            IF ISNULL(@SumAmntDeposit, 0) > 0
-            BEGIN
-               -- اجر کردن تابع درج تغییرات ریالی برای کسر مبلغ از سپرده
+      --      IF ISNULL(@SumAmntDeposit, 0) > 0
+      --      BEGIN
+      --         -- اجر کردن تابع درج تغییرات ریالی برای کسر مبلغ از سپرده
 
-               SELECT @FileNo = FIGH_FILE_NO FROM dbo.Request_Row WHERE RQST_RQID = @Rqid;
+      --         SELECT @FileNo = FIGH_FILE_NO FROM dbo.Request_Row WHERE RQST_RQID = @Rqid;
                
-               DECLARE @X XML;
-               SELECT @X = (
-                  SELECT @rqid AS '@rqstrqid',
-                         0 AS '@rqid',
-                         (
-                           SELECT @FileNo AS '@fighfileno'
-                             FOR XML PATH('Request_Row'), TYPE
-                         ),
-                         (
-                           SELECT '001' AS '@chngtype'
-                                 ,'001' AS '@debttype'
-                                 ,@SumAmntDeposit AS '@amnt'
-                                 ,GETDATE() AS '@paiddate'
-                                 ,'004' AS '@chngresn'
-                                 ,N'برداشت از مبلغ سپرده' AS '@chngdesc'
-                              FOR XML PATH('Gain_Loss_Rials'), TYPE
+      --         DECLARE @X XML;
+      --         SELECT @X = (
+      --            SELECT @rqid AS '@rqstrqid',
+      --                   0 AS '@rqid',
+      --                   (
+      --                     SELECT @FileNo AS '@fighfileno'
+      --                       FOR XML PATH('Request_Row'), TYPE
+      --                   ),
+      --                   (
+      --                     SELECT '001' AS '@chngtype'
+      --                           ,'001' AS '@debttype'
+      --                           ,@SumAmntDeposit AS '@amnt'
+      --                           ,GETDATE() AS '@paiddate'
+      --                           ,'004' AS '@chngresn'
+      --                           ,N'برداشت از مبلغ سپرده' AS '@chngdesc'
+      --                        FOR XML PATH('Gain_Loss_Rials'), TYPE
                                  
-                         )
-                    FOR XML PATH('Request'), ROOT('Process'), TYPE
-               );
-               EXEC dbo.GLR_ACTN_P @X = @X -- xml                
-            END -- IF ISNULL(@SumAmntDeposit, 0) > 0
+      --                   )
+      --              FOR XML PATH('Request'), ROOT('Process'), TYPE
+      --         );
+      --         EXEC dbo.GLR_ACTN_P @X = @X -- xml                
+      --      END -- IF ISNULL(@SumAmntDeposit, 0) > 0
 
-  	         -- بروز رسانی آیتم های هزینه که به صورت کالا و فروش محصول ارائه میشود	
-  	         --PRINT '1';
+  	   --      -- بروز رسانی آیتم های هزینه که به صورت کالا و فروش محصول ارائه میشود	
+  	   --      --PRINT '1';
         	   
-	         MERGE dbo.Expense T
-	         USING (SELECT P.EXPN_CODE, P.QNTY FROM dbo.Payment_Detail P WHERE P.PYMT_RQST_RQID = @Rqid ) S
-	         ON (T.CODE = S.EXPN_CODE AND 
-	             T.EXPN_TYPE = '002'  -- کالا	       
-	         )
-	         WHEN MATCHED THEN
-	            UPDATE
-	               SET NUMB_OF_SALE = ISNULL(NUMB_OF_SALE, 0) + S.QNTY;            
-         END -- IF @RqttCode IN ('001')
-      END -- IF @Rqst_Stat IN ('002')
+	     --    MERGE dbo.Expense T
+	     --    USING (SELECT P.EXPN_CODE, P.QNTY FROM dbo.Payment_Detail P WHERE P.PYMT_RQST_RQID = @Rqid ) S
+	     --    ON (T.CODE = S.EXPN_CODE AND 
+	     --        T.EXPN_TYPE = '002'  -- کالا	       
+	     --    )
+	     --    WHEN MATCHED THEN
+	     --       UPDATE
+	     --          SET NUMB_OF_SALE = ISNULL(NUMB_OF_SALE, 0) + S.QNTY;            
+      --   END -- IF @RqttCode IN ('001')
+      --END -- IF @Rqst_Stat IN ('002')
     END
 END
 ;

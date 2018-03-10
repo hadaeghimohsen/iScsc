@@ -70,6 +70,7 @@ BEGIN
           ,@Glid BIGINT;          
     
    SELECT @DpstAmnt = T.AMNT
+         ,@Glid = T.GLID
      FROM dbo.Gain_Loss_Rial T, Inserted S
     WHERE T.GLID = S.GLRL_GLID;
    

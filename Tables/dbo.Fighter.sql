@@ -126,16 +126,17 @@ BEGIN
    ON (T.FILE_NO = S.FILE_NO)
    WHEN MATCHED THEN
       UPDATE
-         SET MDFY_BY        = UPPER(SUSER_NAME())
-            ,MDFY_DATE      = GETDATE()
-            ,CONF_DATE      = CASE 
+         SET T.MDFY_BY        = UPPER(SUSER_NAME())
+            ,T.MDFY_DATE      = GETDATE()
+            ,T.CONF_DATE      = CASE 
                                  WHEN T.CONF_STAT = '002' AND S.CONF_STAT = '002' AND T.CONF_DATE IS NULL THEN GETDATE() 
                                  WHEN T.CONF_STAT = '002' AND T.CONF_DATE IS NOT NULL THEN T.CONF_DATE 
                                  WHEN T.CONF_STAT = '001' AND S.CONF_STAT = '001' THEN NULL 
                               END
-            ,DEBT_DNRM      = dbo.GET_DBTF_U(S.FILE_NO)
+            ,T.DEBT_DNRM      = dbo.GET_DBTF_U(S.FILE_NO)
             ,T.BUFE_DEBT_DNTM = dbo.GET_DBBF_U(s.FILE_NO)
-            ,TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No);            
+            ,T.TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No)
+            ,T.DPST_AMNT_DNRM = dbo.GET_DPST_U(s.FILE_NO);
 END
 ;
 GO
