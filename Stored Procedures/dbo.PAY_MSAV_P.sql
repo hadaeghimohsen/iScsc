@@ -117,7 +117,7 @@ BEGIN
                )
             ,'003'--pm.query('.').value('(Payment_Method/@rcptmtod)[1]', 'VARCHAR(3)') AS RcptMtod
             ,pm.query('.').value('(Payment_Method/@termno)[1]',   'BIGINT') AS TermNo
-            ,pm.query('.').value('(Payment_Method/@tarnno)[1]',   'BIGINT') AS TranNo
+            ,pm.query('.').value('(Payment_Method/@tranno)[1]',   'BIGINT') AS TranNo
             ,pm.query('.').value('(Payment_Method/@cardno)[1]',   'BIGINT') AS CardNo
             ,pm.query('.').value('(Payment_Method/@bank)[1]',     'NVARCHAR(100)') AS Bank
             ,pm.query('.').value('(Payment_Method/@flowno)[1]',   'VARCHAR(20)') AS FlowNo
