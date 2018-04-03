@@ -48,7 +48,8 @@ CREATE TABLE [dbo].[Settings]
 [RUN_QURY] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ATTN_PRNT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SHAR_MBSP_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[RUN_RBOT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[RUN_RBOT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[HLDY_CONT] [int] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [FK_STNG_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE]) ON DELETE CASCADE
@@ -74,6 +75,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'آیا دستگاه گیت با خروج باز شود؟', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'GATE_EXIT_OPEN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان بسته شدن گیت بعد از باز شدن', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'GATE_TIME_CLOS'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'به ازای تعداد تعطیلات چه ضریبی اضاقه شود', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'HLDY_CONT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
 GO

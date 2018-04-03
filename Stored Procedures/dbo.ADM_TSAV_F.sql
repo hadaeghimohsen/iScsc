@@ -313,6 +313,10 @@ BEGIN
          AND ms.VALD_TYPE = '002'
          AND h.HLDY_DATE BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
       
+      -- 1397/01/14 * ضریب اضافه شدن تعداد روز به ازای تعطیلی ها
+      SELECT TOP 1 @HldyNumb = @HldyNumb * ISNULL(HLDY_CONT, 1)
+        FROM dbo.Settings;
+      
       -- 1396/11/23 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
       DECLARE @SharGlobCont INT = 1;
       IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND s.SHAR_MBSP_STAT = '002' AND cm.CODE = @CbmtCode) AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE MTOD_CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
