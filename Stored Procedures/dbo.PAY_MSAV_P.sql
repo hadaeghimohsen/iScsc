@@ -139,6 +139,23 @@ BEGIN
          AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
          
    END    
+   ELSE IF @ActnType = 'CheckoutWithPOS4Agop'
+   BEGIN
+      INSERT INTO Payment_Row_Type (APDT_AGOP_CODE, APDT_RWNO, CODE, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE)
+      SELECT pm.query('.').value('(Payment_Method/@apdtagopcode)[1]', 'BIGINT') AS ApdtAgopCode
+            ,pm.query('.').value('(Payment_Method/@apdtrwno)[1]', 'BIGINT') AS ApdtRwno            
+            ,0
+            ,pm.query('.').value('(Payment_Method/@amnt)[1]', 'BIGINT') AS Amnt            
+            ,'003'--pm.query('.').value('(Payment_Method/@rcptmtod)[1]', 'VARCHAR(3)') AS RcptMtod
+            ,pm.query('.').value('(Payment_Method/@termno)[1]',   'BIGINT') AS TermNo
+            ,pm.query('.').value('(Payment_Method/@tranno)[1]',   'BIGINT') AS TranNo
+            ,pm.query('.').value('(Payment_Method/@cardno)[1]',   'BIGINT') AS CardNo
+            ,pm.query('.').value('(Payment_Method/@bank)[1]',     'NVARCHAR(100)') AS Bank
+            ,pm.query('.').value('(Payment_Method/@flowno)[1]',   'VARCHAR(20)') AS FlowNo
+            ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
+            ,GETDATE()
+       FROM @X.nodes('//Insert/Payment_Method') T(pm);
+   END
    COMMIT TRAN PAY_MSAV_P_T1
    END TRY
    BEGIN CATCH

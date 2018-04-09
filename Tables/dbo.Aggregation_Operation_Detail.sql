@@ -23,6 +23,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [EXPN_EXTR_PRCT] [int] NULL,
 [REMN_PRIC] [int] NULL,
 [TOTL_BUFE_AMNT_DNRM] [bigint] NULL,
+[NUMB] [int] NULL CONSTRAINT [DF_Aggregation_Operation_Detail_NUMB] DEFAULT ((1)),
 [TOTL_AMNT_DNRM] [bigint] NULL,
 [CUST_NAME] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -142,7 +143,7 @@ BEGIN
    
    IF @@ROWCOUNT = 0
       UPDATE T
-         SET T.TOTL_AMNT_DNRM = ISNULL(T.TOTL_BUFE_AMNT_DNRM, 0) + ISNULL(T.EXPN_PRIC, 0) + ISNULL(T.EXPN_EXTR_PRCT, 0)
+         SET T.TOTL_AMNT_DNRM = ISNULL(T.TOTL_BUFE_AMNT_DNRM, 0) + ISNULL(T.NUMB, 1) * ( ISNULL(T.EXPN_PRIC, 0) + ISNULL(T.EXPN_EXTR_PRCT, 0) )
         FROM dbo.Aggregation_Operation_Detail T, INSERTED S
        WHERE T.AGOP_CODE = S.Agop_Code 
          AND T.FIGH_FILE_NO = S.Figh_File_No
@@ -150,56 +151,56 @@ BEGIN
          AND T.EXPN_CODE IS NOT NULL; 
    
    -- 1395/12/27 * آیا مبلغ نقدی داشته است
-   IF EXISTS(
-      SELECT *
-        FROM Inserted S
-       WHERE ISNULL(S.CASH_AMNT, 0) <> (
-            SELECT SUM(ISNULL(AMNT, 0))
-              FROM dbo.Payment_Row_Type
-             WHERE S.AGOP_CODE = APDT_AGOP_CODE
-               AND S.RWNO = APDT_RWNO
-               AND RCPT_MTOD = '001' -- پرداخت نقدی
-         )
-   )
-   BEGIN
-      DELETE dbo.Payment_Row_Type
-       WHERE EXISTS(
-         SELECT *
-           FROM Inserted S
-          WHERE s.AGOP_CODE = APDT_AGOP_CODE
-            AND s.RWNO = APDT_RWNO
-            AND RCPT_MTOD = '001'
-       );
-      INSERT INTO dbo.Payment_Row_Type( APDT_AGOP_CODE ,APDT_RWNO ,CODE ,AMNT ,RCPT_MTOD ,ACTN_DATE )
-      SELECT s.AGOP_CODE, s.RWNO, 0, s.CASH_AMNT, '001', GETDATE()
-        FROM Inserted s;
-   END
+   --IF EXISTS(
+   --   SELECT *
+   --     FROM Inserted S
+   --    WHERE ISNULL(S.CASH_AMNT, 0) <> (
+   --         SELECT SUM(ISNULL(AMNT, 0))
+   --           FROM dbo.Payment_Row_Type
+   --          WHERE S.AGOP_CODE = APDT_AGOP_CODE
+   --            AND S.RWNO = APDT_RWNO
+   --            AND RCPT_MTOD = '001' -- پرداخت نقدی
+   --      )
+   --)
+   --BEGIN
+   --   DELETE dbo.Payment_Row_Type
+   --    WHERE EXISTS(
+   --      SELECT *
+   --        FROM Inserted S
+   --       WHERE s.AGOP_CODE = APDT_AGOP_CODE
+   --         AND s.RWNO = APDT_RWNO
+   --         AND RCPT_MTOD = '001'
+   --    );
+   --   INSERT INTO dbo.Payment_Row_Type( APDT_AGOP_CODE ,APDT_RWNO ,CODE ,AMNT ,RCPT_MTOD ,ACTN_DATE )
+   --   SELECT s.AGOP_CODE, s.RWNO, 0, s.CASH_AMNT, '001', GETDATE()
+   --     FROM Inserted s;
+   --END
    
    -- 1395/12/27 * آیا مبلغ کارتی داشته است
-   ELSE IF EXISTS(
-      SELECT *
-        FROM Inserted S
-       WHERE ISNULL(S.POS_AMNT, 0) <> (
-            SELECT SUM(ISNULL(AMNT, 0))
-              FROM dbo.Payment_Row_Type
-             WHERE S.AGOP_CODE = APDT_AGOP_CODE
-               AND S.RWNO = APDT_RWNO
-               AND RCPT_MTOD = '003' -- پرداخت کارتی
-         )
-   )
-   BEGIN
-      DELETE dbo.Payment_Row_Type
-       WHERE EXISTS(
-         SELECT *
-           FROM Inserted S
-          WHERE s.AGOP_CODE = APDT_AGOP_CODE
-            AND s.RWNO = APDT_RWNO
-            AND RCPT_MTOD = '003'
-       );
-      INSERT INTO dbo.Payment_Row_Type( APDT_AGOP_CODE ,APDT_RWNO ,CODE ,AMNT ,RCPT_MTOD ,ACTN_DATE )
-      SELECT s.AGOP_CODE, s.RWNO, 0, s.POS_AMNT, '003', GETDATE()
-        FROM Inserted s;
-   END
+   --ELSE IF EXISTS(
+   --   SELECT *
+   --     FROM Inserted S
+   --    WHERE ISNULL(S.POS_AMNT, 0) <> (
+   --         SELECT SUM(ISNULL(AMNT, 0))
+   --           FROM dbo.Payment_Row_Type
+   --          WHERE S.AGOP_CODE = APDT_AGOP_CODE
+   --            AND S.RWNO = APDT_RWNO
+   --            AND RCPT_MTOD = '003' -- پرداخت کارتی
+   --      )
+   --)
+   --BEGIN
+   --   DELETE dbo.Payment_Row_Type
+   --    WHERE EXISTS(
+   --      SELECT *
+   --        FROM Inserted S
+   --       WHERE s.AGOP_CODE = APDT_AGOP_CODE
+   --         AND s.RWNO = APDT_RWNO
+   --         AND RCPT_MTOD = '003'
+   --    );
+   --   INSERT INTO dbo.Payment_Row_Type( APDT_AGOP_CODE ,APDT_RWNO ,CODE ,AMNT ,RCPT_MTOD ,ACTN_DATE )
+   --   SELECT s.AGOP_CODE, s.RWNO, 0, s.POS_AMNT, '003', GETDATE()
+   --     FROM Inserted s;
+   --END
 END
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [PK_AODT] PRIMARY KEY CLUSTERED  ([AGOP_CODE], [RWNO]) ON [PRIMARY]

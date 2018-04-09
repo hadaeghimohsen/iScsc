@@ -181,8 +181,11 @@ BEGIN
    SELECT @TotlRemnAmnt = SUM(AMNT)
      FROM INSERTED S;
    
-   IF @TotlRemnAmnt + @TotlRcptAmnt > @TotlDebtAmnt
-      RAISERROR(N'مبلغ بدهی هنرجو کمتر مبلغ وارد شده می باشد. لطفا مبلغ اصلاحی خود را بررسی کنید.', 16, 1);
+   PRINT @TotlRemnAmnt;
+   PRINT @TotlRcptAmnt;
+   PRINT @TotlDebtAmnt;
+   IF ISNULL(@TotlRemnAmnt, 0) + ISNULL(@TotlRcptAmnt, 0) > ISNULL(@TotlDebtAmnt, 0)
+      RAISERROR(N'مبلغ بدهی هنرجو کمتر از مبلغ وارد شده می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
    
    -- Insert statements for trigger here
    MERGE dbo.Payment_Method T

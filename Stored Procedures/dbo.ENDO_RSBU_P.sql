@@ -145,7 +145,7 @@ BEGIN
    -- درج هزینه میز
    INSERT INTO dbo.Payment_Detail 
    ( PYMT_CASH_CODE , PYMT_RQST_RQID , RQRO_RWNO , EXPN_CODE , CODE , PAY_STAT , EXPN_PRIC , EXPN_EXTR_PRCT , QNTY)
-   SELECT @CashCode, @Rqid, 1, EXPN_CODE, dbo.GNRT_NVID_U(), '001', EXPN_PRIC, EXPN_EXTR_PRCT, 1
+   SELECT @CashCode, @Rqid, 1, EXPN_CODE, dbo.GNRT_NVID_U(), '001', EXPN_PRIC * NUMB, EXPN_EXTR_PRCT * NUMB, 1
      FROM dbo.Aggregation_Operation_Detail
     WHERE AGOP_CODE = @AgopCode
       AND RWNO = @Rwno
@@ -188,28 +188,28 @@ BEGIN
               );
    
    -- مرحله دوم مبلغ کارتی
-   DECLARE @PosAmnt BIGINT;
-   SELECT @PosAmnt = ISNULL(POS_AMNT,0)
-     FROM dbo.Aggregation_Operation_Detail
-    WHERE AGOP_CODE = @AgopCode
-      AND RWNO = @Rwno;
+   --DECLARE @PosAmnt BIGINT;
+   --SELECT @PosAmnt = ISNULL(POS_AMNT,0)
+   --  FROM dbo.Aggregation_Operation_Detail
+   -- WHERE AGOP_CODE = @AgopCode
+   --   AND RWNO = @Rwno;
    
-   IF @PosAmnt <> 0
-      INSERT INTO dbo.Payment_Row_Type
-              ( APDT_AGOP_CODE ,
-                APDT_RWNO ,
-                CODE ,
-                AMNT ,
-                RCPT_MTOD ,
-                ACTN_DATE 
-              )
-      VALUES  ( @AgopCode , -- APDT_AGOP_CODE - bigint
-                @Rwno , -- APDT_RWNO - int
-                0 , -- CODE - bigint
-                @CashAmnt , -- AMNT - bigint
-                '003' , -- RCPT_MTOD - varchar(3)
-                GETDATE()  -- ACTN_DATE - datetime
-              );
+   --IF @PosAmnt <> 0
+   --   INSERT INTO dbo.Payment_Row_Type
+   --           ( APDT_AGOP_CODE ,
+   --             APDT_RWNO ,
+   --             CODE ,
+   --             AMNT ,
+   --             RCPT_MTOD ,
+   --             ACTN_DATE 
+   --           )
+   --   VALUES  ( @AgopCode , -- APDT_AGOP_CODE - bigint
+   --             @Rwno , -- APDT_RWNO - int
+   --             0 , -- CODE - bigint
+   --             @CashAmnt , -- AMNT - bigint
+   --             '003' , -- RCPT_MTOD - varchar(3)
+   --             GETDATE()  -- ACTN_DATE - datetime
+   --           );
    
       
    -- درج پرداختی ها و تخفیف ها

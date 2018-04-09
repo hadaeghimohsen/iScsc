@@ -29,6 +29,7 @@ CREATE PROCEDURE [dbo].[UPD_AODT_P]
   ,@Cell_Phon VARCHAR(11)
   ,@Cash_Amnt BIGINT
   ,@Pos_Amnt BIGINT
+  ,@Numb INT
 AS
 BEGIN
    IF @Strt_Time > @End_Time
@@ -54,7 +55,8 @@ BEGIN
 	      ,AODT_AGOP_CODE = @Aodt_Agop_Code
 	      ,AODT_RWNO = @Aodt_Rwno
 	      ,CASH_AMNT = ISNULL(@Cash_Amnt, 0)
-	      ,POS_AMNT = ISNULL(@Pos_Amnt, 0)
+	      --,POS_AMNT = ISNULL(@Pos_Amnt, 0)
+	      ,NUMB = ISNULL(@Numb, 1)
 	  WHERE AGOP_CODE = @Agop_Code
 	    AND RWNO = @Rwno;	   
 END
