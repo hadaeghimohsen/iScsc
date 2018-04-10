@@ -16,6 +16,7 @@ CREATE TABLE [dbo].[Club_Method]
 [CBMT_TIME] [int] NULL,
 [CBMT_TIME_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CLAS_TIME] [int] NULL,
+[AMNT] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -186,6 +187,8 @@ GO
 ALTER TABLE [dbo].[Club_Method] ADD CONSTRAINT [FK_CBMT_FIGH] FOREIGN KEY ([COCH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Club_Method] ADD CONSTRAINT [FK_CBMT_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ هر جلسه', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'AMNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرج کلاس رشته و مربی', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CBMT_DESC'
 GO
