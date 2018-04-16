@@ -4,7 +4,7 @@ SET ANSI_NULLS ON
 GO
 CREATE VIEW [dbo].[V#Pos_Device]
 AS
-SELECT  p.PSID, b.DOMN_DESC AS BANK_NAME, p.BANK_TYPE, p.BNKB_CODE, p.BNKA_ACNT_NUMB, p.SHBA_CODE, p.POS_DESC, p.POS_DFLT
+SELECT  p.PSID, b.DOMN_DESC AS BANK_NAME, p.BANK_TYPE, p.BNKB_CODE, p.BNKA_ACNT_NUMB, p.SHBA_CODE, p.POS_DESC, p.POS_DFLT, p.GTWY_MAC_ADRS
 FROM     iProject.Global.Pos_Device AS p INNER JOIN
                iProject.DataGuard.D$BANK AS b ON p.BANK_TYPE = b.VALU
 WHERE  (p.POS_STAT = '002')
@@ -84,11 +84,11 @@ Begin DesignProperties =
             Begin Extent = 
                Top = 6
                Left = 38
-               Bottom = 131
+               Bottom = 309
                Right = 257
             End
             DisplayFlags = 280
-            TopColumn = 0
+            TopColumn = 10
          End
          Begin Table = "b"
             Begin Extent = 
@@ -110,7 +110,7 @@ Begin DesignProperties =
    End
    Begin CriteriaPane = 
       Begin ColumnWidths = 11
-         Column = 1440
+         Column = 1980
          Alias = 900
          Table = 1170
          Output = 720

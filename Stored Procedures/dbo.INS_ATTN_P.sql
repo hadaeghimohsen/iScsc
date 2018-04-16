@@ -102,11 +102,19 @@ BEGIN
    END
    ELSE -- برای بقیه حالت ها
    BEGIN
-      SELECT @CochFileNo = COCH_FILE_NO_DNRM, 
+      /*SELECT @CochFileNo = COCH_FILE_NO_DNRM, 
              @MbspRwno   = ISNULL(@MbspRwno, MBSP_RWNO_DNRM)
         FROM dbo.Fighter
        WHERE FILE_NO = @Figh_File_No
-         AND FGPB_TYPE_DNRM NOT IN ('002', '003');
+         AND FGPB_TYPE_DNRM NOT IN ('002', '003');*/
+      SELECT @CochFileNo = fp.COCH_FILE_NO
+        FROM dbo.Member_Ship m, dbo.Fighter_Public fp
+       WHERE m.FIGH_FILE_NO = fp.FIGH_FILE_NO
+         AND m.FGPB_RWNO_DNRM = fp.RWNO
+         AND m.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+         AND m.RWNO = @MbspRwno
+         AND m.RECT_CODE = '004'
+         AND m.FIGH_FILE_NO = @Figh_File_No;
    END
    
    -- اگر خروج دستی ثبت شده باشد بدون هیچ گونه بررسی خروج زده شود
@@ -566,41 +574,41 @@ BEGIN
    DECLARE @ExitTime TIME(0);
    SET @ExitTime = NULL;
     -- ثبت جلسه برای هنرجویان جلسه ای تک روزه
-   IF EXISTS(
-      SELECT *
-        FROM Fighter F, Member_Ship M
-       WHERE F.FILE_NO = @Figh_File_No
-         AND F.FILE_NO = M.FIGH_FILE_NO
-         --AND F.MBSP_RWNO_DNRM = M.RWNO
-         AND m.RWNO = @MbspRwno
-         AND M.RECT_CODE = '004'
-         AND F.FGPB_TYPE_DNRM = '008'
-         AND F.CONF_STAT = '002'
-         AND m.VALD_TYPE = '002'
-         AND DATEDIFF(DAY, M.STRT_DATE, M.END_DATE) = 0
-   )
-   BEGIN
-      SET @ExitTime = DATEADD(MINUTE, 90,GETDATE());
-   END
+   --IF EXISTS(
+   --   SELECT *
+   --     FROM Fighter F, Member_Ship M
+   --    WHERE F.FILE_NO = @Figh_File_No
+   --      AND F.FILE_NO = M.FIGH_FILE_NO
+   --      --AND F.MBSP_RWNO_DNRM = M.RWNO
+   --      AND m.RWNO = @MbspRwno
+   --      AND M.RECT_CODE = '004'
+   --      AND F.FGPB_TYPE_DNRM = '008'
+   --      AND F.CONF_STAT = '002'
+   --      AND m.VALD_TYPE = '002'
+   --      AND DATEDIFF(DAY, M.STRT_DATE, M.END_DATE) = 0
+   --)
+   --BEGIN
+   --   SET @ExitTime = DATEADD(MINUTE, 90,GETDATE());
+   --END
    
    -- 1395/06/18 * اگر هنرجو غیبت داشته باشد
    IF @Attn_Type = '002'
       SET @ExitTime = GETDATE();
    
    -- برای مشتریان جلسات ترکیبی
-   IF @CochFileNo = 0 OR ISNULL(@CochFileNo, 0) = 0
-   BEGIN      
-      DECLARE @SesnSnid BIGINT
-             ,@MtodCode BIGINT
-             ,@CtgyCode BIGINT;
-      IF @Type = '009'
-      BEGIN
-         SELECT TOP 1 @CochFileNo = COCH_FILE_NO_DNRM, @SesnSnid = SESN_SNID, @MtodCode = MTOD_CODE_DNRM, @CtgyCode = CTGY_CODE_DNRM
-           FROM dbo.Session_Meeting
-          WHERE MBSP_FIGH_FILE_NO = @Figh_File_No
-       ORDER BY CRET_DATE DESC;       
-      END
-   END
+   --IF @CochFileNo = 0 OR ISNULL(@CochFileNo, 0) = 0
+   --BEGIN      
+   --   DECLARE @SesnSnid BIGINT
+   --          ,@MtodCode BIGINT
+   --          ,@CtgyCode BIGINT;
+   --   IF @Type = '009'
+   --   BEGIN
+   --      SELECT TOP 1 @CochFileNo = COCH_FILE_NO_DNRM, @SesnSnid = SESN_SNID, @MtodCode = MTOD_CODE_DNRM, @CtgyCode = CTGY_CODE_DNRM
+   --        FROM dbo.Session_Meeting
+   --       WHERE MBSP_FIGH_FILE_NO = @Figh_File_No
+   --    ORDER BY CRET_DATE DESC;       
+   --   END
+   --END
    
    -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
    IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
@@ -627,7 +635,7 @@ BEGIN
       SET @AttnCode = dbo.GNRT_NVID_U();
          
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM)
-      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004');
+      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @MbspRwno, '004');
 
       -- 1396/11/15 * ثبت پیامک تلگرام
       DECLARE @ChatId BIGINT
@@ -803,7 +811,7 @@ BEGIN
          DECLARE @TempAttnCode BIGINT = dbo.GNRT_NVID_U();
          
          INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC)
-         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, @SesnSnid, @MtodCode, @CtgyCode, @MbspRwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه ' + ( SELECT CAST(DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) AS VARCHAR(10)) FROM dbo.Attendance WHERE Code = @AttnCode) );
+         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @MbspRwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه ' + ( SELECT CAST(DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) AS VARCHAR(10)) FROM dbo.Attendance WHERE Code = @AttnCode) );
          
          UPDATE dbo.Attendance
             SET EXIT_TIME = DATEADD(MINUTE, @ClasTime, GETDATE())
