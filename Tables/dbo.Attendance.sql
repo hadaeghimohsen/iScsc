@@ -34,6 +34,8 @@ CREATE TABLE [dbo].[Attendance]
 [ATTN_DESC] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GLOB_CODE_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FMLY_NUMB_DNRM] [int] NULL,
+[PRNT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_PRNT_STAT] DEFAULT ('001'),
+[PRNT_CONT] [int] NULL CONSTRAINT [DF_Attendance_PRNT_CONT] DEFAULT ((0)),
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -191,7 +193,7 @@ AS
                                                               + CAST(FIGH_FILE_NO AS VARCHAR(14))
                                                               + '"/>').query('//Attendance').value('(Attendance/@d)[1]',
                                                               'BIGINT')*/
-                        WHERE RWNO = @mbsprwno 
+  WHERE RWNO = @mbsprwno 
                           AND RECT_CODE = '004'
                           AND EXISTS ( SELECT *
                                          FROM   INSERTED I ,
@@ -320,7 +322,7 @@ AS
            
       --                      END;
       --                  ELSE
-      --                      BEGIN
+     --                      BEGIN
       --                          RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
       --                          RETURN;
    --                      END;
@@ -376,7 +378,7 @@ AS
       --                                                        AND F.FILE_NO = M.FIGH_FILE_NO
       --                                                        AND F.MBSP_RWNO_DNRM = M.RWNO
       --                                                        AND M.RECT_CODE = '004'
-      --                                                        AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
+      --            AND M.FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO
       --                                                        AND M.RECT_CODE = S.MBSP_RECT_CODE
       --                    AND M.RWNO = S.MBSP_RWNO
       --                                                        AND S.SNID = Sm.SESN_SNID
@@ -426,7 +428,7 @@ AS
       --                          END;
       --                      ELSE
       --                          BEGIN
-      --                              RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
+      --         RAISERROR(N'تعداد جلسات شما به پایان رسیده لطفا برای شارژ مجدد اقدام نمایید', 16, 1);
       --                              RETURN;
  --                          END;         
       --                  END;

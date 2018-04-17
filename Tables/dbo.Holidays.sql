@@ -26,6 +26,19 @@ CREATE TRIGGER [dbo].[CG$AINS_HLDY]
    AFTER INSERT 
 AS 
 BEGIN
+   -- 1397/01/28 * بررسی اینکه آیا تاریخی تکراری ثبت شده یا خیر   
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Holidays h, Inserted i
+       WHERE h.HLDY_DATE = i.HLDY_DATE
+         AND h.CODE != i.CODE
+   )
+   BEGIN
+      RAISERROR(N'شما اجازه ثبت تاریخ تکراری نمی باشید، لطفا بررسی کنید', 16, 1);   
+      RETURN;
+   END;
+   
+   
 	MERGE dbo.Holidays T
 	USING (SELECT * FROM Inserted) S
 	ON (T.HLDY_DATE = S.HLDY_DATE)
@@ -50,6 +63,18 @@ CREATE TRIGGER [dbo].[CG$AUPD_HLDY]
    AFTER UPDATE 
 AS 
 BEGIN
+   -- 1397/01/28 * بررسی اینکه آیا تاریخی تکراری ثبت شده یا خیر   
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Holidays h, Inserted i
+       WHERE h.HLDY_DATE = i.HLDY_DATE
+         AND h.CODE != i.CODE
+   )
+   BEGIN
+      RAISERROR(N'شما اجازه ثبت تاریخ تکراری نمی باشید، لطفا بررسی کنید', 16, 1);   
+      RETURN;
+   END
+   
 	MERGE dbo.Holidays T
 	USING (SELECT * FROM Inserted) S
 	ON (T.CODE = s.CODE)
