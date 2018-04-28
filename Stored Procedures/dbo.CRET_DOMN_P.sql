@@ -23,7 +23,7 @@ begin
       set @statement = 'DROP VIEW [dbo].[D$' + SUBSTRING(@code, 3, LEN(@code)) +']';
       exec sp_sqlexec @statement;
    end
-   set @statement = 'CREATE VIEW dbo.D$' + SUBSTRING(@code, 3, LEN(@code)) + ' AS SELECT VALU, DOMN_DESC FROM APP_DOMAIN WHERE CODE = ''' + @code + '''';
+   set @statement = 'CREATE VIEW dbo.D$' + SUBSTRING(@code, 3, LEN(@code)) + ' AS SELECT VALU, DOMN_DESC FROM APP_DOMAIN a, iProject.DataGuard.[User] u WHERE A.REGN_LANG = ISNULL(U.REGN_LANG, ''054'') AND UPPER(u.USERDB) = UPPER(SUSER_NAME()) AND CODE = ''' + @code + '''';
    exec sp_sqlexec @statement;
    goto l$nextrow;
   
