@@ -281,7 +281,7 @@ BEGIN
          --IF ISNULL(@MtodCode, 0) = 0 RAISERROR (N'برای فیلد "سبک" درخواست ،اطلاعات وارد نشده' , 16, 1);
          --IF ISNULL(@CtgyCode, 0) = 0 RAISERROR (N'برای فیلد "رده کمربندی" درخواست ،اطلاعات وارد نشده' , 16, 1);
          --IF ISNULL(@ClubCode, 0) = 0 RAISERROR (N'برای فیلد "باشگاه" درخواست ،اطلاعات وارد نشده' , 16, 1);
-         IF ISNULL(@CbmtCode , 0) = 0 AND @Type IN ('001', '004') RAISERROR(N'ساعت کلاسی برای هنرجو وارد نشده', 16, 1);
+         --IF ISNULL(@CbmtCode , 0) = 0 AND @Type IN ('001', '004') RAISERROR(N'ساعت کلاسی برای هنرجو وارد نشده', 16, 1);
          IF LEN(@Type)           = 0 RAISERROR (N'برای فیلد "نوع هنرجو" درخواست ،اطلاعات وارد نشده' , 16, 1);         
 
          SET @SuntBuntDeptOrgnCode = CASE LEN(@SuntBuntDeptOrgnCode) WHEN 2 THEN @SuntBuntDeptOrgnCode ELSE '00'   END;
@@ -307,34 +307,46 @@ BEGIN
             IF @InsrDate IN ('1900-01-01', '0001-01-01') RAISERROR (N'برای فیلد "تاریخ بیمه" درخواست ،اطلاعات وارد نشده' , 16, 1);
          END
          -- اعضای جلسات ترکیبی
-         IF @Type IN ('009')
-         BEGIN
-            SET @CbmtCode = NULL;
-            SELECT @ClubCode = CLUB_CODE_DNRM
-              FROM dbo.Fighter
-             WHERE FILE_NO = @FileNo;
-         END
+         --IF @Type IN ('009')
+         --BEGIN
+         --   SET @CbmtCode = NULL;
+         --   SELECT @ClubCode = CLUB_CODE_DNRM
+         --     FROM dbo.Fighter
+         --    WHERE FILE_NO = @FileNo;
+         --END
          
+         -- هنرجو یا مهمان
+         --IF @Type IN ('001', '005', '006', '008')
+         --BEGIN
+         --   SELECT @MtodCode = MTOD_CODE
+         --         ,@ClubCode = CLUB_CODE
+         --         ,@CochFileNo = COCH_FILE_NO
+         --         ,@DayType = DAY_TYPE
+         --         ,@AttnTime = STRT_TIME
+         --     FROM Club_Method
+         --   WHERE CODE = @CbmtCode;
+         --   -- 1395/03/14 * اگر بخواهد از طریق مشخصات عمومی سبک هنرجو را عوض کند اینجا با پیام خطا مواجه میشود            
+         --   IF NOT EXISTS (
+         --      SELECT *
+         --        FROM dbo.Fighter
+         --       WHERE FILE_NO = @FileNo                  
+         --         AND (MTOD_CODE_DNRM IS NULL OR MTOD_CODE_DNRM = @MtodCode)
+         --   )
+         --   BEGIN
+         --      RAISERROR (N'ساعت کلاسی وارده شده متناسب با سبک هنرجو نمی باشد، لطفا اصلاح کنید' , 16, 1);
+         --   END
+         --END
          -- هنرجو یا مهمان
          IF @Type IN ('001', '005', '006', '008')
          BEGIN
             SELECT @MtodCode = MTOD_CODE
-                  ,@ClubCode = CLUB_CODE
+                  ,@CtgyCode = CTGY_CODE
+                  ,@CbmtCode = CBMT_CODE
                   ,@CochFileNo = COCH_FILE_NO
-                  ,@DayType = DAY_TYPE
-                  ,@AttnTime = STRT_TIME
-              FROM Club_Method
-            WHERE CODE = @CbmtCode;
-            -- 1395/03/14 * اگر بخواهد از طریق مشخصات عمومی سبک هنرجو را عوض کند اینجا با پیام خطا مواجه میشود            
-            IF NOT EXISTS (
-               SELECT *
-                 FROM dbo.Fighter
-                WHERE FILE_NO = @FileNo                  
-                  AND (MTOD_CODE_DNRM IS NULL OR MTOD_CODE_DNRM = @MtodCode)
-            )
-            BEGIN
-               RAISERROR (N'ساعت کلاسی وارده شده متناسب با سبک هنرجو نمی باشد، لطفا اصلاح کنید' , 16, 1);
-            END
+                  ,@ClubCode = CLUB_CODE
+              FROM dbo.Fighter_Public
+             WHERE RQRO_RQST_RQID = @Rqid
+               AND FIGH_FILE_NO = @FileNo;
          END
          -- مربی یا نماینده
          ELSE IF @Type IN ('002', '003')
