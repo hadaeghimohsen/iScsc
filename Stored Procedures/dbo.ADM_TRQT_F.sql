@@ -65,6 +65,12 @@ BEGIN
       IF @RqttCode IS NULL OR @RqttCode = ''
          SET @RqttCode = '001';
       
+      --IF (@RegnCode IS NULL OR @PrvnCode IS NOT NULL) AND @Rqid <> 0
+      --   SELECT @RegnCode = REGN_CODE
+      --         ,@PrvnCode = REGN_PRVN_CODE
+      --     FROM dbo.Request
+      --    WHERE RQID = @Rqid;
+      
       IF @RegnCode IS NULL OR @PrvnCode IS NULL 
       BEGIN
          /*SELECT TOP 1 @RegnCode = CODE
