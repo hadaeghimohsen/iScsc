@@ -79,7 +79,9 @@ BEGIN
                 ,@RunQury VARCHAR(3)
                 ,@AttnPrntStat VARCHAR(3)
                 ,@SharMbspStat VARCHAR(3)
-                ,@RunRbot VARCHAR(3);
+                ,@RunRbot VARCHAR(3)
+                ,@ClerZero VARCHAR(3)
+                ,@HldyCont INT;
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -135,7 +137,10 @@ BEGIN
 	             ,@RunQury = @X.query('//Settings').value('(Settings/@runqury)[1]', 'VARCHAR(3)')
 	             ,@AttnPrntStat = @X.query('//Settings').value('(Settings/@attnprntstat)[1]', 'VARCHAR(3)')
 	             ,@SharMbspStat = @X.query('//Settings').value('(Settings/@sharmbspstat)[1]', 'VARCHAR(3)')
-	             ,@RunRbot = @X.query('//Settings').value('(Settings/@runrbot)[1]', 'VARCHAR(3)');
+	             ,@RunRbot = @X.query('//Settings').value('(Settings/@runrbot)[1]', 'VARCHAR(3)')
+	             
+	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
+	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT');
          
          IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
@@ -196,6 +201,9 @@ BEGIN
                ,ATTN_PRNT_STAT = @AttnPrntStat
                ,SHAR_MBSP_STAT = @SharMbspStat
                ,RUN_RBOT = @RunRbot
+               
+               ,HLDY_CONT = @HldyCont
+               ,CLER_ZERO = @ClerZero
           WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN
