@@ -604,6 +604,10 @@ BEGIN
             
             DELETE Payment_Detail 
              WHERE PYMT_RQST_RQID = @Rqid;          
+            DELETE dbo.Payment_Discount
+             WHERE PYMT_RQST_RQID = @Rqid;
+            DELETE dbo.Payment_Method
+             WHERE PYMT_RQST_RQID = @Rqid;            
             DELETE Payment
              WHERE RQST_RQID = @Rqid;            
          END  
