@@ -196,8 +196,8 @@ BEGIN
            FROM dbo.Category_Belt;
       
       IF ISNULL(@CbmtCode, 0) = 0
-		   Select Top 1 @CbmtCode = Code
-		     FROM Club_Method;
+		   Select Top 1 @CbmtCode = Code, @ClubCode = CLUB_CODE
+		     FROM Club_Method;		
       
       IF LEN(@FngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE FNGR_PRNT_DNRM = @FngrPrnt AND FILE_NO <> @FileNo )
       BEGIN

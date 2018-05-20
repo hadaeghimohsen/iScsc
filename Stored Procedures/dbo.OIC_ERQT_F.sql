@@ -42,6 +42,7 @@ BEGIN
 	   DECLARE @Rqid     BIGINT,
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
+	           @RqstDesc NVARCHAR(1000),
 	           
 	           @RegnCode VARCHAR(3),
 	           @PrvnCode VARCHAR(3),
@@ -61,6 +62,8 @@ BEGIN
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
+	         ,@RqstDesc = @X.query('//Request').value('(Request/@rqstdesc)[1]', 'NVARCHAR(1000)')
+	         
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
 	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT')
@@ -103,10 +106,18 @@ BEGIN
 
          UPDATE Request
             SET MDUL_NAME = @MdulName
-              ,SECT_NAME = @SctnName
+               ,SECT_NAME = @SctnName
+               ,RQST_DESC = @RqstDesc
           WHERE RQID = @Rqid;                
      
       END
+      ELSE 
+      BEGIN      
+         UPDATE Request
+            SET RQST_DESC = @RqstDesc
+          WHERE RQID = @Rqid;                
+      END;
+
 
       -- ثبت ردیف درخواست 
       DECLARE @RqroRwno SMALLINT;
@@ -207,6 +218,8 @@ BEGIN
          
          DELETE Payment_Detail 
           WHERE PYMT_RQST_RQID = @Rqid;          
+         DELETE dbo.Payment_Discount
+          WHERE PYMT_RQST_RQID = @Rqid;
          DELETE Payment
           WHERE RQST_RQID = @Rqid;            
       END  
