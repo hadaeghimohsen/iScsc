@@ -80,6 +80,12 @@ BEGIN
           WHERE CODE = @TranCtgyCode;
       END
       
+      -- 1397/02/31
+      SELECT @MtodCodeDnrm = MTOD_CODE
+            ,@CtgyCodeDnrm = CTGY_CODE
+        FROM dbo.Expense
+       WHERE CODE = @ExpnCode;
+      
       IF @TranStat = '002'
       BEGIN
          DECLARE @TmpFighFileNo BIGINT
