@@ -367,6 +367,11 @@ BEGIN
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');
       EXEC UCC_SAVE_P @X;
+      
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = 1
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @Rqid;
                 
       COMMIT TRAN T1;
    END TRY
