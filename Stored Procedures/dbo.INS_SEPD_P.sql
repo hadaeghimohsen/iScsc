@@ -22,7 +22,9 @@ BEGIN
              ,@PydtDesc NVARCHAR(250)
              ,@Qnty SMALLINT
              ,@FighFileNo BIGINT
-             ,@CbmtCodeDnrm BIGINT;
+             ,@CbmtCodeDnrm BIGINT
+             ,@MtodCode BIGINT
+             ,@CtgyCode BIGINT;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -43,6 +45,12 @@ BEGIN
            FROM dbo.Club_Method
           WHERE code = @CbmtCodeDnrm;
       
+      -- 1397/02/31 
+      SELECT @MtodCode = MTOD_CODE
+            ,@CtgyCode = CTGY_CODE
+        FROM dbo.Expense
+       WHERE CODE = @PymtPydtExpnCode;
+      
       IF NOT EXISTS(SELECT * FROM Payment_Detail WHERE PYMT_CASH_CODE = @PymtCashCode AND PYMT_RQST_RQID = @Rqid AND EXPN_CODE = @PymtPydtExpnCode)
          INSERT INTO Payment_Detail (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, EXPN_PRIC, CODE, PYDT_DESC, QNTY, FIGH_FILE_NO, CBMT_CODE_DNRM)
          VALUES                     (@PymtCashCode, @Rqid, 1, @PymtPydtExpnCode, @ExpnPric, dbo.GNRT_NVID_U(), @PydtDesc, @Qnty, @FighFileNo, @CbmtCodeDnrm);
@@ -51,7 +59,8 @@ BEGIN
             SET QNTY += @Qnty
                ,FIGH_FILE_NO = @FighFileNo
                ,CBMT_CODE_DNRM = @CbmtCodeDnrm
-               ,MTOD_CODE_DNRM = (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCodeDnrm)
+               ,MTOD_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NOT NULL THEN (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCodeDnrm) ELSE @MtodCode END
+               ,CTGY_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NULL THEN @CtgyCode END
           WHERE PYMT_CASH_CODE = @PymtCashCode
             AND PYMT_RQST_RQID = @Rqid
             AND EXPN_CODE = @PymtPydtExpnCode;   
