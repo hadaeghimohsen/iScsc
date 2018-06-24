@@ -85,7 +85,7 @@ BEGIN
          
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END      
-
+      
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code , @CntyCode = REGN_PRVN_CNTY_CODE
         FROM Fighter
        WHERE FILE_NO = @FileNo;
@@ -134,10 +134,15 @@ BEGIN
            ,@RqroRwno OUT;
       END
       
+      
+      
       -- 1396/08/08 * اگر هزینه برای مشترک آزاد ثبت میشود می توانیم اطلاعات مشتری را ثبت کنیم
       BEGIN
          IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM = '005')
          BEGIN
+            IF @SuntCode IS NULL OR @SuntCode = ''
+               SET @SuntCode = '0000';
+               
             IF NOT EXISTS(SELECT * FROM dbo.Fighter_Public WHERE RQRO_RQST_RQID = @Rqid AND FIGH_FILE_NO = @FileNo)
                INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE)
                Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', ISNULL(@FrstName, ''), ISNULL(@LastName, ''), @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM
