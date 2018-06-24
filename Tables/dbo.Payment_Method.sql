@@ -35,21 +35,33 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
    
-   
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
-   MERGE dbo.Payment T
-   USING (SELECT * FROM Deleted )S
-   ON (T.CASH_CODE = S.PYMT_CASH_CODE AND 
-       T.RQST_RQID = S.PYMT_RQST_RQID)
-   WHEN MATCHED THEN
-      UPDATE SET
-         T.SUM_RCPT_EXPN_PRIC = (
-            SELECT SUM(Amnt) 
-              FROM dbo.Payment_Method
-             WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE
-               AND PYMT_RQST_RQID = S.PYMT_RQST_RQID
-         );
-   
+   --MERGE dbo.Payment T
+   --USING (SELECT * FROM Deleted )S
+   --ON (T.CASH_CODE = S.PYMT_CASH_CODE AND 
+   --    T.RQST_RQID = S.PYMT_RQST_RQID)
+   --WHEN MATCHED THEN
+   --   UPDATE SET
+   --      T.SUM_RCPT_EXPN_PRIC = (
+   --         SELECT SUM(Amnt) 
+   --           FROM dbo.Payment_Method
+   --          WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE
+   --            AND PYMT_RQST_RQID = S.PYMT_RQST_RQID
+   --      );
+   UPDATE Payment 
+      SET SUM_RCPT_EXPN_PRIC = (SELECT SUM(ISNULL(AMNT, 0)) FROM dbo.Payment_Method Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID)
+         /*,SUM_EXPN_PRIC = ROUND((   
+            SELECT ISNULL(SUM(EXPN_PRIC * QNTY), 0)
+              FROM Payment_Detail 
+             WHERE PYMT_RQST_RQID = RQST_RQID
+               AND PYMT_CASH_CODE = Cash_Code
+      ), -3)*/
+    WHERE EXISTS(
+      SELECT *
+        FROM DELETED S
+       WHERE S.PYMT_CASH_CODE = CASH_CODE
+         AND S.PYMT_RQST_RQID = RQST_RQID
+    );
    
    -- بروز کردن مبلغ بدهی هنرجو
    UPDATE dbo.Fighter
