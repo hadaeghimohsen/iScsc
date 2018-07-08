@@ -69,33 +69,33 @@ BEGIN
       --    WHERE AMNT_TYPE = '004'   
       --      AND PYMT_RQST_RQID = @Rqid       
       --)
-      BEGIN
-         -- 1396/08/18 * بدست آوردن درخواست ثبت نام قبلی
-         DECLARE @OldRqid BIGINT
-         SELECT TOP 1 @OldRqid = RQID
-           FROM dbo.[VF$Request_Changing](@FileNo)
-          WHERE RQTT_CODE != '004'
-            AND RQTP_CODE IN ('001' , '009')
-       ORDER BY SAVE_DATE DESC;
-         -- اگر مشترک نسبت به دوره قبلی بدهکار باشد
-         IF EXISTS(
-            SELECT *
-              FROM dbo.Payment
-             WHERE RQST_RQID = @OldRqid
-               AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0
-         )
-         BEGIN
-            INSERT INTO dbo.Payment_Discount ( PYMT_CASH_CODE ,PYMT_RQST_RQID ,RQRO_RWNO ,RWNO ,AMNT ,AMNT_TYPE ,STAT ,PYDS_DESC )
-            SELECT CASH_CODE, RQST_RQID, 1, 0, (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)), '004', '002', N'کسر مبلغ مابه التفاوت بدهی شهریه بابت جابه جایی کلاس'
-              FROM dbo.Payment
-             WHERE RQST_RQID = @OldRqid
-               AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0;
+      --BEGIN
+      --   -- 1396/08/18 * بدست آوردن درخواست ثبت نام قبلی
+      --   DECLARE @OldRqid BIGINT
+      --   SELECT TOP 1 @OldRqid = RQID
+      --     FROM dbo.[VF$Request_Changing](@FileNo)
+      --    WHERE RQTT_CODE != '004'
+      --      AND RQTP_CODE IN ('001' , '009')
+      -- ORDER BY SAVE_DATE DESC;
+      --   -- اگر مشترک نسبت به دوره قبلی بدهکار باشد
+      --   IF EXISTS(
+      --      SELECT *
+      --        FROM dbo.Payment
+      --       WHERE RQST_RQID = @OldRqid
+      --         AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0
+      --   )
+      --   BEGIN
+      --      INSERT INTO dbo.Payment_Discount ( PYMT_CASH_CODE ,PYMT_RQST_RQID ,RQRO_RWNO ,RWNO ,AMNT ,AMNT_TYPE ,STAT ,PYDS_DESC )
+      --      SELECT CASH_CODE, RQST_RQID, 1, 0, (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)), '004', '002', N'کسر مبلغ مابه التفاوت بدهی شهریه بابت جابه جایی کلاس'
+      --        FROM dbo.Payment
+      --       WHERE RQST_RQID = @OldRqid
+      --         AND (SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT) - (SUM_RCPT_EXPN_PRIC + ISNULL(SUM_PYMT_DSCN_DNRM, 0)) > 0;
             
-            UPDATE dbo.Payment_Detail
-               SET PAY_STAT = '002'
-             WHERE PYMT_RQST_RQID = @OldRqid;
-         END
-      END
+      --      UPDATE dbo.Payment_Detail
+      --         SET PAY_STAT = '002'
+      --       WHERE PYMT_RQST_RQID = @OldRqid;
+      --   END
+      --END
 
       
       UPDATE Request
