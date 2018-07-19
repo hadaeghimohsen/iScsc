@@ -249,13 +249,41 @@ BEGIN
       
       -- 1396/11/23 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
       DECLARE @SharGlobCont INT = 1;
-      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND cm.CODE = @CbmtCode AND s.SHAR_MBSP_STAT = '002') AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE MTOD_CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
+      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND cm.CODE = @CbmtCode AND s.SHAR_MBSP_STAT = '002') AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
       BEGIN         
          SELECT @SharGlobCont = COUNT(*)
            FROM dbo.Fighter
           WHERE CONF_STAT = '002'
             AND ACTV_TAG_DNRM >= '101'
             AND GLOB_CODE_DNRM = @GlobCode;
+      END
+
+      -- 1397/04/28 * بدست آوردن تعداد جلسات مصرف شده دیگر مشارکین
+      DECLARE @OthrFileNo BIGINT,
+              @SumAttnMont INT = 0;
+      IF @SharGlobCont > 1
+      BEGIN
+		SELECT TOP 1 @OthrFileNo = f.FILE_NO
+		  FROM dbo.Fighter f
+		 WHERE f.FILE_NO != @FileNo
+		   AND f.GLOB_CODE_DNRM = @GlobCode
+		   AND f.CONF_STAT = '002'
+		   AND f.ACTV_TAG_DNRM >= '101';
+        
+        SELECT @SumAttnMont = ms.SUM_ATTN_MONT_DNRM
+          FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+         WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+           AND ms.FGPB_RWNO_DNRM = fp.RWNO
+           AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+           AND ms.FIGH_FILE_NO = @OthrFileNo
+           AND ms.RECT_CODE = '004'
+           AND fp.MTOD_CODE = m.CODE
+           AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
+           AND fp.MTOD_CODE = @MtodCode
+           AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		   AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+           AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
+           AND ms.VALD_TYPE = '002';
       END
       
       -- 1396/10/13 * ثبت گزینه ردیف عمومی در جدول تمدید
@@ -264,8 +292,27 @@ BEGIN
             ,FGPB_RECT_CODE_DNRM = '004'
             ,END_DATE = DATEADD(DAY, @HldyNumb, END_DATE)
             ,NUMB_OF_ATTN_MONT = NUMB_OF_ATTN_MONT * @SharGlobCont
+            ,SUM_ATTN_MONT_DNRM = @SumAttnMont -- در این قسمت باید بررسی شود که نفرهای قبلی آیا از گزینه استخر استفاده کرده اند یا خیر
        WHERE RQRO_RQST_RQID = @OrgnRqid;
 
+      -- 1397/04/28 * پیدا کردن آن دسته از مشتریانی که به صورت مشارکتی درون سازمان از ورزش خاصی استفاده میکنند
+      IF @SharGlobCont > 1
+		UPDATE ms
+		   SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * @SharGlobCont
+		  FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+		 WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+		   AND ms.FGPB_RWNO_DNRM = fp.RWNO
+		   AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+		   AND ms.RECT_CODE = '004'
+		   AND ms.VALD_TYPE = '002'
+		   AND ms.FIGH_FILE_NO != @FileNo
+		   AND fp.MTOD_CODE = m.CODE
+		   AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
+		   AND fp.GLOB_CODE = @GlobCode
+		   AND fp.MTOD_CODE = @MtodCode
+           AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		   AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+           AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
       
       -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
       --IF EXISTS(

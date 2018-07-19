@@ -205,7 +205,20 @@ BEGIN
          AND SHAR_MBSP_STAT = '002'
    )
    BEGIN
-      IF @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2
+      IF @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND 
+         EXISTS(
+			SELECT *
+			  FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+			 WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+			   AND ms.FGPB_RWNO_DNRM = fp.RWNO
+			   AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+			   AND fp.MTOD_CODE = m.CODE
+			   AND m.CHCK_ATTN_ALRM = '002'
+			   AND ms.FIGH_FILE_NO = @Figh_File_No
+			   AND ms.RWNO = @MbspRwno
+			   AND ms.RECT_CODE = '004'
+			   AND ms.VALD_TYPE = '002'
+         )
       BEGIN
          DECLARE @SumAttnCont INT;
          SELECT @SumAttnCont = COUNT(*)           
@@ -213,6 +226,7 @@ BEGIN
           WHERE GLOB_CODE_DNRM = @GlobCode
             AND a.MTOD_CODE_DNRM = m.CODE
             AND m.CHCK_ATTN_ALRM = '002'
+            AND a.ATTN_STAT = '002'
             AND SUBSTRING(dbo.GET_MTOS_U(ATTN_DATE), 1, 7) = SUBSTRING(dbo.GET_MTOS_U(@Attn_Date), 1, 7);
          
          IF @SumAttnCont >= @NumbOfAttnMont

@@ -29,6 +29,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CASH_AMNT] [bigint] NULL,
 [POS_AMNT] [bigint] NULL,
+[AODT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]

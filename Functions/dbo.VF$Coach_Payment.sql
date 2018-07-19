@@ -11,8 +11,7 @@ WITH    QXML
           AS ( SELECT   @X.query('//Club_Method').value('(Club_Method/@code)[1]', 'BIGINT') AS CBMT_CODE ,
                         @X.query('//Club_Method').value('(Club_Method/@cochfileno)[1]', 'BIGINT') AS COCH_FILE_NO ,
                         @X.query('//Club_Method').value('(Club_Method/@ctgycode)[1]', 'BIGINT') AS CTGY_CODE ,
-                        @X.query('//Request').value('(Request/@fromrqstdate)[1]',
-                                                    'DATE') AS FROM_RQST_DATE ,
+                        @X.query('//Request').value('(Request/@fromrqstdate)[1]','DATE') AS FROM_RQST_DATE ,
                         @X.query('//Request').value('(Request/@torqstdate)[1]', 'DATE') AS TO_RQST_DATE ,
                         @X.query('//Request').value('(Request/@cretby)[1]', 'VARCHAR(250)') AS CRET_BY 
              )
@@ -63,6 +62,9 @@ WITH    QXML
             
             AND r.RQST_STAT = '002'
             AND r.RQTP_CODE IN ( '001', '009' )
+            
+            AND f.CONF_STAT = '002'
+            AND f.ACTV_TAG_DNRM >= '101'
             
             AND (Qx.CBMT_CODE IS NULL OR qx.CBMT_CODE = 0 OR (pd.CBMT_CODE_DNRM = Qx.CBMT_CODE))            
             AND (Qx.COCH_FILE_NO IS NULL OR qx.COCH_FILE_NO = 0 OR (pd.FIGH_FILE_NO = Qx.COCH_FILE_NO))
