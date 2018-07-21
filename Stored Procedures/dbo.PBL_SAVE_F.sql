@@ -237,6 +237,193 @@ BEGIN
         FROM Fighter
        WHERE FILE_NO = @FileNo
          AND FGPB_TYPE_DNRM != '009';
+
+      -- 1396/04/30 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
+      DECLARE @SharGlobCont INT = 1;
+      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND s.SHAR_MBSP_STAT = '002' AND cm.CODE = @CbmtCode) AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
+      BEGIN
+         SELECT @SharGlobCont = COUNT(*)
+           FROM dbo.Fighter
+          WHERE CONF_STAT = '002'
+            AND ACTV_TAG_DNRM >= '101'
+            AND GLOB_CODE_DNRM = @GlobCode;
+      END;
+      
+      -- 1397/04/30 * بدست آوردن تعداد جلسات مصرف شده دیگر مشارکین
+      DECLARE @OthrFileNo BIGINT,
+              @SumAttnMont INT = 0,
+              @NumbOfAttnMont INT = 0;
+      IF @SharGlobCont > 1
+      BEGIN
+		SELECT TOP 1 @OthrFileNo = f.FILE_NO
+		  FROM dbo.Fighter f
+		 WHERE f.FILE_NO != @FileNo
+		   AND f.GLOB_CODE_DNRM = @GlobCode
+		   AND f.CONF_STAT = '002'
+		   AND f.ACTV_TAG_DNRM >= '101';
+        
+        SELECT @SumAttnMont = ms.SUM_ATTN_MONT_DNRM
+              ,@NumbOfAttnMont = ms.NUMB_OF_ATTN_MONT / @SharGlobCont
+          FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+         WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+           AND ms.FGPB_RWNO_DNRM = fp.RWNO
+           AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+           AND ms.FIGH_FILE_NO = @OthrFileNo
+           AND ms.RECT_CODE = '004'
+           AND fp.MTOD_CODE = m.CODE
+           AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
+           AND fp.MTOD_CODE = @MtodCode
+           AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		     AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+           AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
+           AND ms.VALD_TYPE = '002';
+      END;
+      
+      -- 1397/04/30 *  ّبررسی کد پرسنلی برای مشترکین سیستم
+      DECLARE @OldGlobCode VARCHAR(20);
+      SELECT @OldGlobCode = ISNULL(GLOB_CODE_DNRM, '')
+        FROM dbo.Fighter
+       WHERE FILE_NO = @FileNo;
+      
+      IF @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) >= 2
+      BEGIN
+         -- برای اضافه شدن فرد جدید به گزینه خانواده مشارکتی سیستم
+         IF ISNULL(@OldGlobCode, '') = ''
+         BEGIN
+            -- اضافه شدن فرد جدید
+            -- 1396/04/30 * ثبت گزینه ردیف عمومی
+            UPDATE ms
+               SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * ( @SharGlobCont + 1 )
+                  ,ms.SUM_ATTN_MONT_DNRM = @SumAttnMont -- در این قسمت باید بررسی شود که نفرهای قبلی آیا از گزینه استخر استفاده کرده اند یا خیر
+              FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+             WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+               AND ms.FGPB_RWNO_DNRM = fp.RWNO
+               AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+               AND ms.FIGH_FILE_NO = @FileNo
+               AND ms.RECT_CODE = '004'
+               AND fp.MTOD_CODE = m.CODE
+               AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
+               AND ms.VALD_TYPE = '002';
+            
+            -- 1397/04/30 * اضافه کردن یک عضو به گروه
+	         UPDATE ms
+	            SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * (@SharGlobCont + 1)
+	           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+	          WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+	            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+	            AND ms.RECT_CODE = '004'
+	            AND ms.VALD_TYPE = '002'
+	            AND ms.FIGH_FILE_NO != @FileNo
+	            AND fp.MTOD_CODE = m.CODE
+	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
+	            AND fp.GLOB_CODE = @GlobCode
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+               
+         END
+         ELSE IF ISNULL(@OldGlobCode, '') <> @GlobCode
+         BEGIN
+            -- تعداد جلسات مربوط به گروه قبلی حذف شود و به گروه جدید اضافه شود            
+            UPDATE ms
+               SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * ( @SharGlobCont + 1 )
+                  ,ms.SUM_ATTN_MONT_DNRM = @SumAttnMont -- در این قسمت باید بررسی شود که نفرهای قبلی آیا از گزینه استخر استفاده کرده اند یا خیر
+              FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+             WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+               AND ms.FGPB_RWNO_DNRM = fp.RWNO
+               AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+               AND ms.FIGH_FILE_NO = @FileNo
+               AND ms.RECT_CODE = '004'
+               AND fp.MTOD_CODE = m.CODE
+               AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
+               AND ms.VALD_TYPE = '002';
+
+            -- 1397/04/30 * حذف کردن یک عضو از گروه
+	         UPDATE ms
+	            SET ms.NUMB_OF_ATTN_MONT -= @NumbOfAttnMont 
+	           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+	          WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+	            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+	            AND ms.RECT_CODE = '004'
+	            AND ms.VALD_TYPE = '002'
+	            AND ms.FIGH_FILE_NO != @FileNo
+	            AND fp.MTOD_CODE = m.CODE
+	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
+	            AND fp.GLOB_CODE = @OldGlobCode
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+            
+            -- 1397/04/30 * اضافه کردن یک عضو به گروه
+	         UPDATE ms
+	            SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * (@SharGlobCont + 1)
+	           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+	          WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+	            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+	            AND ms.RECT_CODE = '004'
+	            AND ms.VALD_TYPE = '002'
+	            AND ms.FIGH_FILE_NO != @FileNo
+	            AND fp.MTOD_CODE = m.CODE
+	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
+	            AND fp.GLOB_CODE = @GlobCode
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+
+         END
+      END
+      ELSE IF @GlobCode IS NULL OR @GlobCode = ''
+      BEGIN
+         -- برای حذف شدن فرد به گزینه خانواده مشارکتی سیستم
+         SET @GlobCode = NULL;
+         IF ISNULL(@OldGlobCode, '') <> ''
+         BEGIN
+            -- حذف کردن گزینه خانواده مشارکتی سیستم
+            -- تعداد جلسات مربوط به گروه قبلی حذف شود و به گروه جدید اضافه شود            
+            UPDATE ms
+               SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont
+                  ,ms.SUM_ATTN_MONT_DNRM = (SELECT COUNT(*) FROM dbo.Attendance a WHERE a.FIGH_FILE_NO = ms.FIGH_FILE_NO AND a.MTOD_CODE_DNRM = m.Code AND a.ATTN_STAT = '002' and a.ATTN_DATE BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE))
+              FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+             WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+               AND ms.FGPB_RWNO_DNRM = fp.RWNO
+               AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+               AND ms.FIGH_FILE_NO = @FileNo
+               AND ms.RECT_CODE = '004'
+               AND fp.MTOD_CODE = m.CODE
+               AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
+               --AND fp.MTOD_CODE = @MtodCode
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
+               AND ms.VALD_TYPE = '002';
+            
+            -- 1397/04/30 * حذف کردن یک عضو از گروه
+	         UPDATE ms
+	            SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont * (@SharGlobCont - 1)
+	           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m
+	          WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+	            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+	            AND ms.RECT_CODE = '004'
+	            AND ms.VALD_TYPE = '002'
+	            AND ms.FIGH_FILE_NO != @FileNo
+	            AND fp.MTOD_CODE = m.CODE
+	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
+	            AND fp.GLOB_CODE = @OldGlobCode
+               AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+               AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);            
+         END         
+      END
       
       /* ثبت اطلاعات عمومی پرونده */
       IF NOT EXISTS(
