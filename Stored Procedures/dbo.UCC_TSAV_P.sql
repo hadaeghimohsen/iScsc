@@ -281,7 +281,7 @@ BEGIN
            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
            AND fp.MTOD_CODE = @MtodCode
            AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		   AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+		     --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
            AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
            AND ms.VALD_TYPE = '002';
       END
@@ -310,9 +310,9 @@ BEGIN
 		   AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
 		   AND fp.GLOB_CODE = @GlobCode
 		   AND fp.MTOD_CODE = @MtodCode
-           AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		   AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
-           AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
+         AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+		   --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+         AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
       
       -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
       --IF EXISTS(

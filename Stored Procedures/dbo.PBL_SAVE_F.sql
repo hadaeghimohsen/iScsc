@@ -47,6 +47,7 @@ BEGIN
 	   1 - درخواست جدید می باشد و ستون شماره درخواست خالی می باشد
 	   2 - درخواست قبلا ثبت شده و ستون شماره درخواست خالی نمی باشد
 	*/
+   --RETURN;
    DECLARE @AP BIT
           ,@AccessString VARCHAR(250);
    SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>101</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
@@ -237,16 +238,43 @@ BEGIN
         FROM Fighter
        WHERE FILE_NO = @FileNo
          AND FGPB_TYPE_DNRM != '009';
-
+      
+      -- 1397/04/30
+      DECLARE @TmpGlobCode VARCHAR(20);
+      IF @GlobCode IS NULL OR @GlobCode = ''
+      BEGIN
+         SET @GlobCode = NULL;
+         SELECT @TmpGlobCode = GLOB_CODE_DNRM
+           FROM dbo.Fighter
+          WHERE FILE_NO = @FileNo;
+      END
+      
+      
       -- 1396/04/30 * بررسی اینکه تعداد جلسات برای مشترکین اشتراکی که تعداد جلسات در تعداد خانوار ضرب شود
       DECLARE @SharGlobCont INT = 1;
-      IF EXISTS(SELECT * FROM dbo.Club_Method cm, dbo.Settings s WHERE cm.CLUB_CODE = s.CLUB_CODE AND s.SHAR_MBSP_STAT = '002' AND cm.CODE = @CbmtCode) AND @GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND EXISTS(SELECT * FROM dbo.Method WHERE CODE = @MtodCode AND CHCK_ATTN_ALRM = '002')
+      IF (@GlobCode IS NOT NULL AND @GlobCode != '' AND LEN(@GlobCode) > 2 AND 
+         EXISTS(
+			   SELECT * 
+			     FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Settings s
+			    WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+			      AND ms.FGPB_RWNO_DNRM = fp.RWNO
+			      AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+			      AND ms.RECT_CODE = '004'
+			      AND fp.MTOD_CODE = m.CODE
+			      AND m.CHCK_ATTN_ALRM = '002'
+			      AND m.MTOD_STAT = '002'
+			      AND fp.CLUB_CODE = s.CLUB_CODE
+			      AND s.SHAR_MBSP_STAT = '002'
+			      AND fp.GLOB_CODE = @GlobCode
+			      AND ms.VALD_TYPE = '002'
+	     )) OR 
+	     (@GlobCode IS NULL AND (@TmpGlobCode IS NOT NULL OR @TmpGlobCode != '' AND LEN(@TmpGlobCode) > 2) )
       BEGIN
          SELECT @SharGlobCont = COUNT(*)
            FROM dbo.Fighter
           WHERE CONF_STAT = '002'
             AND ACTV_TAG_DNRM >= '101'
-            AND GLOB_CODE_DNRM = @GlobCode;
+            AND GLOB_CODE_DNRM = CASE WHEN @GlobCode IS NULL THEN @TmpGlobCode ELSE @GlobCode END ;
       END;
       
       -- 1397/04/30 * بدست آوردن تعداد جلسات مصرف شده دیگر مشارکین
@@ -258,7 +286,7 @@ BEGIN
 		SELECT TOP 1 @OthrFileNo = f.FILE_NO
 		  FROM dbo.Fighter f
 		 WHERE f.FILE_NO != @FileNo
-		   AND f.GLOB_CODE_DNRM = @GlobCode
+		   AND f.GLOB_CODE_DNRM = CASE WHEN @GlobCode IS NULL THEN @TmpGlobCode ELSE @GlobCode END
 		   AND f.CONF_STAT = '002'
 		   AND f.ACTV_TAG_DNRM >= '101';
         
@@ -272,9 +300,8 @@ BEGIN
            AND ms.RECT_CODE = '004'
            AND fp.MTOD_CODE = m.CODE
            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
-           AND fp.MTOD_CODE = @MtodCode
            AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		     AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+		     --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
            AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
            AND ms.VALD_TYPE = '002';
       END;
@@ -304,7 +331,7 @@ BEGIN
                AND fp.MTOD_CODE = m.CODE
                AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+		         --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
                AND ms.VALD_TYPE = '002';
             
@@ -322,7 +349,7 @@ BEGIN
 	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
 	            AND fp.GLOB_CODE = @GlobCode
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+	            --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
                
          END
@@ -341,7 +368,7 @@ BEGIN
                AND fp.MTOD_CODE = m.CODE
                AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+		         --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
                AND ms.VALD_TYPE = '002';
 
@@ -359,7 +386,7 @@ BEGIN
 	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
 	            AND fp.GLOB_CODE = @OldGlobCode
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+	            --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
             
             -- 1397/04/30 * اضافه کردن یک عضو به گروه
@@ -376,7 +403,7 @@ BEGIN
 	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
 	            AND fp.GLOB_CODE = @GlobCode
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+	            --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
 
          END
@@ -402,7 +429,7 @@ BEGIN
                AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی میباشد
                --AND fp.MTOD_CODE = @MtodCode
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-		         AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+		         --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE)
                AND ms.VALD_TYPE = '002';
             
@@ -420,7 +447,7 @@ BEGIN
 	            AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی می باشد
 	            AND fp.GLOB_CODE = @OldGlobCode
                AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-	            AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
+	            --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
                AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);            
          END         
       END
