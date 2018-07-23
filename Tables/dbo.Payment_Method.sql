@@ -49,7 +49,7 @@ BEGIN
    --            AND PYMT_RQST_RQID = S.PYMT_RQST_RQID
    --      );
    UPDATE Payment 
-      SET SUM_RCPT_EXPN_PRIC = (SELECT SUM(ISNULL(AMNT, 0)) FROM dbo.Payment_Method Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID)
+      SET SUM_RCPT_EXPN_PRIC = (SELECT ISNULL(SUM(ISNULL(AMNT, 0)), 0) FROM dbo.Payment_Method Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID)
          /*,SUM_EXPN_PRIC = ROUND((   
             SELECT ISNULL(SUM(EXPN_PRIC * QNTY), 0)
               FROM Payment_Detail 
@@ -181,7 +181,7 @@ BEGIN
     );
    
    SELECT @TotlDebtAmnt =
-          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT
+          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT - T.SUM_PYMT_DSCN_DNRM
      FROM Payment T
     WHERE EXISTS(
       SELECT *
@@ -193,9 +193,9 @@ BEGIN
    SELECT @TotlRemnAmnt = SUM(AMNT)
      FROM INSERTED S;
    
-   PRINT @TotlRemnAmnt;
-   PRINT @TotlRcptAmnt;
-   PRINT @TotlDebtAmnt;
+   --PRINT @TotlRemnAmnt;
+   --PRINT @TotlRcptAmnt;
+   --PRINT @TotlDebtAmnt;
    IF ISNULL(@TotlRemnAmnt, 0) + ISNULL(@TotlRcptAmnt, 0) > ISNULL(@TotlDebtAmnt, 0)
       RAISERROR(N'مبلغ بدهی هنرجو کمتر از مبلغ وارد شده می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
    
