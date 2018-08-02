@@ -9,7 +9,7 @@ AS
 RETURN
 (
 SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter_Public.RQRO_RQST_RQID, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.FMLY_NUMB, dbo.Fighter_Public.POST_ADRS, 
-       dbo.Fighter_Public.EMAL_ADRS, dbo.Fighter_Public.BRTH_DATE, dbo.Fighter_Public.CELL_PHON, dbo.Fighter_Public.TELL_PHON, dbo.Fighter_Public.COCH_DEG, dbo.Fighter_Public.GUDG_DEG, 
+       dbo.Fighter_Public.EMAL_ADRS, dbo.Fighter_Public.BRTH_DATE, dbo.Fighter_Public.CELL_PHON, dbo.Fighter_Public.TELL_PHON, dbo.Fighter_Public.COCH_DEG, dbo.Fighter_Public.GUDG_DEG,        
        dbo.Fighter_Public.TYPE, dbo.Fighter_Public.INSR_NUMB, dbo.Fighter_Public.INSR_DATE, dbo.Fighter_Public.FATH_NAME, dbo.Fighter_Public.LAST_NAME, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.COCH_FILE_NO,
        dbo.Diseases_Type.DISE_DESC, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC, dbo.Club.NAME AS CLUB_NAME, dbo.D$FGTP.DOMN_DESC AS TYPE_DESC, 
        dbo.D$DEGR.DOMN_DESC AS COCH_DEGR, D$DEGR_1.DOMN_DESC AS GUGD_DEGR, dbo.D$SXTP.DOMN_DESC AS SEX_TYPE,
@@ -17,7 +17,9 @@ SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Figh
        dbo.Fighter_Public.SUNT_BUNT_DEPT_ORGN_CODE, dbo.Fighter_Public.SUNT_BUNT_DEPT_CODE, dbo.Fighter_Public.SUNT_BUNT_CODE, dbo.Fighter_Public.SUNT_CODE,
        dbo.Organ.ORGN_DESC, dbo.Department.DEPT_DESC, dbo.Base_Unit.BUNT_DESC, dbo.Sub_Unit.SUNT_DESC,
        dbo.Fighter_Public.CORD_X,dbo.Fighter_Public.CORD_Y, dbo.Fighter_Public.SERV_NO, dbo.Fighter_Public.BRTH_PLAC, dbo.Fighter_Public.ISSU_PLAC, dbo.Fighter_Public.FATH_WORK, dbo.Fighter_Public.HIST_DESC,
-       dbo.Fighter_Public.DPST_ACNT_SLRY_BANK,dbo.Fighter_Public.DPST_ACNT_SLRY, dbo.Fighter_Public.CBMT_CODE
+       dbo.Fighter_Public.DPST_ACNT_SLRY_BANK,dbo.Fighter_Public.DPST_ACNT_SLRY, dbo.Fighter_Public.CBMT_CODE,
+       dbo.Fighter.MOM_CELL_PHON_DNRM, dbo.Fighter.MOM_TELL_PHON_DNRM, dbo.Fighter.MOM_CHAT_ID_DNRM,
+       dbo.Fighter.DAD_CELL_PHON_DNRM, dbo.Fighter.DAD_TELL_PHON_DNRM, dbo.Fighter.DAD_CHAT_ID_DNRM       
 FROM   --dbo.Category_Belt INNER JOIN
        --dbo.Method ON dbo.Category_Belt.MTOD_CODE = dbo.Method.CODE LEFT OUTER JOIN
        dbo.Fighter INNER JOIN

@@ -12,7 +12,11 @@ CREATE FUNCTION [dbo].[VFT$Last_Info_Fighter] (
    @TellPhon VARCHAR(11),
    @SexType VARCHAR(3),
    @ServNo NVARCHAR(50),
-   @GlobCode NVARCHAR(50)
+   @GlobCode NVARCHAR(50),
+   @MomCellPhon VARCHAR(11),
+   @MomTellPhon VARCHAR(11),
+   @DadCellPHon VARCHAR(11),
+   @DadTellPHon VARCHAR(11)
 )RETURNS TABLE 
 AS
 RETURN
@@ -21,11 +25,13 @@ SELECT     dbo.Fighter.FILE_NO, dbo.Fighter.DEBT_DNRM, dbo.Fighter.BUFE_DEBT_DNT
            dbo.Fighter.HERT_RWNO_DNRM, dbo.Fighter.PSFN_RWNO_DNRM, dbo.Fighter.CONF_DATE, dbo.Fighter.RQST_RQID, dbo.Fighter.NAME_DNRM, dbo.Fighter.FATH_NAME_DNRM, 
            dbo.Fighter.BRTH_DATE_DNRM, dbo.Fighter.CELL_PHON_DNRM, dbo.Fighter.TELL_PHON_DNRM, dbo.Fighter.INSR_NUMB_DNRM, dbo.Fighter.INSR_DATE_DNRM, 
            dbo.Fighter.TEST_DATE_DNRM, dbo.Fighter.CAMP_DATE_DNRM, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.POST_ADRS, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.LAST_NAME,dbo.Fighter_Public.TYPE, dbo.Fighter_Public.CBMT_CODE,
+           dbo.Fighter.MOM_CELL_PHON_DNRM, dbo.Fighter.MOM_TELL_PHON_DNRM, dbo.Fighter.MOM_CHAT_ID_DNRM,
+           dbo.Fighter.DAD_CELL_PHON_DNRM, dbo.Fighter.DAD_TELL_PHON_DNRM, dbo.Fighter.DAD_CHAT_ID_DNRM,
            dbo.Fighter_Public.EMAL_ADRS, dbo.Diseases_Type.DISE_DESC, dbo.Club.NAME AS CLUB_NAME, ISNULL(dbo.Club.CODE, 0) AS CLUB_CODE, dbo.D$FGTP.DOMN_DESC AS TYPE_DESC, dbo.D$DEGR.DOMN_DESC AS COCH_DEGR, dbo.Fighter_Public.COCH_FILE_NO, dbo.Fighter.ACTV_TAG_DNRM, dbo.Fighter.MOST_DEBT_CLNG_DNRM,
            D$DEGR_1.DOMN_DESC AS GUGD_DEGR, dbo.D$SXTP.DOMN_DESC AS SEX_TYPE, dbo.D$FGST.DOMN_DESC AS FIGH_STAT, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC,
            dbo.D$ACTG.DOMN_DESC AS ACTV_TAG, dbo.Region.NAME AS REGN_NAME, dbo.Province.NAME AS PRVN_NAME, dbo.D$BLOD.DOMN_DESC AS BLOD_GROP, dbo.Request_Type.RQTP_DESC, dbo.Fighter.FNGR_PRNT_DNRM,
            dbo.Fighter_Public.SUNT_BUNT_DEPT_ORGN_CODE, dbo.Fighter_Public.SUNT_BUNT_DEPT_CODE, dbo.Fighter_Public.SUNT_BUNT_CODE, dbo.Fighter_Public.SUNT_CODE,
-           dbo.Organ.ORGN_DESC, dbo.Department.DEPT_DESC, dbo.Base_Unit.BUNT_DESC, dbo.Sub_Unit.SUNT_DESC,
+           dbo.Organ.ORGN_DESC, dbo.Department.DEPT_DESC, dbo.Base_Unit.BUNT_DESC, dbo.Sub_Unit.SUNT_DESC,           
            dbo.Member_Ship.STRT_DATE,dbo.Member_Ship.END_DATE, dbo.Member_Ship.NUMB_OF_MONT_DNRM, dbo.Member_Ship.NUMB_OF_DAYS_DNRM, ISNULL(dbo.Member_Ship.NUMB_MONT_OFER , 0) NUMB_MONT_OFER,
            dbo.Member_Ship.NUMB_OF_ATTN_MONT, dbo.Member_Ship.NUMB_OF_ATTN_WEEK, dbo.Member_Ship.SUM_ATTN_MONT_DNRM, dbo.Member_Ship.SUM_ATTN_WEEK_DNRM           
 FROM         dbo.Fighter INNER JOIN
@@ -67,5 +73,9 @@ WHERE     (dbo.Fighter_Public.RECT_CODE = '004') AND (dbo.Fighter.CONF_STAT = '0
   AND     (@ServNo IS NULL OR @ServNo = '' OR dbo.Fighter.SERV_NO_DNRM LIKE N'%' + @ServNo + N'%')
   AND     (@GlobCode IS NULL OR @GlobCode = '' OR dbo.Fighter_Public.GLOB_CODE LIKE N'%' + @GlobCode + N'%')
   AND     (@SexType IS NULL OR @SexType = '' OR dbo.Fighter.SEX_TYPE_DNRM LIKE @SexType)  
+  AND     (@MomCellPhon IS NULL OR @MomCellPhon = '' OR dbo.Fighter.MOM_CELL_PHON_DNRM LIKE N'%' + @MomCellPhon + N'%')
+  AND     (@MomTellPhon IS NULL OR @MomTellPhon = '' OR dbo.Fighter.MOM_TELL_PHON_DNRM LIKE N'%' + @MomTellPhon + N'%')
+  AND     (@DadCellPhon IS NULL OR @DadCellPhon = '' OR dbo.Fighter.DAD_CELL_PHON_DNRM LIKE N'%' + @DadCellPhon + N'%')
+  AND     (@DadTellPhon IS NULL OR @DadTellPhon = '' OR dbo.Fighter.DAD_TELL_PHON_DNRM LIKE N'%' + @DadTellPhon + N'%')
 )
 GO

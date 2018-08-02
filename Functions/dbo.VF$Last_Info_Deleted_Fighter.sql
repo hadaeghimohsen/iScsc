@@ -12,7 +12,11 @@ CREATE FUNCTION [dbo].[VF$Last_Info_Deleted_Fighter] (
    @TellPhon VARCHAR(11),
    @SexType VARCHAR(3),
    @ServNo NVARCHAR(50),
-   @GlobCode NVARCHAR(50)
+   @GlobCode NVARCHAR(50),
+   @MomCellPhon VARCHAR(11),
+   @MomTellPhon VARCHAR(11),
+   @DadCellPHon VARCHAR(11),
+   @DadTellPHon VARCHAR(11)      
 )RETURNS TABLE 
 AS
 RETURN
@@ -86,7 +90,13 @@ SELECT     f.FILE_NO,
            0 AS NUMB_OF_ATTN_MONT, 
            0 AS NUMB_OF_ATTN_WEEK, 
            0 AS SUM_ATTN_MONT_DNRM, 
-           0 AS SUM_ATTN_WEEK_DNRM           
+           0 AS SUM_ATTN_WEEK_DNRM,
+           f.MOM_CELL_PHON_DNRM,
+           f.MOM_TELL_PHON_DNRM,
+           f.MOM_CHAT_ID_DNRM,
+           f.DAD_CELL_PHON_DNRM,
+           f.DAD_TELL_PHON_DNRM,
+           f.DAD_CHAT_ID_DNRM           
 FROM       dbo.Fighter f,           
            dbo.Sub_Unit s,
            dbo.[D$FGTP],
@@ -114,5 +124,9 @@ WHERE (f.CONF_STAT = '002')
   AND (@ServNo IS NULL OR @ServNo = '' OR f.SERV_NO_DNRM LIKE @ServNo)
   AND (@GlobCode IS NULL OR @GlobCode = '' OR f.GLOB_CODE_DNRM LIKE @GlobCode)
   AND (@SexType IS NULL OR @SexType = '' OR f.SEX_TYPE_DNRM LIKE @SexType)  
+  AND (@MomCellPhon IS NULL OR @MomCellPhon = '' OR f.MOM_CELL_PHON_DNRM LIKE N'%' + @MomCellPhon + N'%')
+  AND (@MomTellPhon IS NULL OR @MomTellPhon = '' OR f.MOM_TELL_PHON_DNRM LIKE N'%' + @MomTellPhon + N'%')
+  AND (@DadCellPhon IS NULL OR @DadCellPhon = '' OR f.DAD_CELL_PHON_DNRM LIKE N'%' + @DadCellPhon + N'%')
+  AND (@DadTellPhon IS NULL OR @DadTellPhon = '' OR f.DAD_TELL_PHON_DNRM LIKE N'%' + @DadTellPhon + N'%')    
 )
 GO

@@ -221,6 +221,12 @@ BEGIN
              ,@IntrFileNo BIGINT             
              ,@CntrCode BIGINT
              ,@ChatId BIGINT
+             ,@MomCellPhon VARCHAR(11)
+             ,@MomTellPhon VARCHAR(11)
+             ,@MomChatId BIGINT
+             ,@DadCellPhon VARCHAR(11)
+             ,@DadTellPhon VARCHAR(11)
+             ,@DadChatId BIGINT             
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -268,6 +274,12 @@ BEGIN
             ,@IntrFileNo = @x.query('//Intr_File_No').value('.', 'BIGINT')
             ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
             ,@ChatId = @x.query('//Chat_Id').value('.', 'BIGINT')
+            ,@MomCellPhon = @x.query('//Mom_Cell_Phon').value('.', 'VARCHAR(11)')
+            ,@MomTellPhon = @x.query('//Mom_Tell_Phon').value('.', 'VARCHAR(11)')
+            ,@MomChatId = @x.query('//Mom_Chat_Id').value('.', 'BIGINT')
+            ,@DadCellPhon = @x.query('//Dad_Cell_Phon').value('.', 'VARCHAR(11)')
+            ,@DadTellPhon = @x.query('//Dad_Tell_Phon').value('.', 'VARCHAR(11)')
+            ,@DadChatId = @x.query('//Dad_Chat_Id').value('.', 'BIGINT')            
             ,@StrtDate = @x.query('//Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
             ,@EndDate = @x.query('//Member_Ship').value('(Member_Ship/@enddate)[1]', 'DATE')
             ,@NumbMontOfer = @x.query('//Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')
@@ -394,7 +406,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;           
          
          EXEC dbo.INS_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint
@@ -464,7 +482,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;
          
          EXEC dbo.UPD_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint

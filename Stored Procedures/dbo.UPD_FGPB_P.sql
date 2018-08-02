@@ -61,7 +61,13 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Cntr_Code BIGINT,
 	@Dpst_Acnt_Slry_Bank NVARCHAR(50),
 	@Dpst_Acnt_Slry VARCHAR(50),
-	@Chat_Id BIGINT
+	@Chat_Id BIGINT,
+	@Mom_Cell_Phon VARCHAR(11),
+	@Mom_Tell_Phon VARCHAR(11),
+	@Mom_Chat_Id BIGINT,
+	@Dad_Cell_Phon VARCHAR(11),
+	@Dad_Tell_Phon VARCHAR(11),
+	@Dad_Chat_Id BIGINT
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -82,7 +88,13 @@ BEGIN
    IF @CORD_Y = 0 SET @CORD_Y = NULL;
    IF @Chat_Id = 0 SET @Chat_Id = NULL;
 	IF @Blod_Grop = '' SET @Blod_Grop = NULL;
-	
+   IF @Mom_Cell_Phon = '' SET @Mom_Cell_Phon = NULL
+   IF @Mom_Tell_Phon = '' SET @Mom_Tell_Phon = NULL
+   IF @Mom_Chat_Id = '' SET @Mom_Chat_Id = NULL
+   IF @Dad_Cell_Phon = '' SET @Dad_Cell_Phon = NULL
+   IF @Dad_Tell_Phon = '' SET @Dad_Tell_Phon = NULL
+   IF @Dad_Chat_Id = '' SET @Mom_Chat_Id = NULL
+   	
 	UPDATE [dbo].[Fighter_Public]
 	   SET [REGN_PRVN_CODE] = @Prvn_Code
 	      ,[REGN_CODE] = @Regn_Code
@@ -134,6 +146,12 @@ BEGIN
          ,DPST_ACNT_SLRY_BANK = @Dpst_Acnt_Slry_Bank
          ,DPST_ACNT_SLRY = @Dpst_Acnt_Slry
          ,CHAT_ID = @Chat_Id
+         ,MOM_CELL_PHON = @Mom_Cell_Phon
+         ,MOM_TELL_PHON = @Mom_Tell_Phon
+         ,MOM_CHAT_ID = @Mom_Chat_Id
+         ,DAD_CELL_PHON = @Dad_Cell_Phon
+         ,DAD_TELL_PHON = @Dad_Tell_Phon
+         ,DAD_CHAT_ID = @Dad_Chat_Id
      WHERE Figh_File_No = @File_No
        AND [RQRO_RQST_RQID] = @Rqro_Rqst_Rqid
        AND [RQRO_RWNO] = @Rqro_Rwno;

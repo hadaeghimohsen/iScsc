@@ -61,7 +61,13 @@ CREATE PROCEDURE [dbo].[INS_FGPB_P]
 	@Cntr_Code BIGINT,
 	@Dpst_Acnt_Slry_Bank NVARCHAR(50),
 	@Dpst_Acnt_Slry VARCHAR(50),
-	@Chat_Id BIGINT
+	@Chat_Id BIGINT,
+	@Mom_Cell_Phon VARCHAR(11),
+	@Mom_Tell_Phon VARCHAR(11),
+	@Mom_Chat_Id BIGINT,
+	@Dad_Cell_Phon VARCHAR(11),
+	@Dad_Tell_Phon VARCHAR(11),
+	@Dad_Chat_Id BIGINT
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -82,6 +88,12 @@ BEGIN
    IF @CORD_Y = 0 SET @CORD_Y = NULL;
    IF @Chat_Id = 0 SET @Chat_Id = NULL;   
    IF @Blod_Grop = '' SET @Blod_Grop = NULL;
+   IF @Mom_Cell_Phon = '' SET @Mom_Cell_Phon = NULL
+   IF @Mom_Tell_Phon = '' SET @Mom_Tell_Phon = NULL
+   IF @Mom_Chat_Id = '' SET @Mom_Chat_Id = NULL
+   IF @Dad_Cell_Phon = '' SET @Dad_Cell_Phon = NULL
+   IF @Dad_Tell_Phon = '' SET @Dad_Tell_Phon = NULL
+   IF @Dad_Chat_Id = '' SET @Mom_Chat_Id = NULL
    
 	INSERT INTO [dbo].[Fighter_Public]
            ([REGN_PRVN_CODE], [REGN_CODE], [DISE_CODE], [MTOD_CODE], [CTGY_CODE]
@@ -92,7 +104,8 @@ BEGIN
            ,[CBMT_CODE], [DAY_TYPE], [ATTN_TIME], [COCH_CRTF_DATE], [CALC_EXPN_TYPE],[ACTV_TAG], [BLOD_GROP]
            ,[FNGR_PRNT], [SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]
            ,[CORD_X], [CORD_Y], [MOST_DEBT_CLNG], [SERV_NO], BRTH_PLAC, ISSU_PLAC, FATH_WORK, HIST_DESC, INTR_FILE_NO
-           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY], [CHAT_ID])
+           ,[CNTR_CODE], [DPST_ACNT_SLRY_BANK], [DPST_ACNT_SLRY], [CHAT_ID], [MOM_CELL_PHON], [MOM_TELL_PHON], [MOM_CHAT_ID]
+           ,[DAD_CELL_PHON], [DAD_TELL_PHON], [DAD_CHAT_ID])
      VALUES
            (@Prvn_Code, @Regn_Code, @Dise_Code, @Mtod_Code, @Ctgy_Code 
            ,@Club_Code, @Rqro_Rqst_Rqid, @Rqro_Rwno, @File_No, 0, @Rect_Code
@@ -102,6 +115,7 @@ BEGIN
            ,@Cbmt_Code, @Day_Type, @Attn_Time, @Coch_Crtf_Date, @Calc_Expn_Type, @Actv_Tag, @Blod_Grop
            ,@Fngr_Prnt, @SUNT_BUNT_DEPT_ORGN_CODE, @SUNT_BUNT_DEPT_CODE, @SUNT_BUNT_CODE, @SUNT_CODE
            ,@CORD_X, @CORD_Y, @Most_Debt_Clng, @Serv_No, @BRTH_PLAC, @ISSU_PLAC, @FATH_WORK, @HIST_DESC, @INTR_FILE_NO
-           ,@Cntr_Code, @Dpst_Acnt_Slry_Bank, @Dpst_Acnt_Slry, @Chat_Id);
+           ,@Cntr_Code, @Dpst_Acnt_Slry_Bank, @Dpst_Acnt_Slry, @Chat_Id, @Mom_Cell_Phon, @Mom_Tell_Phon, @Mom_Chat_Id,
+           @Dad_Cell_Phon, @Dad_Tell_Phon, @Dad_Chat_Id);
 END
 GO

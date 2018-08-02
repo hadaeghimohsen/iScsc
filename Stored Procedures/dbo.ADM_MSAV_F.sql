@@ -131,7 +131,13 @@ BEGIN
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
              ,@DpstAcntSlry VARCHAR(50)
-             ,@ChatId BIGINT;
+             ,@ChatId BIGINT
+             ,@MomCellPhon VARCHAR(11)
+             ,@MomTellPhon VARCHAR(11)
+             ,@MomChatId BIGINT
+             ,@DadCellPhon VARCHAR(11)
+             ,@DadTellPhon VARCHAR(11)
+             ,@DadChatId BIGINT;
              
       SELECT @DiseCode = @X.query('//Dise_Code').value('.', 'BIGINT')
             ,@MtodCode = @X.query('//Mtod_Code').value('.', 'BIGINT')
@@ -175,7 +181,13 @@ BEGIN
             ,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
             ,@DpstAcntSlryBank = @x.query('//Dpst_Acnt_Slry_Bank').value('.', 'NVARCHAR(50)')
             ,@DpstAcntSlry = @x.query('//Dpst_Acnt_Slry').value('.', 'VARCHAR(50)')
-            ,@ChatId       = @x.query('//Chat_Id').value('.', 'BIGINT');
+            ,@ChatId       = @x.query('//Chat_Id').value('.', 'BIGINT')
+            ,@MomCellPhon = @x.query('//Mom_Cell_Phon').value('.', 'VARCHAR(11)')
+            ,@MomTellPhon = @x.query('//Mom_Tell_Phon').value('.', 'VARCHAR(11)')
+            ,@MomChatId = @x.query('//Mom_Chat_Id').value('.', 'BIGINT')
+            ,@DadCellPhon = @x.query('//Dad_Cell_Phon').value('.', 'VARCHAR(11)')
+            ,@DadTellPhon = @x.query('//Dad_Tell_Phon').value('.', 'VARCHAR(11)')
+            ,@DadChatId = @x.query('//Dad_Chat_Id').value('.', 'BIGINT')
             
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
 
@@ -272,7 +284,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;
       END
       ELSE
       BEGIN
@@ -329,7 +347,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;
       END
       UPDATE Request
          SET RQST_STAT = '002'

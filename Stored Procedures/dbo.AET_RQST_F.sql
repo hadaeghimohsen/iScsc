@@ -207,7 +207,13 @@ BEGIN
              ,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
              ,@DpstAcntSlry VARCHAR(50)
-             ,@ChatId BIGINT;
+             ,@ChatId BIGINT
+             ,@MomCellPhon VARCHAR(11)
+             ,@MomTellPhon VARCHAR(11)
+             ,@MomChatId BIGINT
+             ,@DadCellPhon VARCHAR(11)
+             ,@DadTellPhon VARCHAR(11)
+             ,@DadChatId BIGINT;             
       
       IF EXISTS(
          SELECT *
@@ -267,6 +273,12 @@ BEGIN
               ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
               ,@DpstAcntSlry = P.DPST_ACNT_SLRY
               ,@ChatId = P.CHAT_ID
+              ,@MomCellPhon = P.MOM_CELL_PHON
+              ,@MomTellPhon = P.MOM_TELL_PHON
+              ,@MomChatId = P.MOM_CHAT_ID
+              ,@DadCellPhon = P.DAD_CELL_PHON
+              ,@DadTellPhon = P.DAD_TELL_PHON
+              ,@DadChatId = P.DAD_CHAT_ID
           FROM Fighter_Public P
          WHERE P.FIGH_FILE_NO = @FileNo
            AND P.RQRO_RQST_RQID = @Rqid
@@ -324,6 +336,12 @@ BEGIN
              ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
              ,@DpstAcntSlry = P.DPST_ACNT_SLRY
              ,@ChatId = P.CHAT_ID
+             ,@MomCellPhon = P.MOM_CELL_PHON
+             ,@MomTellPhon = P.MOM_TELL_PHON
+             ,@MomChatId = P.MOM_CHAT_ID
+             ,@DadCellPhon = P.DAD_CELL_PHON
+             ,@DadTellPhon = P.DAD_TELL_PHON
+             ,@DadChatId = P.DAD_CHAT_ID             
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -404,7 +422,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
-           ,@Chat_Id = @ChatId;            
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;                      
       END
       ELSE
       BEGIN
@@ -461,7 +485,13 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;           
       END
       
       GOTO NextFromRqrv;

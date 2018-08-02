@@ -128,7 +128,14 @@ BEGIN
              ,@HistDesc NVARCHAR(500)
              ,@IntrFileNo BIGINT
              ,@CntrCode BIGINT
-             ,@ChatId BIGINT;
+             ,@ChatId BIGINT
+             ,@MomCellPhon VARCHAR(11)
+             ,@MomTellPhon VARCHAR(11)
+             ,@MomChatId BIGINT
+             ,@DadCellPhon VARCHAR(11)
+             ,@DadTellPhon VARCHAR(11)
+             ,@DadChatId BIGINT;
+             
              
       DECLARE @CrtfDate DATE
              ,@CrtfNumb VARCHAR(20)
@@ -179,6 +186,12 @@ BEGIN
              ,@IntrFileNo = P.INTR_FILE_NO             
              ,@CntrCode = P.CNTR_CODE
              ,@ChatId = P.CHAT_ID
+             ,@MomCellPhon = P.MOM_CELL_PHON
+             ,@MomTellPhon = P.MOM_TELL_PHON
+             ,@MomChatId = P.MOM_CHAT_ID
+             ,@DadCellPhon = P.DAD_CELL_PHON
+             ,@DadTellPhon = P.DAD_TELL_PHON
+             ,@DadChatId = P.DAD_CHAT_ID
          FROM Fighter_Public P
         WHERE P.RQRO_RQST_RQID = @Rqid
           AND P.RQRO_RWNO = @RqroRwno
@@ -291,7 +304,14 @@ BEGIN
            ,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
-           ,@Chat_Id = @ChatId;           
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;
+           
       END
       
       /*DECLARE @AttnDate DATE;

@@ -56,6 +56,12 @@ CREATE TABLE [dbo].[Fighter_Public]
 [DPST_ACNT_SLRY] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHAT_ID] [bigint] NULL,
 [FMLY_NUMB] [int] NULL,
+[MOM_CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DAD_CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MOM_TELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DAD_TELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MOM_CHAT_ID] [bigint] NULL,
+[DAD_CHAT_ID] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -135,7 +141,13 @@ BEGIN
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = s.GLOB_CODE
             ,CHAT_ID_DNRM = s.CHAT_ID
-            ,FMLY_NUMB_DNRM = s.FMLY_NUMB;
+            ,FMLY_NUMB_DNRM = s.FMLY_NUMB
+            ,MOM_CELL_PHON_DNRM = s.MOM_CELL_PHON
+            ,MOM_TELL_PHON_DNRM = s.MOM_TELL_PHON
+            ,MOM_CHAT_ID_DNRM = s.MOM_CHAT_ID
+            ,DAD_CELL_PHON_DNRM = s.DAD_CELL_PHON
+            ,DAD_TELL_PHON_DNRM = S.DAD_TELL_PHON
+            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -178,6 +190,12 @@ BEGIN
             ,GLOB_CODE_DNRM = NULL
             ,CHAT_ID_DNRM = NULL
             ,FMLY_NUMB_DNRM = NULL
+            ,MOM_CELL_PHON_DNRM = NULL
+            ,MOM_TELL_PHON_DNRM = NULL
+            ,MOM_CHAT_ID_DNRM = NULL
+            ,DAD_CELL_PHON_DNRM = NULL
+            ,DAD_TELL_PHON_DNRM = NULL
+            ,DAD_CHAT_ID_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -254,7 +272,11 @@ BEGIN
           ,@FATH_WORK           NVARCHAR(150)       ,@HIST_DESC           NVARCHAR(500)
           ,@INTR_FILE_NO        BIGINT              ,@DPST_ACNT_SLRY_BANK NVARCHAR(50)
           ,@DPST_ACNT_SLRY      VARCHAR(50)         ,@CHAT_ID             BIGINT
-          ,@FMLY_NUMB           INT ;
+          ,@FMLY_NUMB           INT                 ,@MOM_CELL_PHON       VARCHAR(11)
+          ,@MOM_TELL_PHON       VARCHAR(11)         ,@MOM_CHAT_ID         BIGINT
+          ,@DAD_CELL_PHON       VARCHAR(11)         ,@DAD_TELL_PHON       VARCHAR(11)
+          ,@DAD_CHAT_ID         BIGINT;
+          
    -- FETCH LAST INFORMATION;
    SELECT TOP 1
           @REGN_PRVN_CNTY_CODE = T.[REGN_PRVN_CNTY_CODE]          , @REGN_PRVN_CODE = T.[REGN_PRVN_CODE]
@@ -284,7 +306,10 @@ BEGIN
          ,@FATH_WORK           = T.FATH_WORK                      , @HIST_DESC      = T.HIST_DESC
          ,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
          ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY                 , @CHAT_ID        = T.CHAT_ID
-         ,@FMLY_NUMB           = T.FMLY_NUMB
+         ,@FMLY_NUMB           = T.FMLY_NUMB                      , @MOM_CELL_PHON  = T.MOM_CELL_PHON
+         ,@MOM_TELL_PHON       = T.MOM_TELL_PHON                  , @MOM_CHAT_ID    = T.MOM_CHAT_ID
+         ,@DAD_CELL_PHON       = T.DAD_CELL_PHON                  , @DAD_TELL_PHON  = T.DAD_TELL_PHON
+         ,@DAD_CHAT_ID         = T.DAD_CHAT_ID
      FROM [dbo].[Fighter_Public] T , INSERTED S
      WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
      ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;
@@ -436,13 +461,19 @@ BEGIN
             ,DPST_ACNT_SLRY_BANK = CASE S.DPST_ACNT_SLRY_BANK WHEN NULL THEN @DPST_ACNT_SLRY_BANK ELSE S.DPST_ACNT_SLRY_BANK END
             ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END
             ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END
-            ,FMLY_NUMB           = CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END;
+            ,FMLY_NUMB           = CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END
+            ,MOM_CELL_PHON       = CASE S.MOM_CELL_PHON       WHEN NULL THEN @MOM_CELL_PHON       ELSE S.MOM_CELL_PHON       END
+            ,MOM_TELL_PHON       = CASE S.MOM_TELL_PHON       WHEN NULL THEN @MOM_TELL_PHON       ELSE S.MOM_TELL_PHON       END
+            ,MOM_CHAT_ID         = CASE S.MOM_CHAT_ID         WHEN NULL THEN @MOM_CHAT_ID         ELSE S.MOM_CHAT_ID         END
+            ,DAD_CELL_PHON       = CASE S.DAD_CELL_PHON       WHEN NULL THEN @DAD_CELL_PHON       ELSE S.DAD_CELL_PHON       END
+            ,DAD_TELL_PHON       = CASE S.DAD_TELL_PHON       WHEN NULL THEN @DAD_TELL_PHON       ELSE S.DAD_TELL_PHON       END
+            ,DAD_CHAT_ID         = CASE S.DAD_CHAT_ID         WHEN NULL THEN @DAD_CHAT_ID         ELSE S.DAD_CHAT_ID         END;
             
             
    -- UPDATE FIGHTER TABLE
    MERGE dbo.Fighter T
    USING (SELECT * FROM INSERTED I 
-           WHERE I.RWNO = (SELECT MAX(RWNO) FROM FIGHTER_PUBLIC M 
+       WHERE I.RWNO = (SELECT MAX(RWNO) FROM FIGHTER_PUBLIC M 
                             WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
                                   M.RECT_CODE    = '004')) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO AND
@@ -483,7 +514,13 @@ BEGIN
             ,SERV_NO_DNRM = S.SERV_NO
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = S.GLOB_CODE
-            ,CHAT_ID_DNRM = S.CHAT_ID;
+            ,CHAT_ID_DNRM = S.CHAT_ID
+            ,MOM_CELL_PHON_DNRM = s.MOM_CELL_PHON
+            ,MOM_TELL_PHON_DNRM = s.MOM_TELL_PHON
+            ,MOM_CHAT_ID_DNRM = s.MOM_CHAT_ID
+            ,DAD_CELL_PHON_DNRM = s.DAD_CELL_PHON
+            ,DAD_TELL_PHON_DNRM = S.DAD_TELL_PHON
+            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID;
 END
 ;
 GO
