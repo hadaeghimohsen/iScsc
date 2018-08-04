@@ -274,8 +274,208 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE 
          SET MBSM_RWNO_DNRM = S.RWNO;
-END
-;
+   
+   -- اگر تعداد ردیف ها بیشتر باشد نیازی به چک کردن پیامک ندارد
+   IF ((SELECT COUNT(*) FROM Inserted WHERE Inserted.RECT_CODE = '004') > 1) RETURN;
+   
+   -- 1396/10/05 * ثبت پیامک       
+   DECLARE @CellPhon VARCHAR(11)
+          ,@ChatId BIGINT
+          ,@DadCellPhon VARCHAR(11)
+          ,@DadChatId BIGINT
+          ,@MomCellPhon VARCHAR(11)
+          ,@MomChatId BIGINT
+          ,@SexType VARCHAR(3)
+          ,@FrstName NVARCHAR(250)
+          ,@LastName NVARCHAR(250)
+          ,@FileNo BIGINT
+          ,@NumbOfAttnMont INT
+          ,@SumOfAttnMont INT
+          ,@EndDate DATE;
+          
+   SELECT @CellPhon = f.CELL_PHON_DNRM
+         ,@ChatId = F.CHAT_ID_DNRM
+         ,@DadCellPhon = f.DAD_CELL_PHON_DNRM
+         ,@DadChatId = f.DAD_CHAT_ID_DNRM
+         ,@MomCellPhon = f.MOM_CELL_PHON_DNRM
+         ,@MomChatId = f.MOM_CHAT_ID_DNRM
+         ,@SexType = f.SEX_TYPE_DNRM
+         ,@FrstName = f.FRST_NAME_DNRM
+         ,@LastName = f.LAST_NAME_DNRM
+         ,@FileNo = f.FILE_NO
+         ,@EndDate = i.END_DATE
+         ,@NumbOfAttnMont = i.NUMB_OF_ATTN_MONT
+         ,@SumOfAttnMont = i.SUM_ATTN_MONT_DNRM
+     FROM dbo.Fighter f, Inserted i
+    WHERE f.FILE_NO = i.FIGH_FILE_NO
+      AND i.RECT_CODE = '004';
+          
+   IF (
+         (@CellPhon IS NOT NULL AND LEN(@CellPhon) != 0)  OR 
+         (@DadCellPhon IS NOT NULL AND LEN(@DadCellPhon) != 0) OR
+         (@MomCellPhon IS NOT NULL AND LEN(@MomCellPhon) != 0)
+      ) AND
+      (
+         DATEDIFF(DAY, GETDATE(), @EndDate) <= (SELECT MIN_NUMB_DAY_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_DAY_RMND, 0) != 0) OR
+         (@NumbOfAttnMont - @SumOfAttnMont) <= (SELECT MIN_NUMB_ATTN_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_ATTN_RMND, 0) != 0) 
+      )
+   BEGIN
+      DECLARE @MsgbStat VARCHAR(3)
+             ,@MsgbText NVARCHAR(MAX)
+             ,@ClubName NVARCHAR(250)
+             ,@InsrCnamStat VARCHAR(3)
+             ,@InsrFnamStat VARCHAR(3);
+             
+      SELECT @MsgbStat = STAT
+            ,@MsgbText = MSGB_TEXT
+            ,@ClubName = CLUB_NAME
+            ,@InsrCnamStat = INSR_CNAM_STAT
+            ,@InsrFnamStat = INSR_FNAM_STAT
+        FROM dbo.Message_Broadcast
+       WHERE MSGB_TYPE = '009';
+      
+      IF @MsgbStat = '002' 
+      BEGIN
+         IF @InsrFnamStat = '002'
+            SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+         
+         IF @InsrCnamStat = '002'
+            SET @MsgbText = @MsgbText + N' ' + @ClubName;
+            
+         DECLARE @XMsg XML;
+         SELECT @XMsg = (
+            SELECT 5 AS '@subsys',
+                   '002' AS '@linetype',
+                   (
+                     SELECT @CellPhon AS '@phonnumb',
+                            (
+                                SELECT '009' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @DadCellPhon AS '@phonnumb',
+                            (
+                                SELECT '009' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @MomCellPhon AS '@phonnumb',
+                            (
+                                SELECT '009' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   )
+              FOR XML PATH('Contacts'), ROOT('Process')                            
+         );
+         EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+      END;
+   END;
+   
+   -- 1396/11/15 * ثبت پیامک تلگرام
+   IF (
+         @ChatId IS NOT NULL OR
+         @DadChatId IS NOT NULL OR
+         @MomChatId IS NOT NULL
+      ) AND 
+      (
+         DATEDIFF(DAY, GETDATE(), @EndDate) <= (SELECT MIN_NUMB_DAY_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_DAY_RMND, 0) != 0) OR
+         (@NumbOfAttnMont - @SumOfAttnMont) <= (SELECT MIN_NUMB_ATTN_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_ATTN_RMND, 0) != 0) 
+      )
+   BEGIN  
+      DECLARE @TelgStat VARCHAR(3);
+      
+      SELECT @TelgStat = TELG_STAT
+            ,@MsgbText = MSGB_TEXT
+            ,@ClubName = CLUB_NAME
+            ,@InsrCnamStat = INSR_CNAM_STAT
+            ,@InsrFnamStat = INSR_FNAM_STAT
+        FROM dbo.Message_Broadcast
+       WHERE MSGB_TYPE = '009';
+      
+      IF @TelgStat = '002'
+      BEGIN
+         IF @InsrFnamStat = '002'
+            SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + CHAR(10) + @MsgbText ;--+ ISNULL(@MsgbText, N'');
+         
+         IF @InsrCnamStat = '002'
+            SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
+         
+         IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+         BEGIN
+            DECLARE @RoboServFileNo BIGINT;
+            SELECT @RoboServFileNo = SERV_FILE_NO
+              FROM iRoboTech.dbo.Service_Robot
+             WHERE ROBO_RBID = 391
+               AND CHAT_ID = @ChatId;
+            
+            IF @RoboServFileNo IS NOT NULL
+               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+                   @SRBT_ROBO_RBID = 391, -- bigint
+                   @RWNO = 0, -- bigint
+                   @SRMG_RWNO = NULL, -- bigint
+                   @Ordt_Ordr_Code = NULL, -- bigint
+                   @Ordt_Rwno = NULL, -- bigint
+                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+                   @FILE_ID = NULL, -- varchar(200)
+                   @FILE_PATH = NULL, -- nvarchar(max)
+                   @MESG_TYPE = '001', -- varchar(3)
+                   @LAT = NULL, -- float
+                   @LON = NULL, -- float
+                   @CONT_CELL_PHON = NULL; -- varchar(11)
+            
+            SET @RoboServFileNo = NULL;            
+            SELECT @RoboServFileNo = SERV_FILE_NO
+              FROM iRoboTech.dbo.Service_Robot
+             WHERE ROBO_RBID = 391
+               AND CHAT_ID = @DadChatId;
+            
+            IF @RoboServFileNo IS NOT NULL
+               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+                   @SRBT_ROBO_RBID = 391, -- bigint
+                   @RWNO = 0, -- bigint
+                   @SRMG_RWNO = NULL, -- bigint
+                   @Ordt_Ordr_Code = NULL, -- bigint
+                   @Ordt_Rwno = NULL, -- bigint
+                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+                   @FILE_ID = NULL, -- varchar(200)
+                   @FILE_PATH = NULL, -- nvarchar(max)
+                   @MESG_TYPE = '001', -- varchar(3)
+                   @LAT = NULL, -- float
+                   @LON = NULL, -- float
+                   @CONT_CELL_PHON = NULL; -- varchar(11)
+            
+            SET @RoboServFileNo = NULL;
+            SELECT @RoboServFileNo = SERV_FILE_NO
+              FROM iRoboTech.dbo.Service_Robot
+             WHERE ROBO_RBID = 391
+               AND CHAT_ID = @MomChatId;
+            
+            IF @RoboServFileNo IS NOT NULL
+               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+                   @SRBT_ROBO_RBID = 391, -- bigint
+                   @RWNO = 0, -- bigint
+                   @SRMG_RWNO = NULL, -- bigint
+                   @Ordt_Ordr_Code = NULL, -- bigint
+                   @Ordt_Rwno = NULL, -- bigint
+                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+                   @FILE_ID = NULL, -- varchar(200)
+                   @FILE_PATH = NULL, -- nvarchar(max)
+                   @MESG_TYPE = '001', -- varchar(3)
+                   @LAT = NULL, -- float
+                   @LON = NULL, -- float
+                   @CONT_CELL_PHON = NULL; -- varchar(11)            
+         END;
+      END;
+   END;         
+END;
 GO
 ALTER TABLE [dbo].[Member_Ship] ADD CONSTRAINT [CK_MBSP_RECT_CODE] CHECK (([RECT_CODE]='004' OR [RECT_CODE]='003' OR [RECT_CODE]='002' OR [RECT_CODE]='001'))
 GO

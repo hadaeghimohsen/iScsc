@@ -13,6 +13,8 @@ CREATE TABLE [dbo].[Message_Broadcast]
 [MSGB_TEXT] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FROM_DATE] [date] NULL,
 [TO_DATE] [date] NULL,
+[MIN_NUMB_ATTN_RMND] [int] NULL,
+[MIN_NUMB_DAY_RMND] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -73,4 +75,8 @@ GO
 ALTER TABLE [dbo].[Message_Broadcast] ADD CONSTRAINT [FK_MSGB_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع خط', 'SCHEMA', N'dbo', 'TABLE', N'Message_Broadcast', 'COLUMN', N'LINE_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'حداقل تعداد جلسات باقیمانده', 'SCHEMA', N'dbo', 'TABLE', N'Message_Broadcast', 'COLUMN', N'MIN_NUMB_ATTN_RMND'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'حداقل تعداد روز باقیمانده', 'SCHEMA', N'dbo', 'TABLE', N'Message_Broadcast', 'COLUMN', N'MIN_NUMB_DAY_RMND'
 GO
