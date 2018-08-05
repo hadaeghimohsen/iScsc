@@ -9,15 +9,29 @@ GO
 -- =============================================
 CREATE PROCEDURE [dbo].[CNCL_RQST_F]
 	-- Add the parameters for the stored procedure here
-	@X XML
+    @X XML
 AS
 BEGIN
-	DECLARE @Rqid BIGINT;	       
-	       
-	SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]', 'BIGINT');	      
+    DECLARE @ErrorMessage NVARCHAR(MAX);
+    BEGIN TRAN T1;
+    BEGIN TRY
+        DECLARE @Rqid BIGINT;
+        SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]',
+                                                    'BIGINT');
 	
-	UPDATE Request
-	   SET RQST_STAT = '003'
-	 WHERE RQID = @Rqid;
-END
+        UPDATE  Request
+        SET     RQST_STAT = '003'
+        WHERE   RQID = @Rqid;
+	 
+        COMMIT TRAN T1;
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        RAISERROR ( @ErrorMessage, -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+        ROLLBACK TRAN T1;
+    END CATCH;	 
+END;
 GO
