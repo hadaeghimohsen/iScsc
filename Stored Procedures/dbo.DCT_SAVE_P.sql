@@ -71,10 +71,12 @@ BEGIN
 	      ,RCDC_DESC = @RcdcDesc
 	 WHERE RCID = @Rcid;
 	
-	UPDATE Image_Document
-	   SET IMAG      = @Imag
-	 WHERE RCDC_RCID = @Rcid
-	   AND RWNO      = 1;
+	IF @Imag IS NOT NULL AND @Imag != ''
+	   UPDATE Image_Document
+	      SET IMAG      = @Imag
+	    WHERE RCDC_RCID = @Rcid
+	      AND RWNO      = 1;
+	
 	   
 	GOTO NEXTC$SAVERCDC;
 	ENDC$SAVERCDC:
