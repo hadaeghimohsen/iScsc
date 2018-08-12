@@ -36,7 +36,12 @@ BEGIN
 	       ,@RqttCode     VARCHAR(3)
 	       ,@PydtCode     BIGINT
 	       ,@ExpnPric     INT
-	       ,@DecrPrct     FLOAT;
+	       ,@DecrPrct     FLOAT
+	       ,@RqtpCode     VARCHAR(3)
+	       ,@MtodCode     BIGINT
+	       ,@CtgyCode     BIGINT
+	       ,@CalcType     VARCHAR(3)
+	       ,@PymtStat     VARCHAR(3);
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -44,9 +49,13 @@ BEGIN
 	      ,@DecrPrct     = @X.query('//Payment').value('(Payment/@decrprct)[1]',   'FLOAT');
    
    IF @FromPymtDate IN ('1900-01-01', '0001-01-01' ) BEGIN RAISERROR (N'برای فیلد "از تاریخ" اطلاعات وارد نشده' , 16, 1); END
+   IF @CochFileNo = 0 SET @CochFileNo = NULL;
+   IF @DecrPrct IS NULL SET @DecrPrct = 0;
    
+   -- برای محاسبه درصدی آیتم هایی که برای مربی مشخص کرده ایم که باید بر اساس مبلغ دوره محسابه شود
    DECLARE C$CochFileNo$CalcExpnP CURSOR FOR
-      SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu
+      SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -54,27 +63,28 @@ BEGIN
          AND P.Rect_Code = '004'
          AND P.Coch_Deg = C.Coch_Deg
          AND C.Stat = '002'
-         AND (@CochFileNo = 0 OR F.File_No = @CochFileNo);
-   
-   
+         AND (@CochFileNo IS NULL OR F.File_No = @CochFileNo)
+         AND C.CALC_TYPE = '001' /* محاسبه توسط درصدی */
+         AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;
    
    -- DELETE FOR Paymemt_Expense FOR Coach With Vald_Type = '001'
    DELETE Misc_Expense
     WHERE CALC_EXPN_TYPE = '001'
       AND VALD_TYPE = '001';
+      
    DELETE Payment_Expense
     WHERE VALD_TYPE = '001';
     
    OPEN C$CochFileNo$CalcExpnP;
    NextC$CochFileNo$CalcExpnP:
-   FETCH NEXT FROM C$CochFileNo$CalcExpnP INTO @CochFileNo, @EpitCode, @RqttCode, @PrctValu;
+   FETCH NEXT FROM C$CochFileNo$CalcExpnP INTO 
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnP;
       
-      -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو
-      
-      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU)   
+      -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
+      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -85,7 +95,11 @@ BEGIN
              PYMT.SUM_RCPT_EXPN_PRIC,
              PYMT.SUM_PYMT_DSCN_DNRM,
              @PrctValu,
-             @DecrPrct
+             @DecrPrct,
+             RQRO.RQTP_CODE,
+             PYDT.MTOD_CODE_DNRM,
+             PYDT.CTGY_CODE_DNRM,
+             PYMT.CLUB_CODE_DNRM
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -94,7 +108,7 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE (PYDT.PAY_STAT = '002') 
+       WHERE (PYDT.PAY_STAT = @PymtStat) 
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
@@ -102,6 +116,9 @@ BEGIN
          AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
+         AND (pydt.MTOD_CODE_DNRM = @MtodCode)
+         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
   
    GOTO NextC$CochFileNo$CalcExpnP;
@@ -125,15 +142,28 @@ BEGIN
          AND pd.PYMT_CASH_CODE = p.CASH_CODE
          AND pd.PYMT_RQST_RQID = p.RQST_RQID
          AND p.RQST_RQID = R.RQID
-    GROUP BY r.REGN_PRVN_CNTY_CODE, r.REGN_PRVN_CODE, r.REGN_CODE, p.CLUB_CODE_DNRM, pe.COCH_FILE_NO ) T	  
+    GROUP BY r.REGN_PRVN_CNTY_CODE, r.REGN_PRVN_CODE, 
+             r.REGN_CODE, p.CLUB_CODE_DNRM, 
+             pe.COCH_FILE_NO ) T	  
    
-   MERGE dbo.Payment_Expense T
-   USING (SELECT DISTINCT COCH_FILE_NO, CODE FROM dbo.Misc_Expense WHERE CALC_EXPN_TYPE = '001' AND DELV_STAT IS NULL) S
+   UPDATE pe
+      SET pe.MSEX_CODE = me.CODE
+     FROM dbo.Payment_Expense pe, dbo.Misc_Expense me
+    WHERE pe.COCH_FILE_NO = me.COCH_FILE_NO
+      AND pe.CLUB_CODE = me.CLUB_CODE
+      AND pe.MSEX_CODE IS NULL
+      AND me.CALC_EXPN_TYPE = '001'
+      AND me.DELV_STAT IS NULL;
+   
+   /*MERGE dbo.Payment_Expense T
+   USING (SELECT DISTINCT COCH_FILE_NO, CODE 
+            FROM dbo.Misc_Expense 
+           WHERE CALC_EXPN_TYPE = '001' 
+             AND DELV_STAT IS NULL) S
    ON (T.COCH_FILE_NO = S.COCH_FILE_NO AND T.MSEX_CODE IS NULL)
    WHEN MATCHED THEN
-      UPDATE SET t.MSEX_CODE = S.CODE;
-
-   
+      UPDATE SET t.MSEX_CODE = S.CODE;*/
+         
    COMMIT TRAN T1;  
    END TRY
    BEGIN CATCH

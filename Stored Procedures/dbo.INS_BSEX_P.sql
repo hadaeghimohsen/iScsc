@@ -14,6 +14,12 @@ CREATE PROCEDURE [dbo].[INS_BSEX_P]
   ,@Coch_Deg  VARCHAR(3)
   ,@Prct_Valu FLOAT
   ,@Stat      VARCHAR(3)
+  ,@Mtod_Code BIGINT
+  ,@Ctgy_Code BIGINT
+  ,@Calc_Expn_Type VARCHAR(3)
+  ,@Calc_Type VARCHAR(3)
+  ,@Rqtp_Code VARCHAR(3)
+  ,@Pymt_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -31,7 +37,10 @@ BEGIN
    END
    -- پایان دسترسی
    
-   INSERT INTO Base_Calculate_Expense (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT)
-   VALUES (dbo.GNRT_NVID_U(), @Epit_Code, @Rqtt_Code, @Coch_Deg, @Prct_Valu, @Stat);
+   INSERT INTO Base_Calculate_Expense 
+   (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, MTOD_CODE, CTGY_CODE,
+    CALC_EXPN_TYPE, CALC_TYPE, RQTP_CODE, PYMT_STAT)
+   VALUES (dbo.GNRT_NVID_U(), @Epit_Code, @Rqtt_Code, @Coch_Deg, @Prct_Valu, @Stat,
+    @Mtod_Code, @Ctgy_Code, @Calc_Expn_Type, @Calc_Type, @Rqtp_Code, @Pymt_Stat);
 END
 GO

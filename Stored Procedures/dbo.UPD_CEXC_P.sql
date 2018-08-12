@@ -18,9 +18,11 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Mtod_Code BIGINT
   ,@Ctgy_Code BIGINT
   ,@Calc_Type VARCHAR(3)
-  ,@Amnt BIGINT
   ,@Prct_Valu FLOAT
   ,@Stat      VARCHAR(3)
+  ,@Rqtp_Code VARCHAR(3)
+  ,@Calc_Expn_Type VARCHAR(3)
+  ,@Pymt_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -49,7 +51,9 @@ BEGIN
          ,MTOD_CODE    = @Mtod_Code
          ,CTGY_CODE    = @Ctgy_Code
          ,CALC_TYPE    = @Calc_Type
-         ,AMNT         = @Amnt
+         ,RQTP_CODE    = @Rqtp_Code
+         ,CALC_EXPN_TYPE = @Calc_Expn_Type
+         ,PYMT_STAT = @Pymt_Stat
     WHERE CODE = @Code;
 END
 GO

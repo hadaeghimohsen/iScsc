@@ -11,18 +11,19 @@ CREATE PROCEDURE [dbo].[RELD_CEXC_F]
    @X XML
 AS
 BEGIN
-	DECLARE C$CochCG$AUPD_BSEX CURSOR FOR
+	   DECLARE C$CochCG$AUPD_BSEX CURSOR FOR
       SELECT F.File_No, P.Coch_Deg
         FROM Fighter F, Fighter_Public P
        WHERE F.File_No = P.Figh_File_No
          AND F.Fgpb_Rwno_Dnrm = P.Rwno
          AND P.Rect_Code = '004'
          AND F.Fgpb_Type_Dnrm IN ('003')
-         AND F.Conf_Stat = '002'
-         AND P.Calc_Expn_Type = '001';
+         AND F.Conf_Stat = '002';
    
    DECLARE C$BsexCG$AUPD_BSEX CURSOR FOR
-      SELECT Epit_Code, Rqtt_Code, Coch_Deg, Prct_Valu
+      SELECT Epit_Code, Rqtt_Code, Coch_Deg, Prct_Valu,
+             RQTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE,
+             PYMT_STAT, CALC_EXPN_TYPE
         FROM Base_Calculate_Expense
        WHERE Stat = '002';
    
@@ -31,7 +32,13 @@ BEGIN
           ,@BCochDeg VARCHAR(3)
           ,@EpitCode BIGINT
           ,@RqttCode VARCHAR(3)
-          ,@PrctValu FLOAT;
+          ,@PrctValu FLOAT
+          ,@RqtpCode VARCHAR(3)
+          ,@MtodCode BIGINT
+          ,@CtgyCode BIGINT
+          ,@CalcType VARCHAR(3)
+          ,@PymtStat VARCHAR(3)
+          ,@CalcExpnType VARCHAR(3);
    
    OPEN C$CochCG$AUPD_BSEX;
    FETCHC$CochCG$AUPD_BSEX:
@@ -42,15 +49,15 @@ BEGIN
       
       OPEN C$BsexCG$AUPD_BSEX;
       FETCHC$BsexCG$AUPD_BSEX:
-      FETCH NEXT FROM C$BsexCG$AUPD_BSEX INTO @EpitCode, @RqttCode, @BCochDeg, @PrctValu;
+      FETCH NEXT FROM C$BsexCG$AUPD_BSEX INTO @EpitCode, @RqttCode, @BCochDeg, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @CalcExpnType;
       
       IF @@FETCH_STATUS <> 0
          GOTO CLOSEC$BsexCG$AUPD_BSEX;     
       
-      IF @CochDeg = @BCochDeg AND NOT EXISTS(SELECT * FROM Calculate_Expense_Coach WHERE COCH_FILE_NO = @FileNo AND EPIT_CODE = @EpitCode AND RQTT_CODE = @RqttCode)
+      IF @CochDeg = @BCochDeg AND NOT EXISTS(SELECT * FROM Calculate_Expense_Coach WHERE COCH_FILE_NO = @FileNo AND EPIT_CODE = @EpitCode AND RQTT_CODE = @RqttCode AND RQTP_CODE = @RqtpCode AND MTOD_CODE = @MtodCode AND CTGY_CODE = @CtgyCode AND CALC_TYPE = @CalcType AND PYMT_STAT = @PymtStat AND CALC_EXPN_TYPE = @CalcExpnType)
       BEGIN
-         INSERT INTO Calculate_Expense_Coach (COCH_FILE_NO, EPIT_CODE, RQTT_CODE, PRCT_VALU, COCH_DEG)
-         VALUES (@FileNo, @EpitCode, @RqttCode, @PrctValu, @CochDeg);
+         INSERT INTO Calculate_Expense_Coach (COCH_FILE_NO, EPIT_CODE, RQTT_CODE, PRCT_VALU, COCH_DEG, RQTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE, PYMT_STAT, CALC_EXPN_TYPE)
+         VALUES (@FileNo, @EpitCode, @RqttCode, @PrctValu, @CochDeg, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @CalcExpnType);
       END
          
       GOTO FETCHC$BsexCG$AUPD_BSEX;

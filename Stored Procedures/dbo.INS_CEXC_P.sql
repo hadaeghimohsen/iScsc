@@ -17,9 +17,11 @@ CREATE PROCEDURE [dbo].[INS_CEXC_P]
   ,@Mtod_Code BIGINT
   ,@Ctgy_Code BIGINT
   ,@Calc_Type VARCHAR(3)
-  ,@Amnt BIGINT
   ,@Prct_Valu FLOAT
   ,@Stat      VARCHAR(3)
+  ,@Rqtp_Code VARCHAR(3)
+  ,@Calc_Expn_Type VARCHAR(3)
+  ,@Pymt_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -37,7 +39,7 @@ BEGIN
    END
    -- پایان دسترسی
    
-   INSERT INTO Calculate_Expense_Coach (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, COCH_FILE_NO, EXTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE, AMNT)
-   VALUES (dbo.GNRT_NVID_U(), @Epit_Code, @Rqtt_Code, @Coch_Deg, @Prct_Valu, @Stat, @Coch_File_No, @Extp_Code, @Mtod_Code, @Ctgy_Code, @Calc_Type, @Amnt);
+   INSERT INTO Calculate_Expense_Coach (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, COCH_FILE_NO, EXTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE, RQTP_CODE, CALC_EXPN_TYPE, PYMT_STAT)
+   VALUES (dbo.GNRT_NVID_U(), @Epit_Code, @Rqtt_Code, @Coch_Deg, @Prct_Valu, @Stat, @Coch_File_No, @Extp_Code, @Mtod_Code, @Ctgy_Code, @Calc_Type, @Rqtt_Code, @Calc_Expn_Type, @Pymt_Stat);
 END
 GO

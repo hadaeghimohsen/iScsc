@@ -1,17 +1,19 @@
 CREATE TABLE [dbo].[Calculate_Expense_Coach]
 (
+[CODE] [bigint] NOT NULL CONSTRAINT [DF_Calculate_Expense_Coach_CODE] DEFAULT ((0)),
 [COCH_FILE_NO] [bigint] NULL,
 [EPIT_CODE] [bigint] NULL,
+[RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COCH_DEG] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXTP_CODE] [bigint] NULL,
 [MTOD_CODE] [bigint] NULL,
 [CTGY_CODE] [bigint] NULL,
-[CODE] [bigint] NOT NULL CONSTRAINT [DF_Calculate_Expense_Coach_CODE] DEFAULT ((0)),
+[CALC_EXPN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CALC_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[AMNT] [bigint] NULL,
 [PRCT_VALU] [float] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PYMT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -38,7 +40,11 @@ BEGIN
    ON (T.Code      = S.Code AND
        T.Coch_File_No = S.Coch_File_No AND
        T.Epit_Code    = S.Epit_Code AND
-       T.Rqtt_Code    = S.Rqtt_Code)
+       T.Rqtt_Code    = S.Rqtt_Code AND 
+       T.RQTP_CODE = S.RQTP_CODE AND
+       T.MTOD_CODE = S.MTOD_CODE AND
+       T.CTGY_CODE = S.CTGY_CODE AND 
+       t.COCH_DEG = s.COCH_DEG)
    WHEN MATCHED THEN
       UPDATE 
       SET CRET_BY   = UPPER(SUSER_NAME())
@@ -83,9 +89,11 @@ ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_FIGH] FOREIG
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE])
 GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
+GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_RQTT] FOREIGN KEY ([RQTT_CODE]) REFERENCES [dbo].[Requester_Type] ([CODE])
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'مبلغ محاسبه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'AMNT'
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ دوره مورد نظر می باشد یا تعداد جلسات دوره ای که با مربی گذشته', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CALC_EXPN_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع محاسبه هزینه (مبلغی یا درصدی)', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CALC_TYPE'
 GO

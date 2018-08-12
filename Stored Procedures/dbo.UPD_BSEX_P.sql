@@ -15,6 +15,12 @@ CREATE PROCEDURE [dbo].[UPD_BSEX_P]
   ,@Coch_Deg  VARCHAR(3)
   ,@Prct_Valu FLOAT
   ,@Stat      VARCHAR(3)
+  ,@Mtod_Code BIGINT
+  ,@Ctgy_Code BIGINT
+  ,@Calc_Expn_Type VARCHAR(3)
+  ,@Calc_Type VARCHAR(3)
+  ,@Rqtp_Code VARCHAR(3)
+  ,@Pymt_Stat VARCHAR(3)  
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -48,6 +54,12 @@ BEGIN
     WHERE EPIT_CODE = @Epit_Code
       AND RQTT_CODE = @Rqtt_Code
       AND COCH_DEG  = @Coch_Deg
+      AND MTOD_CODE = @Mtod_Code
+      AND CTGY_CODE = @Ctgy_Code
+      AND CALC_EXPN_TYPE = @Calc_Expn_Type
+      AND CALC_TYPE = @Calc_Type
+      AND RQTP_CODE = @Rqtp_Code
+      AND PYMT_STAT = @Pymt_Stat      
       AND STAT      <> @Stat;
    
    UPDATE Base_Calculate_Expense
@@ -56,6 +68,12 @@ BEGIN
          ,COCH_DEG  = @Coch_Deg
          ,PRCT_VALU = @Prct_Valu
          ,STAT      = @Stat
+         ,MTOD_CODE = @Mtod_Code
+         ,CTGY_CODE = @Ctgy_Code
+         ,CALC_EXPN_TYPE = @Calc_Expn_Type
+         ,CALC_TYPE = @Calc_Type
+         ,RQTP_CODE = @Rqtp_Code
+         ,PYMT_STAT = @Pymt_Stat
      WHERE CODE = @Code;
 END
 GO
