@@ -54,7 +54,19 @@ BEGIN
       IF @@FETCH_STATUS <> 0
          GOTO CLOSEC$BsexCG$AUPD_BSEX;     
       
-      IF @CochDeg = @BCochDeg AND NOT EXISTS(SELECT * FROM Calculate_Expense_Coach WHERE COCH_FILE_NO = @FileNo AND EPIT_CODE = @EpitCode AND RQTT_CODE = @RqttCode AND RQTP_CODE = @RqtpCode AND MTOD_CODE = @MtodCode AND CTGY_CODE = @CtgyCode AND CALC_TYPE = @CalcType AND PYMT_STAT = @PymtStat AND CALC_EXPN_TYPE = @CalcExpnType)
+      IF @CochDeg = @BCochDeg AND 
+         NOT EXISTS(
+            SELECT * 
+              FROM Calculate_Expense_Coach 
+             WHERE COCH_FILE_NO = @FileNo 
+               AND EPIT_CODE = @EpitCode 
+               AND RQTT_CODE = @RqttCode 
+               AND RQTP_CODE = @RqtpCode 
+               AND MTOD_CODE = @MtodCode 
+               AND CTGY_CODE = @CtgyCode 
+               AND CALC_TYPE = @CalcType 
+               --AND PYMT_STAT = @PymtStat 
+               AND CALC_EXPN_TYPE = @CalcExpnType)
       BEGIN
          INSERT INTO Calculate_Expense_Coach (COCH_FILE_NO, EPIT_CODE, RQTT_CODE, PRCT_VALU, COCH_DEG, RQTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE, PYMT_STAT, CALC_EXPN_TYPE)
          VALUES (@FileNo, @EpitCode, @RqttCode, @PrctValu, @CochDeg, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @CalcExpnType);
