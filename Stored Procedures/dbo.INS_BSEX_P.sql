@@ -37,6 +37,24 @@ BEGIN
    END
    -- پایان دسترسی
    
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Base_Calculate_Expense
+       WHERE COCH_DEG = @Coch_Deg
+         AND EPIT_CODE = @Epit_Code
+         AND RQTP_CODE = @Rqtp_Code
+         AND RQTT_CODE = @Rqtt_Code
+         --AND CALC_EXPN_TYPE = @Calc_Expn_Type
+         --AND CALC_TYPE = @Calc_Type
+         AND MTOD_CODE = @Mtod_Code
+         AND CTGY_CODE = @Ctgy_Code
+   )
+   BEGIN
+      RAISERROR (N'قبلا این آیتم در جدول های پایه وارد شده، لطفا اصلاح کنید', 16, 1);
+      RETURN;
+   END
+   
+   
    INSERT INTO Base_Calculate_Expense 
    (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, MTOD_CODE, CTGY_CODE,
     CALC_EXPN_TYPE, CALC_TYPE, RQTP_CODE, PYMT_STAT)

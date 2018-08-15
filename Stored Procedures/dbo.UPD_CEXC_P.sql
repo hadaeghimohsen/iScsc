@@ -40,6 +40,25 @@ BEGIN
    END
    -- پایان دسترسی
    
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Calculate_Expense_Coach
+       WHERE COCH_DEG = @Coch_Deg
+         AND EPIT_CODE = @Epit_Code
+         AND RQTP_CODE = @Rqtp_Code
+         AND RQTT_CODE = @Rqtt_Code
+         --AND CALC_EXPN_TYPE = @Calc_Expn_Type
+         --AND CALC_TYPE = @Calc_Type
+         AND MTOD_CODE = @Mtod_Code
+         AND CTGY_CODE = @Ctgy_Code
+         AND COCH_FILE_NO = @Coch_File_No
+         AND CODE != @Code
+   )
+   BEGIN
+      RAISERROR (N'قبلا این آیتم در جدول های پایه برای این مربی وارد شده، لطفا اصلاح کنید', 16, 1);
+      RETURN;
+   END   
+   
    UPDATE Calculate_Expense_Coach
       SET COCH_FILE_NO = @Coch_File_No
          ,EPIT_CODE    = @Epit_Code
