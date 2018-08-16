@@ -7,7 +7,7 @@ CREATE TABLE [dbo].[Payment_Expense]
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_AMNT] [bigint] NULL,
 [EXPN_PRIC] [bigint] NULL,
-[PRCT_VALU] [smallint] NULL,
+[PRCT_VALU] [float] NULL,
 [DECR_PRCT_VALU] [float] NULL,
 [DECR_AMNT_DNRM] [bigint] NULL,
 [RCPT_PRIC] [bigint] NULL,

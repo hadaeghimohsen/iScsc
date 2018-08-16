@@ -52,8 +52,14 @@ BEGIN
    BEGIN
       RAISERROR (N'قبلا این آیتم در جدول های پایه وارد شده، لطفا اصلاح کنید', 16, 1);
       RETURN;
-   END
+   END;
    
+   -- اگر نوع محاسبه تعداد جلسات باشد و نحوه محاسبه مبلغی باشد باید با خطا مواجه شود
+   IF @Calc_Expn_Type = '002' AND @Calc_Type = '002'
+   BEGIN
+      RAISERROR (N'اگر نوع محاسبه تعداد جلسات باشد نمی توانید نحوه محاسبه مبلغی را انتخاب کنید، لطفا اصلاح کنید', 16, 1);
+      RETURN;
+   END;
    
    INSERT INTO Base_Calculate_Expense 
    (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, MTOD_CODE, CTGY_CODE,

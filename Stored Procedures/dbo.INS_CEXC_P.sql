@@ -55,7 +55,15 @@ BEGIN
    BEGIN
       RAISERROR (N'قبلا این آیتم در جدول های پایه برای این مربی وارد شده، لطفا اصلاح کنید', 16, 1);
       RETURN;
-   END
+   END;
+   
+   -- اگر نوع محاسبه تعداد جلسات باشد و نحوه محاسبه مبلغی باشد باید با خطا مواجه شود
+   IF @Calc_Expn_Type = '002' AND @Calc_Type = '002'
+   BEGIN
+      RAISERROR (N'اگر نوع محاسبه تعداد جلسات باشد نمی توانید نحوه محاسبه مبلغی را انتخاب کنید، لطفا اصلاح کنید', 16, 1);
+      RETURN;
+   END;
+
    
    INSERT INTO Calculate_Expense_Coach (CODE, EPIT_CODE, RQTT_CODE, COCH_DEG, PRCT_VALU, STAT, COCH_FILE_NO, EXTP_CODE, MTOD_CODE, CTGY_CODE, CALC_TYPE, RQTP_CODE, CALC_EXPN_TYPE, PYMT_STAT)
    VALUES (dbo.GNRT_NVID_U(), @Epit_Code, @Rqtt_Code, @Coch_Deg, @Prct_Valu, @Stat, @Coch_File_No, @Extp_Code, @Mtod_Code, @Ctgy_Code, @Calc_Type, @Rqtt_Code, @Calc_Expn_Type, @Pymt_Stat);
