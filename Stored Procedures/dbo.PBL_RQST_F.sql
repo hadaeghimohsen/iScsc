@@ -105,6 +105,7 @@ BEGIN
       
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END      
+      IF @RqstRqid = 0 SET @RqstRqid = NULL;
       
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code 
         FROM Fighter

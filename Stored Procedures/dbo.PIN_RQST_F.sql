@@ -50,12 +50,14 @@ BEGIN
 	BEGIN TRAN T1;
 	BEGIN TRY
 	   DECLARE @Rqid     BIGINT,
+	           @RqstRqid BIGINT,
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
 	           @RegnCode VARCHAR(3),
 	           @PrvnCode VARCHAR(3);
       DECLARE @FileNo BIGINT;   	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
+	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]', 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
@@ -64,6 +66,7 @@ BEGIN
       
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN /*RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN;*/ SET @RqttCode = '001'; END      
+      IF @RqstRqid = 0 SET @RqstRqid = NULL;
       
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code 
         FROM Fighter
@@ -74,7 +77,7 @@ BEGIN
          EXEC dbo.INS_RQST_P
             @PrvnCode,
             @RegnCode,
-            NULL,
+            @RqstRqid,
             @RqtpCode,
             @RqttCode,
             NULL,
@@ -195,6 +198,7 @@ BEGIN
             
          IF LEN(@InsrNumb) = 0 RAISERROR (N'برای فیلد "شماره بیمه" درخواست ،اطلاعات وارد نشده' , 16, 1);
          IF @InsrDate IN ('1900-01-01', '0001-01-01') RAISERROR (N'برای فیلد "تاریخ بیمه" درخواست ،اطلاعات وارد نشده' , 16, 1);
+         
          SELECT @DiseCode = P.DISE_CODE
              ,@ClubCode = p.CLUB_CODE
              ,@FrstName = p.FRST_NAME
@@ -250,8 +254,7 @@ BEGIN
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
           AND F.RQST_RQID = P.RQRO_RQST_RQID          
-          AND P.RECT_CODE = '001';
-          
+          AND P.RECT_CODE = '001';          
       END
       ELSE
       BEGIN
@@ -311,6 +314,9 @@ BEGIN
           AND F.FILE_NO = P.FIGH_FILE_NO
           AND F.FGPB_RWNO_DNRM = P.RWNO
           AND P.RECT_CODE = '004';
+        
+        SELECT @InsrNumb = @NatlCode
+              ,@InsrDate = DATEADD(YEAR, 1, GETDATE());
       END
       
       SELECT @MtodCode = MTOD_CODE_DNRM

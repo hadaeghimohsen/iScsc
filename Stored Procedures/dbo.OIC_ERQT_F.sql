@@ -40,6 +40,7 @@ BEGIN
 	BEGIN TRAN T1;
 	BEGIN TRY
 	   DECLARE @Rqid     BIGINT,
+	           @RqstRqid BIGINT,
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
 	           @RqstDesc NVARCHAR(1000),
@@ -60,6 +61,7 @@ BEGIN
    	       ,@ServNo NVARCHAR(50);
    	       
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
+	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@RqstDesc = @X.query('//Request').value('(Request/@rqstdesc)[1]', 'NVARCHAR(1000)')
@@ -85,6 +87,7 @@ BEGIN
          
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END      
+      IF @RqstRqid = 0 SET @RqstRqid = NULL;
       
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code , @CntyCode = REGN_PRVN_CNTY_CODE
         FROM Fighter
@@ -96,7 +99,7 @@ BEGIN
          EXEC dbo.INS_RQST_P
             @PrvnCode,
             @RegnCode,
-            NULL,
+            @RqstRqid,
             @RqtpCode,
             @RqttCode,
             NULL,
