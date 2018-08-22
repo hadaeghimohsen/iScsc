@@ -12,6 +12,19 @@ CREATE PROCEDURE [dbo].[MBSP_SCHG_P]
 	@X XML
 AS
 BEGIN
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>233</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+   EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+   IF @AP = 0 
+   BEGIN
+      RAISERROR ( N'خطا - عدم دسترسی به ردیف 233 سطوح امینتی', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END;
+
 	/*
 	   شرایط ارسال داده ها مربوط به جدول درخواست
 	   1 - درخواست جدید می باشد و ستون شماره درخواست خالی می باشد

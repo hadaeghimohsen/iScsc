@@ -26,6 +26,19 @@ CREATE TRIGGER [dbo].[CG$AINS_HLDY]
    AFTER INSERT 
 AS 
 BEGIN
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>228</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+   EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+   IF @AP = 0 
+   BEGIN
+      RAISERROR ( N'خطا - عدم دسترسی به ردیف 228 سطوح امینتی', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END
+
    -- 1397/01/28 * بررسی اینکه آیا تاریخی تکراری ثبت شده یا خیر   
    IF EXISTS(
       SELECT *
@@ -63,6 +76,19 @@ CREATE TRIGGER [dbo].[CG$AUPD_HLDY]
    AFTER UPDATE 
 AS 
 BEGIN
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>229</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+   EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+   IF @AP = 0 
+   BEGIN
+      RAISERROR ( N'خطا - عدم دسترسی به ردیف 229 سطوح امینتی', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END;
+
    -- 1397/01/28 * بررسی اینکه آیا تاریخی تکراری ثبت شده یا خیر   
    IF EXISTS(
       SELECT *

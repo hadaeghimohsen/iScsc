@@ -131,6 +131,25 @@ BEGIN
             ,CASH_DATE = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_Date IS NULL THEN GETDATE()  WHEN S.Cash_Date IS NULL THEN NULL ELSE S.Cash_Date END
             /*,SUM_EXPN_PRIC = S.SUM_EXPN_PRIC - ISNULL(S.SUM_PYMT_DSCN_DNRM, 0)*/;
    
+   IF EXISTS(
+       SELECT *
+         FROM dbo.Payment_Method pm, Inserted i
+        WHERE pm.PYMT_RQST_RQID = i.RQST_RQID
+   ) OR 
+   EXISTS(
+       SELECT *
+         FROM dbo.Payment_Discount pd, Inserted i
+        WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
+          AND pd.STAT = '002'
+   )
+   BEGIN
+      UPDATE p
+         SET p.SUM_RCPT_EXPN_PRIC = (SELECT ISNULL(SUM(pm.AMNT), 0) FROM dbo.Payment_Method pm WHERE pm.PYMT_RQST_RQID = p.RQST_RQID)
+            ,p.SUM_PYMT_DSCN_DNRM = (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = p.RQST_RQID)
+        FROM dbo.Payment p, Inserted i
+       WHERE p.RQST_RQID = i.RQST_RQID
+   END;
+   
    -- 1396/08/02 * برای آن دسته از درخواست هایی که مشتری کل پرداختی هزینه خود را پرداخت کرده به صورت اتوماتیک وضعیت هزینه پرداخت شده ثبت کنیم     
    /*IF EXISTS(
       SELECT *
