@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[Base_Calculate_Expense]
 [RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PYMT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MIN_NUMB_ATTN] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -173,6 +174,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'زیر گروه', 'SCHEMA', N'dbo', 'TABLE', N'Base_Calculate_Expense', 'COLUMN', N'CTGY_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد آیتم درآمد / هزینه', 'SCHEMA', N'dbo', 'TABLE', N'Base_Calculate_Expense', 'COLUMN', N'EPIT_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'حداقل تعداد حضوری مشترک', 'SCHEMA', N'dbo', 'TABLE', N'Base_Calculate_Expense', 'COLUMN', N'MIN_NUMB_ATTN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'گروه', 'SCHEMA', N'dbo', 'TABLE', N'Base_Calculate_Expense', 'COLUMN', N'MTOD_CODE'
 GO
