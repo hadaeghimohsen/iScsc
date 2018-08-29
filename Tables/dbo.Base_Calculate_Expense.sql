@@ -12,11 +12,12 @@ CREATE TABLE [dbo].[Base_Calculate_Expense]
 [RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PYMT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MIN_NUMB_ATTN] [smallint] NULL,
+[MIN_ATTN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL,
-[MIN_NUMB_ATTN] [smallint] NULL
+[MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
