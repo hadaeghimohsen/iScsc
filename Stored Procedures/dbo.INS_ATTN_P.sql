@@ -245,6 +245,7 @@ BEGIN
          AND M.RECT_CODE = '004'
          AND m.VALD_TYPE = '002'
          AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
+         AND CAST(m.STRT_DATE as DATE) <= CAST(GETDATE() AS DATE)
          AND CAST(M.END_DATE AS DATE) < CAST(/*GETDATE()*/@Attn_Date AS DATE)
    )
    BEGIN
@@ -274,6 +275,7 @@ BEGIN
          AND m.VALD_TYPE = '002'
          AND M.RWNO = @MbspRwno--F.MBSP_RWNO_DNRM
          --AND CAST(M.END_DATE AS DATE) >= CAST(GETDATE() AS DATE)
+         AND CAST(m.STRT_DATE as DATE) <= CAST(GETDATE() AS DATE)
          AND ISNULL(m.NUMB_OF_ATTN_MONT, 0) > 0
          AND ISNULL(M.NUMB_OF_ATTN_MONT, 0) <= ISNULL(M.SUM_ATTN_MONT_DNRM, 0) /*- 1*/
          AND NOT EXISTS(
@@ -908,7 +910,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN INS_ATTN_P_T;
+      ROLLBACK TRAN INS_ATTN_P_T;      
    END CATCH   
 END
 GO
