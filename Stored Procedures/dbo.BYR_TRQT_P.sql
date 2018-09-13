@@ -110,6 +110,12 @@ BEGIN
              ,@IntrFileNo BIGINT 
              ,@CntrCode BIGINT
              ,@ChatId BIGINT
+             ,@MomCellPhon VARCHAR(11)
+             ,@MomTellPhon VARCHAR(11)
+             ,@MomChatId BIGINT
+             ,@DadCellPhon VARCHAR(11)
+             ,@DadTellPhon VARCHAR(11)
+             ,@DadChatId BIGINT                          
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -268,7 +274,13 @@ BEGIN
            ,@Cntr_Code = NULL
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
-           ,@Chat_Id = @ChatId;            
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;           
       END
       ELSE
       BEGIN
@@ -325,7 +337,13 @@ BEGIN
            ,@Cntr_Code = NULL
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
-           ,@Chat_Id = @ChatId;
+           ,@Chat_Id = @ChatId
+           ,@Mom_Cell_Phon = @MomCellPhon
+           ,@Mom_Tell_Phon = @MomTellPhon
+           ,@Mom_Chat_Id = @MomChatId
+           ,@Dad_Cell_Phon = @DadCellPhon
+           ,@Dad_Tell_Phon = @DadTellPhon
+           ,@Dad_Chat_Id = @DadChatId;                      
       END
       COMMIT TRAN T1;
    END TRY
