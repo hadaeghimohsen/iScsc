@@ -23,6 +23,8 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Rqtp_Code VARCHAR(3)
   ,@Calc_Expn_Type VARCHAR(3)
   ,@Pymt_Stat VARCHAR(3)
+  ,@Min_Numb_Attn SMALLINT
+  ,@Min_Attn_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -81,6 +83,8 @@ BEGIN
          ,RQTP_CODE    = @Rqtp_Code
          ,CALC_EXPN_TYPE = @Calc_Expn_Type
          ,PYMT_STAT = @Pymt_Stat
+         ,MIN_NUMB_ATTN = @Min_Numb_Attn
+         ,MIN_ATTN_STAT = @Min_Attn_Stat
     WHERE CODE = @Code;
 END
 GO

@@ -20,7 +20,9 @@ CREATE PROCEDURE [dbo].[UPD_BSEX_P]
   ,@Calc_Expn_Type VARCHAR(3)
   ,@Calc_Type VARCHAR(3)
   ,@Rqtp_Code VARCHAR(3)
-  ,@Pymt_Stat VARCHAR(3)  
+  ,@Pymt_Stat VARCHAR(3)
+  ,@Min_Numb_Attn SMALLINT
+  ,@Min_Attn_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -85,7 +87,9 @@ BEGIN
       AND CALC_EXPN_TYPE = @Calc_Expn_Type
       AND CALC_TYPE = @Calc_Type
       AND RQTP_CODE = @Rqtp_Code
-      AND PYMT_STAT = @Pymt_Stat      
+      AND PYMT_STAT = @Pymt_Stat
+      AND MIN_NUMB_ATTN = @Min_Numb_Attn
+      AND MIN_ATTN_STAT = @Min_Attn_Stat
       AND STAT      <> @Stat;
    
    UPDATE Base_Calculate_Expense
@@ -100,6 +104,8 @@ BEGIN
          ,CALC_TYPE = @Calc_Type
          ,RQTP_CODE = @Rqtp_Code
          ,PYMT_STAT = @Pymt_Stat
+         ,MIN_NUMB_ATTN = @Min_Numb_Attn
+         ,MIN_ATTN_STAT = @Min_Attn_Stat
      WHERE CODE = @Code;
 END
 GO
