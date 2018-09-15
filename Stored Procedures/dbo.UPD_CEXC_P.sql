@@ -67,7 +67,14 @@ BEGIN
       RAISERROR (N'اگر نوع محاسبه تعداد جلسات باشد نمی توانید نحوه محاسبه مبلغی را انتخاب کنید، لطفا اصلاح کنید', 16, 1);
       RETURN;
    END;
-   
+
+   IF @Calc_Expn_Type IN ('003', '004', '005')
+   BEGIN
+     SELECT @Rqtp_Code = NULL
+           ,@Coch_Deg = NULL
+           ,@Min_Numb_Attn = NULL
+           ,@Min_Attn_Stat = NULL;
+   END
    
    UPDATE Calculate_Expense_Coach
       SET COCH_FILE_NO = @Coch_File_No

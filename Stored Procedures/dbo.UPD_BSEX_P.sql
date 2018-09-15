@@ -76,6 +76,13 @@ BEGIN
       RETURN;
    END;
 
+   IF @Calc_Expn_Type IN ('003', '004', '005')
+   BEGIN
+     SELECT @Rqtp_Code = NULL
+           ,@Coch_Deg = NULL
+           ,@Min_Numb_Attn = NULL
+           ,@Min_Attn_Stat = NULL;
+   END 
    
    UPDATE Calculate_Expense_Coach
       SET STAT = @Stat

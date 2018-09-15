@@ -67,6 +67,13 @@ BEGIN
             RETURN;
         END;
 
+    IF @Calc_Expn_Type IN ('003', '004', '005')
+    BEGIN
+      SELECT @Rqtp_Code = NULL
+            ,@Coch_Deg = NULL
+            ,@Min_Numb_Attn = NULL
+            ,@Min_Attn_Stat = NULL;
+    END 
    
     INSERT  INTO Calculate_Expense_Coach
             ( CODE ,
@@ -97,14 +104,15 @@ BEGIN
               @Mtod_Code ,
               @Ctgy_Code ,
               @Calc_Type ,
-              @Rqtt_Code ,
+              @Rqtp_Code ,
               @Calc_Expn_Type ,
               @Pymt_Stat,
               @Min_Numb_Attn,
               @Min_Attn_Stat
             );
    
-    IF NOT EXISTS ( SELECT  *
+    IF @Calc_Expn_Type NOT IN ('003', '004', '005')
+    AND NOT EXISTS ( SELECT  *
                     FROM    dbo.Calculate_Expense_Coach
                     WHERE   COCH_DEG = @Coch_Deg
                             AND COCH_FILE_NO = @Coch_File_No
