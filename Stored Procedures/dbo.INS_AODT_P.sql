@@ -59,7 +59,9 @@ AS
                   TOTL_BUFE_AMNT_DNRM ,
                   TOTL_AMNT_DNRM ,
                   CUST_NAME ,
-                  CELL_PHON 
+                  CELL_PHON ,
+                  CASH_AMNT,
+                  POS_AMNT
 	            )
         VALUES  ( @Agop_Code ,
                   0 ,
@@ -88,7 +90,9 @@ AS
                   0 , -- TOTL_BUFE_AMNT_DNRM - bigint
                   0 , -- TOTL_AMNT_DNRM - bigint
                   N'' ,  -- CUST_NAME - nvarchar(250)
-                  '' 
+                  '' ,
+                  0,
+                  0
 	            );
     END;
 GO
