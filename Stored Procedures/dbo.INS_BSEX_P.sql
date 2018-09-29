@@ -63,7 +63,15 @@ BEGIN
             RAISERROR (N'اگر نوع محاسبه تعداد جلسات باشد نمی توانید نحوه محاسبه مبلغی را انتخاب کنید، لطفا اصلاح کنید', 16, 1);
             RETURN;
         END;
-   
+    
+    IF @Calc_Expn_Type IN ('003', '004', '005')
+    BEGIN
+      SELECT @Rqtp_Code = NULL
+            ,@Coch_Deg = NULL
+            ,@Min_Numb_Attn = NULL
+            ,@Min_Attn_Stat = NULL;
+    END 
+    
     INSERT  INTO Base_Calculate_Expense
             ( CODE ,
               EPIT_CODE ,
@@ -96,7 +104,8 @@ BEGIN
               @Min_Attn_Stat
             );
     
-    IF NOT EXISTS ( SELECT  *
+    IF @Calc_Expn_Type NOT IN ('003', '004', '005')
+    AND NOT EXISTS ( SELECT  *
                     FROM    dbo.Base_Calculate_Expense
                     WHERE   COCH_DEG = @Coch_Deg
                             AND MTOD_CODE = @Mtod_Code
