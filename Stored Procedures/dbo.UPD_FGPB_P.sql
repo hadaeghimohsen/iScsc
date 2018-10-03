@@ -67,7 +67,47 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Mom_Chat_Id BIGINT,
 	@Dad_Cell_Phon VARCHAR(11),
 	@Dad_Tell_Phon VARCHAR(11),
-	@Dad_Chat_Id BIGINT
+	@Dad_Chat_Id BIGINT,
+   @Idty_Numb VARCHAR(20),
+	@Watr_Fabr_Numb NVARCHAR(30),
+	@Gas_Fabr_Numb NVARCHAR(30),
+	@Powr_Fabr_Numb NVARCHAR(30),
+	@Buld_Area INT,
+	@Chld_Fmly_Numb SMALLINT,
+	@Dpen_Fmly_Numb SMALLINT,
+	@Fmly_Numb SMALLINT,
+	@Hire_Date DATETIME,
+	@Hire_Type VARCHAR(3),
+	@Hire_Plac_Code BIGINT,
+	@Home_Type VARCHAR(3),
+	@Hire_Cell_Phon VARCHAR(11),
+	@Hire_Tell_Phon VARCHAR(11),
+	@Salr_Plac_Code BIGINT,
+	@Unit_Blok_Cndo_Code VARCHAR(3),
+	@Unit_Blok_Code VARCHAR(3),
+	@Unit_Code VARCHAR(3),
+	@Punt_Blok_Cndo_Code VARCHAR(3),
+	@Punt_Blok_Code VARCHAR(3),
+	@Punt_Code VARCHAR(3),
+	@Phas_Numb SMALLINT,
+	@Hire_Degr VARCHAR(3),
+	@Hire_Plac_Degr VARCHAR(3),
+	@Scor_Numb SMALLINT,
+	@Home_Regn_Prvn_Cnty_Code VARCHAR(3),
+	@Home_Regn_Prvn_Code VARCHAR(3),
+	@Home_Regn_Code VARCHAR(3),
+	@Home_Post_Adrs NVARCHAR(1000),
+	@Home_Cord_X FLOAT,
+	@Home_Cord_Y FLOAT,
+	@Home_Zip_Code VARCHAR(10),
+	@Zip_Code VARCHAR(10),
+	@Risk_Code VARCHAR(20),
+	@Risk_Numb SMALLINT,
+	@War_Day_Numb SMALLINT,
+	@Cptv_Day_Numb SMALLINT,
+	@Mrid_Type VARCHAR(3),
+	@Job_Titl_Code BIGINT,
+	@Cmnt NVARCHAR(4000)	
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -94,7 +134,31 @@ BEGIN
    IF @Dad_Cell_Phon = '' SET @Dad_Cell_Phon = NULL
    IF @Dad_Tell_Phon = '' SET @Dad_Tell_Phon = NULL
    IF @Dad_Chat_Id = '' SET @Mom_Chat_Id = NULL
-   	
+   IF @Idty_Numb = '' SET @Idty_Numb = NULL
+   IF @Watr_Fabr_Numb = '' SET @Watr_Fabr_Numb = NULL
+   IF @Gas_Fabr_Numb = '' SET @Gas_Fabr_Numb = NULL
+   IF @Powr_Fabr_Numb = '' SET @Powr_Fabr_Numb = NULL
+   IF @Hire_Date = '1900-01-01' SET @Hire_Date = NULL
+   IF @Hire_Type = '' SET @Hire_Type = NULL
+   IF @Hire_Plac_Code = 0 SET @Hire_Plac_Code = NULL
+   IF @Salr_Plac_Code = 0 SET @Salr_Plac_Code = NULL
+   IF @Hire_Cell_Phon = '' SET @Hire_Cell_Phon = NULL
+   IF @Hire_Tell_Phon = '' SET @Hire_Tell_Phon = NULL
+   IF @Unit_Blok_Cndo_Code = '' SET @Unit_Blok_Cndo_Code = NULL
+   IF @Unit_Blok_Code = '' SET @Unit_Blok_Code = NULL
+   IF @Unit_Code = '' SET @Unit_Code = NULL
+   IF @Punt_Blok_Cndo_Code = '' SET @Punt_Blok_Cndo_Code = NULL
+   IF @Punt_Blok_Code = '' SET @Punt_Blok_Code = NULL
+   IF @Punt_Code = '' SET @Punt_Code = NULL
+   IF @Home_Regn_Prvn_Cnty_Code = '' SET @Home_Regn_Prvn_Cnty_Code = NULL
+   IF @Home_Regn_Prvn_Code = '' SET @Home_Regn_Prvn_Code = NULL
+   IF @Home_Regn_Code = '' SET @Home_Regn_Code = NULL
+   IF @Home_Post_Adrs = '' SET @Home_Post_Adrs = NULL
+   IF @Home_Zip_Code = '' SET @Home_Zip_Code = NULL
+   IF @Zip_Code = '' SET @Zip_Code = NULL
+   IF @Risk_Code = '' SET @Risk_Code = NULL
+   IF @Job_Titl_Code = 0 SET @Job_Titl_Code = NULL   	
+	
 	UPDATE [dbo].[Fighter_Public]
 	   SET [REGN_PRVN_CODE] = @Prvn_Code
 	      ,[REGN_CODE] = @Regn_Code
@@ -152,6 +216,46 @@ BEGIN
          ,DAD_CELL_PHON = @Dad_Cell_Phon
          ,DAD_TELL_PHON = @Dad_Tell_Phon
          ,DAD_CHAT_ID = @Dad_Chat_Id
+         ,IDTY_NUMB = @IDTY_NUMB
+         ,WATR_FABR_NUMB = @WATR_FABR_NUMB
+         ,GAS_FABR_NUMB = @GAS_FABR_NUMB
+         ,POWR_FABR_NUMB = @POWR_FABR_NUMB
+         ,BULD_AREA = @BULD_AREA
+         ,CHLD_FMLY_NUMB = @CHLD_FMLY_NUMB
+         ,DPEN_FMLY_NUMB = @DPEN_FMLY_NUMB
+         ,FMLY_NUMB = @FMLY_NUMB
+         ,HIRE_DATE = @HIRE_DATE
+         ,HIRE_TYPE = @HIRE_TYPE
+         ,HIRE_PLAC_CODE = @HIRE_PLAC_CODE
+         ,HOME_TYPE = @HOME_TYPE
+         ,HIRE_CELL_PHON = HIRE_CELL_PHON
+         ,HIRE_TELL_PHON = @HIRE_TELL_PHON
+         ,SALR_PLAC_CODE = @SALR_PLAC_CODE
+         ,UNIT_BLOK_CNDO_CODE = @UNIT_BLOK_CNDO_CODE
+         ,UNIT_BLOK_CODE = @UNIT_BLOK_CODE
+         ,UNIT_CODE = @UNIT_CODE
+         ,PUNT_BLOK_CNDO_CODE = @PUNT_BLOK_CNDO_CODE
+         ,PUNT_BLOK_CODE = @PUNT_BLOK_CODE
+         ,PUNT_CODE = @PUNT_CODE
+         ,PHAS_NUMB = @PHAS_NUMB
+         ,HIRE_DEGR = @HIRE_DEGR
+         ,HIRE_PLAC_DEGR = @HIRE_PLAC_DEGR
+         ,SCOR_NUMB = @SCOR_NUMB
+         ,HOME_REGN_PRVN_CNTY_CODE = @HOME_REGN_PRVN_CNTY_CODE
+         ,HOME_REGN_PRVN_CODE = @HOME_REGN_PRVN_CODE
+         ,HOME_REGN_CODE = @HOME_REGN_CODE
+         ,HOME_POST_ADRS = @HOME_POST_ADRS
+         ,HOME_CORD_X = @HOME_CORD_X
+         ,HOME_CORD_Y = @HOME_CORD_Y
+         ,HOME_ZIP_CODE = @HOME_ZIP_CODE
+         ,ZIP_CODE = @ZIP_CODE
+         ,RISK_CODE = @RISK_CODE
+         ,RISK_NUMB = @RISK_NUMB
+         ,WAR_DAY_NUMB = @WAR_DAY_NUMB
+         ,CPTV_DAY_NUMB = @CPTV_DAY_NUMB
+         ,MRID_TYPE = @MRID_TYPE
+         ,JOB_TITL_CODE = @JOB_TITL_CODE
+         ,CMNT = @CMNT
      WHERE Figh_File_No = @File_No
        AND [RQRO_RQST_RQID] = @Rqro_Rqst_Rqid
        AND [RQRO_RWNO] = @Rqro_Rwno;
