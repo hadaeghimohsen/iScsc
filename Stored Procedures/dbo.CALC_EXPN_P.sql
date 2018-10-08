@@ -75,6 +75,14 @@ BEGIN
    IF @CetpCodeP = '' SET @CetpCodeP = NULL;
    IF @CxtpCodeP = '' SET @CxtpCodeP = NULL;
    IF @RqtpCodeP = '' SET @RqtpCodeP = NULL;
+
+   -- DELETE FOR Paymemt_Expense FOR Coach With Vald_Type = '001'
+   DELETE Misc_Expense
+    WHERE CALC_EXPN_TYPE = '001'
+      AND VALD_TYPE = '001';
+      
+   DELETE Payment_Expense
+    WHERE VALD_TYPE = '001';
    
    -- پارت اول
    -- محاسبه به صورت درصدی %
@@ -98,15 +106,7 @@ BEGIN
          AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
          AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
          AND C.CALC_TYPE = '001' /* محاسبه توسط درصدی */
-         AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;
-   
-   -- DELETE FOR Paymemt_Expense FOR Coach With Vald_Type = '001'
-   DELETE Misc_Expense
-    WHERE CALC_EXPN_TYPE = '001'
-      AND VALD_TYPE = '001';
-      
-   DELETE Payment_Expense
-    WHERE VALD_TYPE = '001';
+         AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;   
     
    OPEN C$CochFileNo$CalcExpnP;
    NextC$CochFileNo$CalcExpnP:
@@ -356,12 +356,193 @@ BEGIN
    CLOSE C$CochFileNo$CalcExpnPT;
    DEALLOCATE C$CochFileNo$CalcExpnPT;   
    
+   -- پارت چهارم
+   --**********************************************************************
+   --************************ محاسبه مربیان ساعتی ***************************
+   --**********************************************************************
+   DECLARE C$CochFileNo$CalcExpnPH CURSOR FOR
+      SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
+        FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
+       WHERE F.File_No = C.Coch_File_No
+         AND F.File_No = P.Figh_File_No 
+         AND F.Fgpb_Rwno_Dnrm = P.Rwno
+         AND P.Rect_Code = '004'
+         --AND P.Coch_Deg = C.Coch_Deg
+         AND C.Stat = '002'
+         AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
+         AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
+         --AND (@CtgyCodeP IS NULL OR c.CTGY_CODE = @CtgyCodeP)
+         --AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
+         --AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
+         --AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
+         --AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
+         --AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
+         AND c.CALC_EXPN_TYPE = '003' /* محاسبه ساعتی */;
+   
+   OPEN C$CochFileNo$CalcExpnPH;
+   NextC$CochFileNo$CalcExpnPH:
+   FETCH NEXT FROM C$CochFileNo$CalcExpnPH INTO 
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   
+   IF @@FETCH_STATUS <> 0
+      GOTO EndC$CochFileNo$CalcExpnPH;
+   
+   DECLARE @Hors INT,
+           @Mint INT,
+           @NumbAttnDay INT,
+           @ClubCode BIGINT;
+   
+   JUMPS$CbmtPH:
+   SELECT TOP 1 @ClubCode = cm.CLUB_CODE
+     FROM dbo.Club_Method cm
+    WHERE cm.COCH_FILE_NO = @CochFileNo
+      AND MTOD_CODE = @MtodCode
+      AND MTOD_STAT = '002'
+      AND NOT EXISTS(
+          SELECT *
+            FROM dbo.Payment_Expense pe
+           WHERE pe.CLUB_CODE = cm.CLUB_CODE
+             AND pe.COCH_FILE_NO = cm.COCH_FILE_NO
+             AND pe.MTOD_CODE = cm.MTOD_CODE
+      );
+   
+   IF @ClubCode IS NULL
+      GOTO ENDJUMPS$CmbtPH;
+   
+   SELECT @Mint = SUM(DATEDIFF(MINUTE, STRT_TIME, END_TIME))
+     FROM dbo.Club_Method
+    WHERE COCH_FILE_NO = @CochFileNo
+      AND MTOD_CODE = @MtodCode
+      AND CLUB_CODE = CLUB_CODE
+      AND MTOD_STAT = '002';
+   
+   SELECT @Hors = @Mint / 60
+         ,@Mint = @Mint % 60;
+   
+   SELECT @NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
+     FROM dbo.Attendance a
+    WHERE a.FIGH_FILE_NO = @CochFileNo
+      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
+      AND a.ATTN_STAT = '002';
+      
+   DECLARE @TotlHors INT = @NumbAttnDay * @Hors
+          ,@TotlMint INT = @NumbAttnDay * @Mint;
+   
+   IF @TotlMint > 0 AND @TotlMint > 60
+   BEGIN
+      SELECT @TotlHors = @TotlHors + @TotlMint / 60
+            ,@TotlMint = @TotlMint % 60;
+   END
+   
+   INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+      SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
+             (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) - ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
+             (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
+             NULL,@ClubCode,
+             ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
+             NULL,NULL,
+             '003', -- محاسبه ساعتی
+             '002', -- مبلغی
+             NULL,NULL,null,NULL;              
+   
+   SET @ClubCode = NULL;             
+   GOTO JUMPS$CbmtPH;   
+   ENDJUMPS$CmbtPH:
+   
+   GOTO NextC$CochFileNo$CalcExpnPH;
+   EndC$CochFileNo$CalcExpnPH:
+   CLOSE C$CochFileNo$CalcExpnPH;
+   DEALLOCATE C$CochFileNo$CalcExpnPH;
+   
+   -- پارت پنجم
+   --**********************************************************************
+   --************************ محاسبه مربیان روزکاری ***************************
+   --**********************************************************************
+   DECLARE C$CochFileNo$CalcExpnPD CURSOR FOR
+      SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
+        FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
+       WHERE F.File_No = C.Coch_File_No
+         AND F.File_No = P.Figh_File_No 
+         AND F.Fgpb_Rwno_Dnrm = P.Rwno
+         AND P.Rect_Code = '004'
+         --AND P.Coch_Deg = C.Coch_Deg
+         AND C.Stat = '002'
+         AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
+         AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
+         --AND (@CtgyCodeP IS NULL OR c.CTGY_CODE = @CtgyCodeP)
+         --AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
+         --AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
+         --AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
+         --AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
+         --AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
+         AND c.CALC_EXPN_TYPE = '004' /* محاسبه روزکاری */;
+   
+   OPEN C$CochFileNo$CalcExpnPD;
+   NextC$CochFileNo$CalcExpnPD:
+   FETCH NEXT FROM C$CochFileNo$CalcExpnPD INTO 
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   
+   IF @@FETCH_STATUS <> 0
+      GOTO EndC$CochFileNo$CalcExpnPD;
+   
+   JUMPS$CbmtPD:
+   SELECT TOP 1 @ClubCode = cm.CLUB_CODE
+     FROM dbo.Club_Method cm
+    WHERE cm.COCH_FILE_NO = @CochFileNo
+      AND MTOD_CODE = @MtodCode
+      AND MTOD_STAT = '002'
+      AND NOT EXISTS(
+          SELECT *
+            FROM dbo.Payment_Expense pe
+           WHERE pe.CLUB_CODE = cm.CLUB_CODE
+             AND pe.COCH_FILE_NO = cm.COCH_FILE_NO
+             AND pe.MTOD_CODE = cm.MTOD_CODE
+      );
+   
+   IF @ClubCode IS NULL
+      GOTO ENDJUMPS$CmbtPD;
+      
+   SELECT @NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
+     FROM dbo.Attendance a
+    WHERE a.FIGH_FILE_NO = @CochFileNo
+      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
+      AND a.ATTN_STAT = '002';
+      
+   INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+      SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
+             (@NumbAttnDay * @PrctValu) - ((@NumbAttnDay * @PrctValu) * @DecrPrct / 100),
+             (@NumbAttnDay * @PrctValu),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
+             NULL,@ClubCode,
+             ((@NumbAttnDay * @PrctValu) * @DecrPrct / 100),
+             NULL,NULL,
+             '004', -- محاسبه روزکاری
+             '002', -- مبلغی
+             NULL,NULL,null,NULL;           
+   
+   SET @ClubCode = NULL;
+   GOTO JUMPS$CbmtPD;
+   ENDJUMPS$CmbtPD:
+
+   GOTO NextC$CochFileNo$CalcExpnPD;
+   EndC$CochFileNo$CalcExpnPD:
+   CLOSE C$CochFileNo$CalcExpnPD;
+   DEALLOCATE C$CochFileNo$CalcExpnPD;
+   
    --***********************************
    --******** محاسبه درآمد متفرقه *********
    --***********************************
    
    DELETE Payment_Expense 
-    WHERE EXISTS(SELECT * FROM Payment_Expense Pe WHERE Pe.CODE <> Payment_Expense.CODE AND Pe.PYDT_CODE = Payment_Expense.PYDT_CODE AND Pe.VALD_TYPE = '002' AND Payment_Expense.VALD_TYPE = '001')   
+    WHERE EXISTS (
+             SELECT * 
+               FROM Payment_Expense Pe 
+              WHERE Pe.CODE <> Payment_Expense.CODE 
+                AND Pe.PYDT_CODE = Payment_Expense.PYDT_CODE 
+                AND Pe.VALD_TYPE = '002' 
+                AND Payment_Expense.VALD_TYPE = '001'
+           );
    
    -- درج سرجمع هزینه های مربی   
    INSERT INTO Misc_Expense (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, CLUB_CODE, CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, CALC_EXPN_TYPE, DECR_PRCT) 
@@ -376,7 +557,19 @@ BEGIN
          AND p.RQST_RQID = R.RQID
     GROUP BY r.REGN_PRVN_CNTY_CODE, r.REGN_PRVN_CODE, 
              r.REGN_CODE, p.CLUB_CODE_DNRM, 
-             pe.COCH_FILE_NO ) T	  
+             pe.COCH_FILE_NO ) T;
+   
+   INSERT INTO Misc_Expense (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, CLUB_CODE, CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, CALC_EXPN_TYPE, DECR_PRCT) 
+   SELECT REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, CLUB_CODE, dbo.GNRT_NVID_U(), COCH_FILE_NO, '001', Expn_Amnt, '001', @DecrPrct
+     FROM (
+      SELECT c.REGN_PRVN_CNTY_CODE, c.REGN_PRVN_CODE, c.REGN_CODE, c.CODE AS CLUB_CODE, COCH_FILE_NO, SUM(EXPN_AMNT) AS Expn_Amnt
+        FROM Payment_Expense pe, dbo.Club c
+       WHERE pe.VALD_TYPE = '001'
+         AND pe.PYDT_CODE IS NULL
+         AND pe.CLUB_CODE = c.CODE
+    GROUP BY c.REGN_PRVN_CNTY_CODE, c.REGN_PRVN_CODE, 
+             c.REGN_CODE, c.CODE, 
+             pe.COCH_FILE_NO ) T	  	  
    
    UPDATE pe
       SET pe.MSEX_CODE = me.CODE

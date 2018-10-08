@@ -71,6 +71,8 @@ BEGIN
    IF @Calc_Expn_Type IN ('003', '004', '005')
    BEGIN
      SELECT @Rqtp_Code = NULL
+           ,@Rqtt_Code = NULL
+           ,@Epit_Code = NULL
            ,@Coch_Deg = NULL
            ,@Min_Numb_Attn = NULL
            ,@Min_Attn_Stat = NULL;
