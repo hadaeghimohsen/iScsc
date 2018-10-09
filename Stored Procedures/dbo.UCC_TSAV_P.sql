@@ -377,13 +377,15 @@ BEGIN
                 ,@MsgbText NVARCHAR(MAX)
                 ,@ClubName NVARCHAR(250)
                 ,@InsrCnamStat VARCHAR(3)
-                ,@InsrFnamStat VARCHAR(3);
+                ,@InsrFnamStat VARCHAR(3)
+                ,@LineType VARCHAR(3);
                 
          SELECT @MsgbStat = STAT
                ,@MsgbText = MSGB_TEXT
                ,@ClubName = CLUB_NAME
                ,@InsrCnamStat = INSR_CNAM_STAT
                ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
            FROM dbo.Message_Broadcast
           WHERE MSGB_TYPE = '007';
          
@@ -398,7 +400,7 @@ BEGIN
             DECLARE @XMsg XML;
             SELECT @XMsg = (
                SELECT 5 AS '@subsys',
-                      '002' AS '@linetype',
+                      @LineType AS '@linetype',
                       (
                         SELECT @CellPhon AS '@phonnumb',
                                (

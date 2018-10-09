@@ -26,6 +26,11 @@ CREATE TABLE [dbo].[Payment_Expense]
 [MBSP_FIGH_FILE_NO] [bigint] NULL,
 [MBSP_RWNO] [smallint] NULL,
 [MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[FROM_DATE] [date] NULL,
+[TO_DATE] [date] NULL,
+[NUMB_HORS] [smallint] NULL,
+[NUMB_MINT] [smallint] NULL,
+[NUMB_DAYS] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -48,8 +53,7 @@ AS
 BEGIN
 	MERGE Payment_Expense T
 	USING (SELECT * FROM INSERTED) S
-	ON (T.Pydt_Code = S.Pydt_Code AND
-	    T.Code      = S.Code)
+	ON (T.Code      = S.Code)
    WHEN MATCHED THEN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
@@ -73,8 +77,7 @@ AS
 BEGIN
 	MERGE Payment_Expense T
 	USING (SELECT * FROM INSERTED) S
-	ON (T.Pydt_Code = S.Pydt_Code AND
-	    T.Code      = S.Code)
+	ON (T.Code      = S.Code)
    WHEN MATCHED THEN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())

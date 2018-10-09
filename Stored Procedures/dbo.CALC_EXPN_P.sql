@@ -117,7 +117,12 @@ BEGIN
       GOTO EndC$CochFileNo$CalcExpnP;
       
       -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
-      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+      INSERT INTO Payment_Expense (
+         Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+         DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
+         DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
+         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+         FROM_DATE, TO_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -141,7 +146,9 @@ BEGIN
              @PymtStat,
              RQRO.FIGH_FILE_NO,
              '004',
-             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END
+             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
+             @FromPymtDate,
+             @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -201,7 +208,12 @@ BEGIN
       GOTO EndC$CochFileNo$CalcExpnPA;
       
       -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
-      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+      INSERT INTO Payment_Expense (
+         Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC,
+         DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
+         CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
+         CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+         FROM_DATE, TO_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -225,7 +237,9 @@ BEGIN
              @PymtStat,
              RQRO.FIGH_FILE_NO,
              '004',
-             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END
+             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
+             @FromPymtDate,
+             @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -288,7 +302,12 @@ BEGIN
       GOTO EndC$CochFileNo$CalcExpnPT;
 
       -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
-      INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+      INSERT INTO Payment_Expense (
+         Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+         DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
+         DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
+         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+         FROM_DATE, TO_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -311,7 +330,9 @@ BEGIN
              @PymtStat,
              NULL,
              NULL,
-             NULL
+             NULL,
+             @FromPymtDate,
+             @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -376,7 +397,7 @@ BEGIN
          --AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
          --AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
          --AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
-         --AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
+         AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
          --AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
          AND c.CALC_EXPN_TYPE = '003' /* محاسبه ساعتی */;
    
@@ -391,7 +412,12 @@ BEGIN
    DECLARE @Hors INT,
            @Mint INT,
            @NumbAttnDay INT,
-           @ClubCode BIGINT;
+           @ClubCode BIGINT,
+           @MbspRwno SMALLINT;
+   
+   SELECT @MbspRwno = f.MBSP_RWNO_DNRM
+     FROM dbo.Fighter f
+    WHERE f.FILE_NO = @CochFileNo;    
    
    JUMPS$CbmtPH:
    SELECT TOP 1 @ClubCode = cm.CLUB_CODE
@@ -405,6 +431,7 @@ BEGIN
            WHERE pe.CLUB_CODE = cm.CLUB_CODE
              AND pe.COCH_FILE_NO = cm.COCH_FILE_NO
              AND pe.MTOD_CODE = cm.MTOD_CODE
+             AND pe.CALC_EXPN_TYPE = '003'
       );
    
    IF @ClubCode IS NULL
@@ -435,7 +462,13 @@ BEGIN
             ,@TotlMint = @TotlMint % 60;
    END
    
-   INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+   INSERT INTO Payment_Expense (
+      Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+      DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
+      CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
+      CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+      FROM_DATE, TO_DATE, NUMB_HORS, NUMB_MINT, NUMB_DAYS
+      )
       SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
              (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) - ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
              (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
@@ -444,7 +477,8 @@ BEGIN
              NULL,NULL,
              '003', -- محاسبه ساعتی
              '002', -- مبلغی
-             NULL,NULL,null,NULL;              
+             NULL,@CochFileNo,'004',@MbspRwno,
+             @FromPymtDate, @ToPymtDate, @TotlHors, @TotlMint, @NumbAttnDay;
    
    SET @ClubCode = NULL;             
    GOTO JUMPS$CbmtPH;   
@@ -475,7 +509,7 @@ BEGIN
          --AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
          --AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
          --AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
-         --AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
+         AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
          --AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
          AND c.CALC_EXPN_TYPE = '004' /* محاسبه روزکاری */;
    
@@ -487,30 +521,35 @@ BEGIN
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPD;
    
+   SELECT @MbspRwno = MBSP_RWNO_DNRM
+     FROM dbo.Fighter
+    WHERE FILE_NO = @CochFileNo;
+   
    JUMPS$CbmtPD:
-   SELECT TOP 1 @ClubCode = cm.CLUB_CODE
-     FROM dbo.Club_Method cm
-    WHERE cm.COCH_FILE_NO = @CochFileNo
-      AND MTOD_CODE = @MtodCode
-      AND MTOD_STAT = '002'
+   SELECT @ClubCode = a.CLUB_CODE
+         ,@NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
+     FROM dbo.Attendance a
+    WHERE a.FIGH_FILE_NO = @CochFileNo
+      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
+      AND a.ATTN_STAT = '002'
       AND NOT EXISTS(
           SELECT *
             FROM dbo.Payment_Expense pe
-           WHERE pe.CLUB_CODE = cm.CLUB_CODE
-             AND pe.COCH_FILE_NO = cm.COCH_FILE_NO
-             AND pe.MTOD_CODE = cm.MTOD_CODE
-      );
+           WHERE pe.CLUB_CODE = a.CLUB_CODE
+             AND pe.COCH_FILE_NO = a.FIGH_FILE_NO
+             AND pe.CALC_EXPN_TYPE = '004'
+      )
+ GROUP BY a.CLUB_CODE;
    
    IF @ClubCode IS NULL
       GOTO ENDJUMPS$CmbtPD;
       
-   SELECT @NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
-     FROM dbo.Attendance a
-    WHERE a.FIGH_FILE_NO = @CochFileNo
-      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
-      AND a.ATTN_STAT = '002';
-      
-   INSERT INTO Payment_Expense (Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO)
+   INSERT INTO Payment_Expense (
+      Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+      DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
+      CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
+      CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+      FROM_DATE, TO_DATE, NUMB_DAYS)
       SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
              (@NumbAttnDay * @PrctValu) - ((@NumbAttnDay * @PrctValu) * @DecrPrct / 100),
              (@NumbAttnDay * @PrctValu),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
@@ -519,12 +558,13 @@ BEGIN
              NULL,NULL,
              '004', -- محاسبه روزکاری
              '002', -- مبلغی
-             NULL,NULL,null,NULL;           
-   
-   SET @ClubCode = NULL;
-   GOTO JUMPS$CbmtPD;
-   ENDJUMPS$CmbtPD:
+             NULL,@CochFileNo,'004',@MbspRwno,
+             @FromPymtDate, @ToPymtDate, @NumbAttnDay;           
 
+   SET @ClubCode = NULL;             
+   GOTO JUMPS$CbmtPD;   
+   ENDJUMPS$CmbtPD:
+      
    GOTO NextC$CochFileNo$CalcExpnPD;
    EndC$CochFileNo$CalcExpnPD:
    CLOSE C$CochFileNo$CalcExpnPD;
