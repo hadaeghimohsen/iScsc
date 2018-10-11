@@ -31,6 +31,10 @@ CREATE TABLE [dbo].[Payment_Expense]
 [NUMB_HORS] [smallint] NULL,
 [NUMB_MINT] [smallint] NULL,
 [NUMB_DAYS] [smallint] NULL,
+[TOTL_NUMB_ATTN] [int] NULL,
+[RCPT_NUMB_ATTN] [int] NULL,
+[MIN_NUMB_ATTN] [smallint] NULL,
+[NUMB_PKET_ATTN] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -110,4 +114,12 @@ EXEC sp_addextendedproperty N'MS_Description', N'وضعیت مبلغ محاسب�
 * اگر هنرجو از کلاس استفاده کرده باشد و هزینه را کامل پرداخت کرده باشد بدون هیچ مشکلی هزینه به مربی پرداخت میشود.
 * اگر هنرجو پرداخت انجام داده باشد ولی هیچ کلاسی در باشگاه حضور نداشته باشد هزینه مربی با وضعیت خاصی نمایش داده میشود که مدیر تصمیم گیرنده هست.
 * اگر هنرجو مبلغی از کلاس خود را پرداخت کرده باشد و از کلاس ها استفاده کرده باشد و بدهی خود را بعد از اتمام دوره تکمیل نکرده باشد باید محاسبه هزینه مربی با وضعیت خاصی مشخص شده باشد.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد واحد هر دسته حضوری گروهی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'MIN_NUMB_ATTN'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل دسته های گروهی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'NUMB_PKET_ATTN'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد حضوری های اعمال شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RCPT_NUMB_ATTN'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل حضوری اعضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'TOTL_NUMB_ATTN'
 GO

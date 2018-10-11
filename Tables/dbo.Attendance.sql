@@ -36,6 +36,8 @@ CREATE TABLE [dbo].[Attendance]
 [FMLY_NUMB_DNRM] [int] NULL,
 [PRNT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_PRNT_STAT] DEFAULT ('001'),
 [PRNT_CONT] [int] NULL CONSTRAINT [DF_Attendance_PRNT_CONT] DEFAULT ((0)),
+[RCPT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PMEX_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -128,7 +130,7 @@ AS
                     T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
                     T.BRTH_DATE_DNRM = S.BRTH_DATE_DNRM ,
                     T.NUMB_OF_ATTN_MONT = S.NUMB_OF_ATTN_MONT ,
-                    T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
+      T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
                                                      '002', '003' )
                                                      AND S.ATTN_TYPE != '008'
                                                 THEN ISNULL(S.SUM_ATTN_MONT_DNRM,
@@ -448,6 +450,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RECT_CODE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف شماره تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RWNO_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت محاسبه هزینه مربی', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'RCPT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد جلسات', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'TOTL_SESN'
 GO

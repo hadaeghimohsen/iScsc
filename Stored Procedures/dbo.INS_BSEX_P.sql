@@ -70,8 +70,8 @@ BEGIN
             ,@Rqtt_Code = NULL
             ,@Epit_Code = NULL
             ,@Coch_Deg = NULL
-            ,@Min_Numb_Attn = NULL
-            ,@Min_Attn_Stat = NULL;
+            ,@Min_Numb_Attn = CASE @Calc_Expn_Type WHEN '005' THEN @Min_Numb_Attn ELSE NULL END 
+            ,@Min_Attn_Stat = CASE @Calc_Expn_Type WHEN '005' THEN @Min_Attn_Stat ELSE NULL END;
     END 
     
     INSERT  INTO Base_Calculate_Expense
