@@ -81,7 +81,8 @@ BEGIN
    -- DELETE FOR Paymemt_Expense FOR Coach With Vald_Type = '001'
    UPDATE dbo.Attendance
       SET RCPT_STAT = NULL
-    WHERE EXISTS(
+    WHERE RCPT_STAT != '003'
+      AND EXISTS(
           SELECT *
             FROM dbo.Payment_Expense
            WHERE VALD_TYPE = '001'
@@ -466,6 +467,7 @@ BEGIN
    SELECT @NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
      FROM dbo.Attendance a
     WHERE a.FIGH_FILE_NO = @CochFileNo
+      AND a.MTOD_CODE_DNRM = @MtodCode
       AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
       AND a.ATTN_STAT = '002';
       

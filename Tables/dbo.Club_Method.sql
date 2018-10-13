@@ -144,7 +144,8 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();
+            ,MDFY_DATE = GETDATE()
+            ,T.CLAS_TIME = DATEDIFF(MINUTE, S.STRT_TIME, s.END_TIME);
             
    -- اگر برنامه کلاسی برنامه هفتگی نداشته باشد            
    IF NOT EXISTS(
