@@ -33,11 +33,23 @@ BEGIN
    
    IF ISNULL(@MbspRwno, 0) = 0
    BEGIN
-      RAISERROR ( N'اعضای گرامی، دوره ای برای شما وجود ندارد یا دوره شما به اتمام رسیده', -- Message text.
-               16, -- Severity.
-               1 -- State.
-               );
-      RETURN;
+      IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @Figh_File_No AND FGPB_TYPE_DNRM = '003' AND CONF_STAT = '002')
+      BEGIN
+         SELECT @MbspRwno = MAX(ms.RWNO)
+           FROM dbo.Member_Ship ms
+          WHERE ms.FIGH_FILE_NO = @Figh_File_No
+            AND ms.VALD_TYPE = '002'
+            AND ms.RECT_CODE = '004'
+            AND GETDATE() BETWEEN ms.STRT_DATE AND ms.END_DATE;
+      END
+      ELSE   
+      BEGIN         
+         RAISERROR ( N'اعضای گرامی، دوره ای برای شما وجود ندارد یا دوره شما به اتمام رسیده', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END;
    END
    
    IF EXISTS(SELECT * FROM dbo.Member_Ship WHERE FIGH_FILE_NO = @Figh_File_No AND RWNO = @MbspRwno AND RECT_CODE = '004' AND VALD_TYPE = '001')
