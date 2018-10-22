@@ -2,7 +2,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-create PROCEDURE [dbo].[InstallDatabase]
+CREATE PROCEDURE [dbo].[InstallDatabase]
 	-- Add the parameters for the stored procedure here
 	@X XML
 AS
@@ -94,11 +94,13 @@ BEGIN
            ,@Cpu      VARCHAR(30)
            ,@UserName     VARCHAR(250)
            ,@UserId       BIGINT
-           ,@DatabaseTest VARCHAR(3);
+           ,@DatabaseTest VARCHAR(3)
+           ,@InstallLicenseKey NVARCHAR(4000);
    
    SELECT @ComputerName = @X.query('//Computer').value('(Computer/@name)[1]', 'VARCHAR(50)')
          ,@Cpu = @X.query('//Computer').value('(Computer/@cpu)[1]', 'VARCHAR(30)')
-         ,@DatabaseTest = @X.query('//Params').value('(Params/@databasetest)[1]', 'VARCHAR(3)');
+         ,@DatabaseTest = @X.query('//Params').value('(Params/@databasetest)[1]', 'VARCHAR(3)')
+         ,@InstallLicenseKey = @X.query('//Params').value('(Params/@licensekey)[1]', 'NVARCHAR(4000)');
    
    -- Save Datasource and Connection
    IF NOT EXISTS(
@@ -154,7 +156,7 @@ BEGIN
    BEGIN
       SELECT @XT = (
          SELECT 'ManualSaveHostInfo' AS '@Rqtp_Code'
-               ,'iProject' AS 'Database'
+               ,'iScsc' AS 'Database'
                ,'SqlServer' AS 'Dbms'
                ,'demo' AS 'User'
                ,'installing' AS 'SystemStatus'
@@ -168,7 +170,7 @@ BEGIN
       EXEC iProject.DataGuard.SaveHostInfo @X = @XT;
    END;
    
-   UPDATE iProject.DataGuard.Sub_System SET STAT = '002', INST_STAT = '002', CLNT_LICN_DESC = NULL, SRVR_LICN_DESC = NULL, LICN_TYPE = NULL, LICN_TRIL_DATE = NULL WHERE SUB_SYS IN (5);   
+   UPDATE iProject.DataGuard.Sub_System SET STAT = '002', INST_STAT = '002', CLNT_LICN_DESC = NULL, SRVR_LICN_DESC = NULL, LICN_TYPE = NULL, LICN_TRIL_DATE = NULL, INST_LICN_DESC = @InstallLicenseKey WHERE SUB_SYS IN (5);   
    
    IF @DatabaseTest = '001'
       INSERT INTO iProject.Global.Access_User_Datasource
