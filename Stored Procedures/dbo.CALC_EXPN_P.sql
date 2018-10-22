@@ -122,7 +122,7 @@ BEGIN
          AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
          AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
          AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
-         AND C.CALC_TYPE = '001' /* محاسبه توسط درصدی */
+         AND C.CALC_TYPE = '001' /* درصدی */
          AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;   
     
    OPEN C$CochFileNo$CalcExpnP;
@@ -213,7 +213,7 @@ BEGIN
          AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
          AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)         
          AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
-         AND C.CALC_TYPE = '002' /* محاسبه توسط مبلغی */
+         AND C.CALC_TYPE = '002' /* مبلغی */
          AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;
     
    OPEN C$CochFileNo$CalcExpnPA;
@@ -307,7 +307,7 @@ BEGIN
          AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
          AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)         
          AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
-         AND C.CALC_TYPE = '001' /* محاسبه توسط درصدی */
+         AND C.CALC_TYPE = '001' /* درصدی */
          AND c.CALC_EXPN_TYPE = '002' /* تعداد جلسات */;
    
    OPEN C$CochFileNo$CalcExpnPT;
@@ -329,7 +329,7 @@ BEGIN
              PYDT.CODE, 
              @CochFileNo,
              '001',
-             (PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) - ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
+             (PYMT.SUM_RCPT_EXPN_PRIC /** @PrctValu / 100*/) - ((PYMT.SUM_RCPT_EXPN_PRIC /** @PrctValu / 100*/) * @DecrPrct / 100),
              PYMT.SUM_EXPN_PRIC,
              PYMT.SUM_RCPT_EXPN_PRIC,
              PYMT.SUM_PYMT_DSCN_DNRM,
@@ -374,8 +374,8 @@ BEGIN
    UPDATE pe
       SET pe.EXPN_AMNT = 
           (
-            (EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
-            ((pe.EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100)
+            (pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
+            (((pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100) * @DecrPrct / 100)
           ) * ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
     WHERE pe.MBSP_FIGH_FILE_NO = ms.FIGH_FILE_NO
@@ -393,8 +393,119 @@ BEGIN
    EndC$CochFileNo$CalcExpnPT:
    CLOSE C$CochFileNo$CalcExpnPT;
    DEALLOCATE C$CochFileNo$CalcExpnPT;   
-   
+
    -- پارت چهارم
+   --**********************************************************************
+   --************************ محاسبه تعداد جلسات ****************************
+   --**********************************************************************
+   
+   -- برای محاسبه درصدی آیتم هایی که برای مربی مشخص کرده ایم که باید بر اساس تعداد جلسات محسابه شود
+   DECLARE C$CochFileNo$CalcExpnPO CURSOR FOR
+      SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
+        FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
+       WHERE F.File_No = C.Coch_File_No
+         AND F.File_No = P.Figh_File_No 
+         AND F.Fgpb_Rwno_Dnrm = P.Rwno
+         AND P.Rect_Code = '004'
+         AND P.Coch_Deg = C.Coch_Deg
+         AND C.Stat = '002'
+         AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
+         AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
+         AND (@CtgyCodeP IS NULL OR c.CTGY_CODE = @CtgyCodeP)
+         AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
+         AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
+         AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
+         AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)         
+         AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
+         AND C.CALC_TYPE = '002' /* مبلغی */
+         AND c.CALC_EXPN_TYPE = '002' /* تعداد جلسات */;
+   
+   OPEN C$CochFileNo$CalcExpnPO;
+   NextC$CochFileNo$CalcExpnPO:
+   FETCH NEXT FROM C$CochFileNo$CalcExpnPO INTO 
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   
+   IF @@FETCH_STATUS <> 0
+      GOTO EndC$CochFileNo$CalcExpnPO;
+
+      -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
+      INSERT INTO Payment_Expense (
+         Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+         DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
+         DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
+         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+         FROM_DATE, TO_DATE)
+      SELECT dbo.GNRT_NVID_U(),
+             PYDT.CODE, 
+             @CochFileNo,
+             '001',
+             (PYMT.SUM_RCPT_EXPN_PRIC /** @PrctValu / 100*/) - ((PYMT.SUM_RCPT_EXPN_PRIC /** @PrctValu / 100*/) * @DecrPrct / 100),
+             PYMT.SUM_EXPN_PRIC,
+             PYMT.SUM_RCPT_EXPN_PRIC,
+             PYMT.SUM_PYMT_DSCN_DNRM,
+             @PrctValu,
+             @DecrPrct,
+             RQRO.RQTP_CODE,
+             PYDT.MTOD_CODE_DNRM,
+             PYDT.CTGY_CODE_DNRM,
+             PYMT.CLUB_CODE_DNRM,
+             ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
+             RQRO.RQST_RQID,
+             RQRO.RWNO,
+             '002', -- تعداد جلسات
+             '002', -- مبلغی
+             @PymtStat,
+             NULL,
+             NULL,
+             NULL,
+             @FromPymtDate,
+             @ToPymtDate
+        FROM Payment_Detail AS PYDT INNER JOIN
+             dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
+             Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
+             Fighter AS FIGH ON RQRO.FIGH_FILE_NO = FIGH.FILE_NO INNER JOIN
+             Expense AS EXPN ON PYDT.EXPN_CODE = EXPN.CODE INNER JOIN
+             Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
+             Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
+             Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
+       WHERE (PYDT.PAY_STAT = @PymtStat) 
+         AND (RQRO.RECD_STAT = '002') 
+         AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
+         AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
+         AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
+         AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
+         AND (EPIT.CODE = @EpitCode)
+         AND (RQRQ.RQTT_CODE = @RqttCode)
+         AND (pydt.MTOD_CODE_DNRM = @MtodCode)
+         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (RQRO.RQTP_CODE = @RqtpCode)
+         AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
+   
+   UPDATE pe
+      SET pe.EXPN_AMNT = 
+          (
+            @PrctValu - 
+            (@PrctValu * @DecrPrct / 100)
+          ) * ms.SUM_ATTN_MONT_DNRM
+     FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
+    WHERE pe.MBSP_FIGH_FILE_NO = ms.FIGH_FILE_NO
+      AND pe.MBSP_RWNO = ms.RWNO
+      AND pe.MBSP_RECT_CODE = ms.RECT_CODE
+      AND pe.MTOD_CODE = @MtodCode
+      AND pe.CTGY_CODE = @CtgyCode
+      AND pe.RQTP_CODE = @RqtpCode
+      AND pe.CRET_BY = UPPER(SUSER_NAME())
+      AND CAST(pe.CRET_DATE AS DATE) = CAST(GETDATE() AS DATE)
+      AND pe.CALC_EXPN_TYPE = '002' -- تعداد جلسات
+      AND pe.CALC_TYPE = '002'; -- مبلغی            
+
+   GOTO NextC$CochFileNo$CalcExpnPO;
+   EndC$CochFileNo$CalcExpnPO:
+   CLOSE C$CochFileNo$CalcExpnPO;
+   DEALLOCATE C$CochFileNo$CalcExpnPO;
+   
+   -- پارت پنجم
    --**********************************************************************
    --************************ محاسبه مربیان ساعتی ***************************
    --**********************************************************************
@@ -448,7 +559,7 @@ BEGIN
            WHERE pe.CLUB_CODE = cm.CLUB_CODE
              AND pe.COCH_FILE_NO = cm.COCH_FILE_NO
              AND pe.MTOD_CODE = cm.MTOD_CODE
-             AND pe.CALC_EXPN_TYPE = '003'
+             AND pe.CALC_EXPN_TYPE = '003' /* محاسبه ساعتی */
       );
    
    IF @ClubCode IS NULL
@@ -458,7 +569,7 @@ BEGIN
      FROM dbo.Club_Method
     WHERE COCH_FILE_NO = @CochFileNo
       AND MTOD_CODE = @MtodCode
-      AND CLUB_CODE = CLUB_CODE
+      AND CLUB_CODE = @ClubCode
       AND MTOD_STAT = '002';
    
    SELECT @Hors = @Mint / 60
@@ -467,9 +578,20 @@ BEGIN
    SELECT @NumbAttnDay = COUNT(DISTINCT CAST(a.ATTN_DATE AS DATE))
      FROM dbo.Attendance a
     WHERE a.FIGH_FILE_NO = @CochFileNo
-      AND a.MTOD_CODE_DNRM = @MtodCode
-      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
-      AND a.ATTN_STAT = '002';
+      --AND a.MTOD_CODE_DNRM = @MtodCode
+      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)      
+      AND a.ATTN_STAT = '002'
+      AND EXISTS(
+          SELECT *
+            FROM dbo.Club_Method cm , dbo.Club_Method_Weekday cmw
+           WHERE cm.CODE = cmw.CBMT_CODE
+             AND cmw.STAT = '002'
+             AND cm.COCH_FILE_NO = @CochFileNo
+             AND cm.MTOD_CODE = @MtodCode
+             AND cm.CLUB_CODE = @ClubCode
+             AND cm.MTOD_STAT = '002'
+             AND dbo.GET_PSTR_U(DATEPART(WEEKDAY, a.ATTN_DATE), 3) = cmw.WEEK_DAY
+      );
       
    DECLARE @TotlHors INT = @NumbAttnDay * @Hors
           ,@TotlMint INT = @NumbAttnDay * @Mint;
@@ -507,7 +629,7 @@ BEGIN
    CLOSE C$CochFileNo$CalcExpnPH;
    DEALLOCATE C$CochFileNo$CalcExpnPH;
    
-   -- پارت پنجم
+   -- پارت ششم
    --**********************************************************************
    --************************ محاسبه مربیان روزکاری ***************************
    --**********************************************************************
@@ -550,11 +672,23 @@ BEGIN
     WHERE a.FIGH_FILE_NO = @CochFileNo
       AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(@FromPymtDate AS DATE) AND CAST(@ToPymtDate AS DATE)
       AND a.ATTN_STAT = '002'
+      AND EXISTS(
+          SELECT *
+            FROM dbo.Club_Method cm , dbo.Club_Method_Weekday cmw
+           WHERE cm.CODE = cmw.CBMT_CODE
+             AND cmw.STAT = '002'
+             AND cm.COCH_FILE_NO = @CochFileNo
+             AND cm.MTOD_CODE = @MtodCode
+             --AND cm.CLUB_CODE = a.CLUB_CODE
+             AND cm.MTOD_STAT = '002'
+             AND dbo.GET_PSTR_U(DATEPART(WEEKDAY, a.ATTN_DATE), 3) = cmw.WEEK_DAY
+      )
       AND NOT EXISTS(
           SELECT *
             FROM dbo.Payment_Expense pe
            WHERE pe.CLUB_CODE = a.CLUB_CODE
              AND pe.COCH_FILE_NO = a.FIGH_FILE_NO
+             AND pe.MTOD_CODE = @MtodCode
              AND pe.CALC_EXPN_TYPE = '004'
       )
  GROUP BY a.CLUB_CODE;
@@ -588,7 +722,7 @@ BEGIN
    CLOSE C$CochFileNo$CalcExpnPD;
    DEALLOCATE C$CochFileNo$CalcExpnPD;
 
-   -- پارت ششم
+   -- پارت هفتم
    --**********************************************************************
    --***************** محاسبه مربیان برای تعداد جلسات اعضا *********************
    --**********************************************************************
@@ -691,13 +825,13 @@ BEGIN
    
    DELETE Payment_Expense 
     WHERE EXISTS (
-             SELECT * 
-               FROM Payment_Expense Pe 
-              WHERE Pe.CODE <> Payment_Expense.CODE 
-                AND Pe.PYDT_CODE = Payment_Expense.PYDT_CODE 
-                AND Pe.VALD_TYPE = '002' 
-                AND Payment_Expense.VALD_TYPE = '001'
-           );
+          SELECT * 
+            FROM Payment_Expense Pe 
+           WHERE Pe.CODE <> Payment_Expense.CODE 
+             AND Pe.PYDT_CODE = Payment_Expense.PYDT_CODE 
+             AND Pe.VALD_TYPE = '002' 
+             AND Payment_Expense.VALD_TYPE = '001'
+          );
    
    -- درج سرجمع هزینه های مربی   
    INSERT INTO Misc_Expense (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, CLUB_CODE, CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, CALC_EXPN_TYPE, DECR_PRCT) 
