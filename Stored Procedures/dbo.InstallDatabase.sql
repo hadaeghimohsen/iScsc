@@ -17,6 +17,8 @@ BEGIN
    DELETE dbo.Aggregation_Operation_Detail;
    DELETE dbo.Attendance;
    DELETE dbo.Buffet;
+   DELETE dbo.Payment_Expense;
+   DELETE dbo.Misc_Expense;
    DELETE dbo.Member_Ship
    DELETE dbo.Fighter_Public;
    DELETE dbo.Calculate_Calorie;
@@ -32,7 +34,6 @@ BEGIN
    DELETE dbo.Test;
    DELETE dbo.Member_Ship;
    DELETE dbo.Request_Regulation_History;
-   DELETE dbo.Payment_Expense;
    DELETE dbo.Payment_Detail;
    DELETE dbo.Payment_Discount;
    DELETE dbo.Payment_Method;
@@ -43,7 +44,6 @@ BEGIN
    DELETE dbo.Request_Row;
    DELETE dbo.Request;
    UPDATE dbo.Club_Method SET COCH_FILE_NO = NULL;
-   DELETE dbo.Misc_Expense
    DELETE dbo.Calculate_Expense_Coach
    DELETE dbo.Base_Calculate_Expense;
    DELETE dbo.Planning_Overview;
@@ -70,11 +70,13 @@ BEGIN
    DELETE dbo.Step_History_Detail;
 
    -- Save Host Info
-   IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iProject')
+   IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'iProject')
 	BEGIN
 	   RAISERROR (N'iProject Database is not install, Please First Install iProject', 16, 1);
 	   RETURN -1;
 	END 
+	
+	RETURN;	
    /*
    '<Request Rqtp_Code="ManualSaveHostInfo">
       <Database>iProject</Database>
