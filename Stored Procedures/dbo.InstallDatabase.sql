@@ -81,7 +81,7 @@ BEGIN
    SELECT @ClubCode = Code FROM dbo.Club;
    
    INSERT INTO dbo.User_Region_Fgac( FGA_CODE ,REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
-   SELECT 0, '001', '017', '001', USER_DB, '002', '002' FROM dbo.V#Users;
+   SELECT dbo.GNRT_NVID_U(), '001', '017', '001', USER_DB, '002', '002' FROM dbo.V#Users;
    
    INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
    SELECT 0, @ClubCode, USER_DB, '002', '002' FROM dbo.V#Users;
