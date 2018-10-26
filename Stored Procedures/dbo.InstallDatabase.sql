@@ -180,10 +180,10 @@ BEGIN
    begin
       SELECT @XT = (
          SELECT 'ManualSaveHostInfo' AS '@Rqtp_Code'
+               ,'installing' AS '@SystemStatus'
                ,'iScsc' AS 'Database'
                ,'SqlServer' AS 'Dbms'
-               ,'artauser' AS 'User'
-               ,'installing' AS 'SystemStatus'
+               ,'artauser' AS 'User'               
                ,@X.query('//Computer').value('(Computer/@name)[1]', 'VARCHAR(50)') AS 'Computer/@name'
                ,@X.query('//Computer').value('(Computer/@mac)[1]', 'VARCHAR(17)') AS 'Computer/@mac'
                ,@X.query('//Computer').value('(Computer/@ip)[1]', 'VARCHAR(15)') AS 'Computer/@ip'
@@ -197,10 +197,10 @@ BEGIN
    BEGIN
       SELECT @XT = (
          SELECT 'ManualSaveHostInfo' AS '@Rqtp_Code'
+               ,'installing' AS '@SystemStatus'
                ,'iScsc' AS 'Database'
                ,'SqlServer' AS 'Dbms'
-               ,'demo' AS 'User'
-               ,'installing' AS 'SystemStatus'
+               ,'demo' AS 'User'               
                ,@X.query('//Computer').value('(Computer/@name)[1]', 'VARCHAR(50)') AS 'Computer/@name'
                ,@X.query('//Computer').value('(Computer/@mac)[1]', 'VARCHAR(17)') AS 'Computer/@mac'
                ,@X.query('//Computer').value('(Computer/@ip)[1]', 'VARCHAR(15)') AS 'Computer/@ip'
