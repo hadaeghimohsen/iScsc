@@ -36,7 +36,7 @@ BEGIN
       UPDATE 
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,FGA_CODE  = dbo.GNRT_NWID_U();
+            ,FGA_CODE  = CASE s.FGA_CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.FGA_CODE END;
    
 END
 ;
