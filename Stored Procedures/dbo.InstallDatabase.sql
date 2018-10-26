@@ -63,7 +63,7 @@ BEGIN
    DELETE dbo.Group_Expense;
    DELETE dbo.Holidays;
    DELETE dbo.Organ WHERE CODE != '00';
-   DELETE dbo.Sub_State WHERE CODE != '0000';
+   DELETE dbo.Sub_Unit WHERE CODE != '0000';
    DELETE dbo.Session;
    DELETE dbo.Session_Meeting;
    DELETE dbo.Step_History_Summery;
@@ -76,7 +76,6 @@ BEGIN
 	   RETURN -1;
 	END 
 	
-	RETURN;	
    /*
    '<Request Rqtp_Code="ManualSaveHostInfo">
       <Database>iProject</Database>
