@@ -8,7 +8,6 @@ CREATE PROCEDURE [dbo].[InstallDatabase]
 AS
 BEGIN
    BEGIN TRY   
-   BEGIN TRAN T_INSTALLDB
    -- Delete Record From Database
    DELETE dbo.Pre_Expense;
    DELETE dbo.Account;
@@ -71,7 +70,10 @@ BEGIN
    DELETE dbo.User_Club_Fgac;
    DELETE dbo.User_Region_Fgac;
    DELETE dbo.Settings;
+   UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL;
    DELETE dbo.Club;
+   
+   BEGIN TRAN T_INSTALLDB
    
    -- Insert Into Default Value
    INSERT INTO dbo.Club ( REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,CODE ,NAME )
