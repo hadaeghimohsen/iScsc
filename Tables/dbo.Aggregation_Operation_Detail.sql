@@ -8,6 +8,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [RQST_RQID] [bigint] NULL,
 [ATTN_CODE] [bigint] NULL,
 [COCH_FILE_NO] [bigint] NULL,
+[MBSP_RWNO] [smallint] NULL,
 [ATTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_AMNT] [bigint] NULL,
 [REC_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Aggregation_Operation_Detail_REC_STAT] DEFAULT ('002'),
