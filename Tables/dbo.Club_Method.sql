@@ -5,8 +5,8 @@ CREATE TABLE [dbo].[Club_Method]
 [COCH_FILE_NO] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_CBMT_RWNO] DEFAULT ((0)),
 [DAY_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-[STRT_TIME] [time] NOT NULL,
-[END_TIME] [time] NOT NULL,
+[STRT_TIME] [time] (0) NOT NULL,
+[END_TIME] [time] (0) NOT NULL,
 [MTOD_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF_CBMT_MTOD_STAT] DEFAULT ('002'),
 [SEX_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CBMT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -145,33 +145,11 @@ BEGIN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,T.CLAS_TIME = DATEDIFF(MINUTE, S.STRT_TIME, s.END_TIME);
-            
-   -- اگر برنامه کلاسی برنامه هفتگی نداشته باشد            
-   IF NOT EXISTS(
-      SELECT *
-        FROM dbo.Club_Method_Weekday, INSERTED I
-       WHERE CBMT_CODE = I.Code
-   )
-   BEGIN
-      DECLARE @Code BIGINT;
-      SELECT @Code = Code FROM INSERTED;
-      
-      -- ذخیره کردن ایام هفته برای ساعت کلاسی 
-      --IF NOT EXISTS (
-      --   SELECT * 
-      --     FROM dbo.Club_Method_Weekday Cmw, INSERTED I
-      --    WHERE Cmw.CBMT_CODE = I.Code
-      --)
-      --INSERT INTO dbo.Club_Method_Weekday( CODE, CBMT_CODE, WEEK_DAY, STAT ) 
-      --VALUES  ( dbo.GNRT_NVID_U() ,@Code , '001' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '002' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '003' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '004' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '005' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '006' ,'001' ),
-      --        ( dbo.GNRT_NVID_U() ,@Code , '007' ,'001' );
-   END
+            ,T.CLAS_TIME = DATEDIFF(MINUTE, S.STRT_TIME, s.END_TIME)
+            ,t.STRT_TIME = CAST(s.STRT_TIME AS TIME(0))
+            ,t.END_TIME = CAST(s.END_TIME AS TIME(0))
+            ,t.CPCT_STAT = ISNULL(s.CPCT_STAT, '001')
+            ,t.CBMT_TIME_STAT = ISNULL(s.CBMT_TIME_STAT, '001');            
 END
 ;
 GO

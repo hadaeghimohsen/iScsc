@@ -112,7 +112,7 @@ BEGIN
          GOTO L$GNRTNWID;
       END
       INSERT INTO dbo.Expense (CODE, REGL_YEAR, REGL_CODE, CTGY_CODE, MTOD_CODE, EXTP_CODE, PRIC, EXTR_PRCT, EXPN_STAT, ADD_QUTS, COVR_DSCT, EXPN_TYPE, COVR_TAX, NUMB_OF_ATTN_WEEK, PRVT_COCH_EXPN, NUMB_CYCL_DAY, NUMB_MONT_OFER, NUMB_OF_ATTN_MONT, MIN_NUMB, MIN_TIME)
-                        VALUES(@Code, @ReglYear, @ReglCode, @CtgyCode, @MtodCode, @ExtpCode, ISNULL(@CtgyPric, 0), 0, '001', '001', '002', '001', '002', 3, ISNULL(@CtgyPrvtCochExpn,'001'), ISNULL(@CtgyNumbCyclDay, 30), ISNULL(@CtgyNumbMontOfer, 0), ISNULL(@CtgyNumbOfAttnMont, 0), 0, '00:01:00');
+                        VALUES(@Code, @ReglYear, @ReglCode, @CtgyCode, @MtodCode, @ExtpCode, ISNULL(@CtgyPric, 0), 0, '002', '001', '002', '001', '002', 3, ISNULL(@CtgyPrvtCochExpn,'001'), ISNULL(@CtgyNumbCyclDay, 30), ISNULL(@CtgyNumbMontOfer, 0), ISNULL(@CtgyNumbOfAttnMont, 0), 0, '00:01:00');
    END
    GOTO L$NextExtp;
    L$EndExtp:
