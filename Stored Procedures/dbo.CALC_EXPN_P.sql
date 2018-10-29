@@ -183,7 +183,7 @@ BEGIN
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
-         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
   
@@ -274,7 +274,7 @@ BEGIN
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
-         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
   
@@ -367,7 +367,7 @@ BEGIN
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
-         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
    
@@ -478,7 +478,7 @@ BEGIN
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
-         AND (PYDT.CTGY_CODE_DNRM = @CtgyCode)
+         AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
    
