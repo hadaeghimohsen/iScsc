@@ -19,7 +19,8 @@ CREATE PROCEDURE [dbo].[INS_MEXP_P]
 	@Delv_Date DATE,
 	@Delv_By NVARCHAR(250),
 	@Expn_Amnt BIGINT,
-	@Expn_Desc NVARCHAR(500)
+	@Expn_Desc NVARCHAR(500),
+	@Qnty FLOAT
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -49,7 +50,8 @@ BEGIN
              DECR_PRCT ,
              DELV_STAT ,
              DELV_DATE ,
-             DELV_BY 
+             DELV_BY ,
+             QNTY
            )
    VALUES  ( @Club_Code , -- CLUB_CODE - bigint
              @Epit_Code , -- EPIT_CODE - bigint
@@ -62,7 +64,8 @@ BEGIN
              @Decr_Prct , -- DECR_PRCT - float
              @Delv_Stat , -- DELV_STAT - varchar(3)
              @Delv_Date , -- DELV_DATE - date
-             @Delv_By  -- DELV_BY - nvarchar(250)
+             @Delv_By , -- DELV_BY - nvarchar(250)
+             @Qnty
            );
 END
 GO

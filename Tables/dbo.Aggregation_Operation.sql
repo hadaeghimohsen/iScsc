@@ -132,47 +132,94 @@ BEGIN
       
    BEGIN
       DECLARE C$Figh CURSOR FOR
-         SELECT FILE_NO
+         SELECT FILE_NO, ao.OPRT_TYPE
            FROM dbo.Fighter F, dbo.Aggregation_Operation Ao
           WHERE Ao.CODE = @Code
             AND F.REGN_PRVN_CNTY_CODE = Ao.REGN_PRVN_CNTY_CODE
-            /*AND F.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE
-            AND f.REGN_CODE = ao.REGN_CODE*/
             AND f.CONF_STAT = '002' -- تایید شده باشد            
             AND 1 = (
                CASE 
                   WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003' )
                      AND F.FIGH_STAT = '002' -- ازاد باشد
-                     AND (ao.REGN_CODE IS NULL OR F.REGN_CODE = Ao.REGN_CODE AND F.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE)
-                     AND (ao.MTOD_CODE IS NULL OR f.MTOD_CODE_DNRM = ao.MTOD_CODE)
-                     AND (ao.CTGY_CODE IS NULL OR f.FGPB_TYPE_DNRM in ('002', '003') OR f.CTGY_CODE_DNRM = ao.CTGY_CODE)
-                     AND (ao.COCH_FILE_NO IS NULL OR f.COCH_FILE_NO_DNRM = ao.COCH_FILE_NO)
-                     AND (ao.CBMT_CODE is NULL OR f.CBMT_CODE_DNRM = ao.CBMT_CODE)
                      AND F.FGPB_TYPE_DNRM IN ('001')
+                     AND EXISTS(
+                        SELECT *
+                          FROM dbo.Member_Ship ms, dbo.Fighter_Public fp
+                         WHERE ms.FIGH_FILE_NO = f.FILE_NO
+                           AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                           AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                           AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                           AND ms.RECT_CODE = '004'
+                           AND ms.VALD_TYPE = '002'
+                           AND CAST(ms.STRT_DATE as DATE) <= CAST(GETDATE() AS DATE)
+                           AND (ms.Numb_Of_Attn_Mont = 0 OR ms.Numb_Of_Attn_Mont > ms.Sum_Attn_Mont_Dnrm)
+                           AND (CAST(GETDATE() AS DATE) BETWEEN CAST(ms.Strt_Date AS DATE) AND CAST(ms.End_Date AS DATE) )
+                           AND (ao.REGN_CODE IS NULL OR Fp.REGN_CODE = Ao.REGN_CODE AND Fp.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE)
+                           AND (ao.MTOD_CODE IS NULL OR fp.MTOD_CODE = ao.MTOD_CODE)
+                           AND (ao.CTGY_CODE IS NULL OR fp.CTGY_CODE = ao.CTGY_CODE)
+                           AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
+                           AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE)
+                     )                                          
                   THEN 1                         
-                  WHEN Ao.OPRT_TYPE IN ( '004' )
-                     AND (ao.REGN_CODE IS NULL OR F.REGN_CODE = Ao.REGN_CODE AND F.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE)
-                     AND (ao.MTOD_CODE IS NULL OR f.MTOD_CODE_DNRM = ao.MTOD_CODE)
-                     AND (ao.CTGY_CODE IS NULL OR f.FGPB_TYPE_DNRM in ('002', '003') OR f.CTGY_CODE_DNRM = ao.CTGY_CODE)
-                     AND (ao.COCH_FILE_NO IS NULL OR f.COCH_FILE_NO_DNRM = ao.COCH_FILE_NO)
-                     AND (ao.CBMT_CODE is NULL OR f.CBMT_CODE_DNRM = ao.CBMT_CODE)
+                  WHEN   Ao.OPRT_TYPE IN ( '004' )
                      AND F.FGPB_TYPE_DNRM IN ('001')
+                     AND EXISTS(
+                        SELECT *
+                          FROM dbo.Member_Ship ms, dbo.Fighter_Public fp
+                         WHERE ms.FIGH_FILE_NO = f.FILE_NO
+                           AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                           AND ms.FGPB_RWNO_DNRM = fp.RWNO
+                           AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+                           AND ms.RECT_CODE = '004'
+                           AND ms.VALD_TYPE = '002'
+                           AND CAST(ms.STRT_DATE as DATE) <= CAST(GETDATE() AS DATE)
+                           AND (ms.Numb_Of_Attn_Mont = 0 OR ms.Numb_Of_Attn_Mont > ms.Sum_Attn_Mont_Dnrm)
+                           AND (CAST(GETDATE() AS DATE) BETWEEN CAST(ms.Strt_Date AS DATE) AND CAST(ms.End_Date AS DATE) )
+                           AND (ao.REGN_CODE IS NULL OR Fp.REGN_CODE = Ao.REGN_CODE AND Fp.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE)
+                           AND (ao.MTOD_CODE IS NULL OR fp.MTOD_CODE = ao.MTOD_CODE)
+                           AND (ao.CTGY_CODE IS NULL OR fp.CTGY_CODE = ao.CTGY_CODE)
+                           AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
+                           AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE)
+                     )                     
                   THEN 1                         
                   ELSE 0
                END
             );
       
-      DECLARE @fileno BIGINT;
+      DECLARE @fileno BIGINT,
+              @MbspRwno SMALLINT,
+              @OprtType VARCHAR(3);
       
       OPEN C$figh;
       L$FC$figh:
-      FETCH NEXT FROM C$figh INTO @fileno;
+      FETCH NEXT FROM C$figh INTO @fileno, @OprtType;
       
       IF @@FETCH_STATUS <> 0
          GOTO L$EC$Figh;
       
-      INSERT INTO dbo.Aggregation_Operation_Detail( AGOP_CODE , RWNO , FIGH_FILE_NO )
-      VALUES  ( @Code ,  0 , @fileno );
+      SET @MbspRwno = NULL;
+      IF @OprtType = '004'
+      BEGIN
+         SELECT @MbspRwno = ms.RWNO
+           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Aggregation_Operation ao
+          WHERE ms.FIGH_FILE_NO = @FileNo
+            AND ao.CODE = @Code
+            AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+            --AND fp.MTOD_CODE = ao.MTOD_CODE
+            AND fp.CTGY_CODE = ISNULL(ao.CTGY_CODE, fp.CTGY_CODE)
+            AND fp.COCH_FILE_NO = ao.COCH_FILE_NO
+            AND fp.CBMT_CODE = ao.CBMT_CODE
+            AND ms.VALD_TYPE = '002'
+            AND ms.RECT_CODE = '004'
+            AND CAST(ms.STRT_DATE as DATE) <= CAST(GETDATE() AS DATE)
+            AND (ms.Numb_Of_Attn_Mont = 0 OR ms.Numb_Of_Attn_Mont > ms.Sum_Attn_Mont_Dnrm)
+            AND (CAST(GETDATE() AS DATE) BETWEEN CAST(ms.Strt_Date AS DATE) AND CAST(ms.End_Date AS DATE) );      
+      END
+      
+      INSERT INTO dbo.Aggregation_Operation_Detail( AGOP_CODE , RWNO , FIGH_FILE_NO , MBSP_RWNO, ATTN_TYPE)
+      VALUES  ( @Code ,  0 , @fileno , @MbspRwno, '001');
       
       GOTO L$FC$Figh;
       L$EC$figh:   

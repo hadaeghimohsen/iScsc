@@ -20,7 +20,8 @@ CREATE PROCEDURE [dbo].[UPD_MEXP_P]
 	@Delv_Date DATE,
 	@Delv_By NVARCHAR(250),
 	@Expn_Amnt BIGINT,
-	@Expn_Desc NVARCHAR(500)
+	@Expn_Desc NVARCHAR(500),
+	@Qnty FLOAT
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -50,6 +51,7 @@ BEGIN
          ,DELV_DATE = @Delv_Date
          ,DELV_BY = @Delv_By
          ,VALD_TYPE = @Vald_Type
+         ,QNTY = @Qnty
     WHERE CODE = @Code;
 END
 GO

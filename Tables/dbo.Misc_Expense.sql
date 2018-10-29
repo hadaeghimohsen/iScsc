@@ -15,6 +15,7 @@ CREATE TABLE [dbo].[Misc_Expense]
 [DELV_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DELV_DATE] [date] NULL,
 [DELV_BY] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[QNTY] [float] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -170,4 +171,6 @@ GO
 ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [FK_MSEX_FIGH] FOREIGN KEY ([COCH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [FK_MSEX_REGN] FOREIGN KEY ([REGN_PRVN_CNTY_CODE], [REGN_PRVN_CODE], [REGN_CODE]) REFERENCES [dbo].[Region] ([PRVN_CNTY_CODE], [PRVN_CODE], [CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد', 'SCHEMA', N'dbo', 'TABLE', N'Misc_Expense', 'COLUMN', N'QNTY'
 GO

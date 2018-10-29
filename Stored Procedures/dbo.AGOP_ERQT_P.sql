@@ -28,6 +28,7 @@ BEGIN
 	       ,@NewMtodCode BIGINT
 	       ,@NewCtgyCode BIGINT
 	       ,@AttnType VARCHAR(3)
+	       ,@MbspRwno SMALLINT
 	       ,@RqstRqid BIGINT;
 	
 	SELECT @AgopCode = @X.query('//Aodt').value('(Aodt/@agopcode)[1]'    , 'BIGINT')
@@ -99,6 +100,7 @@ BEGIN
 	BEGIN
 	   SELECT @AttnType = ATTN_TYPE
 	         ,@CochFileNo = COCH_FILE_NO
+	         ,@MbspRwno = MBSP_RWNO
 	     FROM dbo.Aggregation_Operation_Detail
 	    WHERE AGOP_CODE = @AgopCode
 	      AND FIGH_FILE_NO = @FileNo;	
@@ -107,7 +109,8 @@ BEGIN
 	       @Figh_File_No = @FileNo, -- bigint
 	       @Attn_Date = @FromDate, -- date
 	       @CochFileNo = @CochFileNo, -- bigint
-	       @Attn_TYPE = @AttnType; -- varchar(3)
+	       @Attn_TYPE = @AttnType,
+	       @Mbsp_Rwno = @MbspRwno; -- varchar(3)
 	   
 	   UPDATE dbo.Aggregation_Operation_Detail
 	      SET ATTN_CODE = (SELECT MAX(Code) from dbo.Attendance WHERE FIGH_FILE_NO = @FileNo AND ATTN_DATE = @FromDate AND ATTN_TYPE = @AttnType AND CRET_BY = UPPER(SUSER_NAME()))

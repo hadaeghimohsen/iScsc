@@ -35,17 +35,21 @@ BEGIN
 	   IF @@FETCH_STATUS <> 0
 	      GOTO END_C$AutoAExtP;
    	
-   	EXEC dbo.INS_ATTN_P @Club_Code = @ClubCode, -- bigint
-   	    @Figh_File_No = @FileNo, -- bigint
-   	    @Attn_Date = @AttnDate,
-   	    @CochFileNo = NULL,
-   	    @Attn_Type = '003',
-   	    @MbspRwno = @MbspRwno; -- date   	
+   	UPDATE dbo.Attendance
+   	   SET EXIT_TIME = GETDATE()
+   	 WHERE CODE = @Code;
    	
-   	UPDATE dbo.Session_Meeting
-   	   SET END_TIME = GETDATE()
-   	 WHERE MBSP_FIGH_FILE_NO = @FileNo
-   	   AND END_TIME IS NULL;
+   	--EXEC dbo.INS_ATTN_P @Club_Code = @ClubCode, -- bigint
+   	--    @Figh_File_No = @FileNo, -- bigint
+   	--    @Attn_Date = @AttnDate,
+   	--    @CochFileNo = NULL,
+   	--    @Attn_Type = '003',
+   	--    @MbspRwno = @MbspRwno; -- date   	
+   	
+   	--UPDATE dbo.Session_Meeting
+   	--   SET END_TIME = GETDATE()
+   	-- WHERE MBSP_FIGH_FILE_NO = @FileNo
+   	--   AND END_TIME IS NULL;
    	
 	   GOTO FNR_C$AutoAExtP;
 	   END_C$AutoAExtP:
