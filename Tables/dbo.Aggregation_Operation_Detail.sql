@@ -75,6 +75,10 @@ BEGIN
    SELECT @X =(
        SELECT i.Agop_Code AS '@agopcode'
              ,i.figh_File_No AS '@fighfileno'
+             ,(SELECT MAX(RWNO)
+                 FROM dbo.Aggregation_Operation_Detail
+                WHERE AGOP_CODE = i.Agop_Code
+                  AND FIGH_FILE_NO = i.FIGH_FILE_NO) AS '@rwno'
          FROM INSERTED i
        FOR XML PATH('Aodt'), ROOT('Agop')
    );

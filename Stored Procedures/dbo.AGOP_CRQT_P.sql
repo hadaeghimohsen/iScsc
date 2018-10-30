@@ -15,6 +15,7 @@ BEGIN
    BEGIN TRY
    BEGIN TRANSACTION T$AGOP_CRQT_P
 	DECLARE @AgopCode BIGINT
+	       ,@Rwno INT
 	       ,@FileNo BIGINT
 	       ,@OprtType VARCHAR(3)
 	       ,@PrvnCode VARCHAR(3)
@@ -29,11 +30,11 @@ BEGIN
 	       ,@NewCbmtCode BIGINT
 	       ,@NewMtodCode BIGINT
 	       ,@NewCtgyCode BIGINT
-	       ,@RqstRqid BIGINT
-	       ;
+	       ,@RqstRqid BIGINT;
 	
 	SELECT @AgopCode = @X.query('//Aodt').value('(Aodt/@agopcode)[1]'    , 'BIGINT')
-	      ,@FileNo = @X.query('//Aodt').value('(Aodt/@fighfileno)[1]'    , 'BIGINT');
+	      ,@FileNo = @X.query('//Aodt').value('(Aodt/@fighfileno)[1]'    , 'BIGINT')
+	      ,@Rwno = @X.query('//Aodt').value('(Aodt/@rwno)[1]'    , 'INT');
 	
 	SELECT @OprtType = OPRT_TYPE, @RqttCode = RQTT_CODE, @FromDate = FROM_DATE, @ToDate = TO_DATE, @NumbMontOfer = NUMB_MONT_OFFR, @NewCbmtCode = NEW_CBMT_CODE, @NewMtodCode = NEW_MTOD_CODE, @NewCtgyCode = NEW_CTGY_CODE FROM dbo.Aggregation_Operation WHERE code = @agopcode;
 	SELECT @RegnCode = REGN_CODE, @PrvnCode = REGN_PRVN_CODE, @MtodCodeDnrm = MTOD_CODE_DNRM, @CtgyCodeDnrm = CTGY_CODE_DNRM, @CbmtCodeDnrm = CBMT_CODE_DNRM FROM dbo.Fighter WHERE FILE_NO = @FileNo;
@@ -164,6 +165,7 @@ BEGIN
    UPDATE dbo.Aggregation_Operation_Detail
       SET RQST_RQID = @RqstRqid
     WHERE AGOP_CODE = @AgopCode
+      AND RWNO = @Rwno
       AND FIGH_FILE_NO = @FileNo;
 
 	
