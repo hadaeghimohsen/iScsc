@@ -4,6 +4,7 @@ CREATE TABLE [dbo].[Computer_Action]
 [COMP_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHCK_DOBL_ATTN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHCK_ATTN_ALRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MTOD_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -70,6 +71,8 @@ BEGIN
 END
 GO
 ALTER TABLE [dbo].[Computer_Action] ADD CONSTRAINT [PK_COMA] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Computer_Action] ADD CONSTRAINT [FK_COMA_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'حضور یا عدم حضور منشی پشت سیستم
 اگر مقدار 1 داشته باشد یعنی منشی حضور دارد
