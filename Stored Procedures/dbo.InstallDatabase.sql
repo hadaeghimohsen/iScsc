@@ -232,7 +232,7 @@ BEGIN
       INSERT INTO iProject.Global.Access_User_Datasource
       ( USER_ID ,DSRC_ID ,STAT ,ACES_TYPE ,
         HOST_NAME )
-      SELECT id, 0, '002', '001', @Cpu
+      SELECT id, 3, '002', '001', @Cpu
         FROM iProject.DataGuard.[User] u
        WHERE ShortCut IN (22)
          AND NOT EXISTS(
