@@ -19,5 +19,26 @@ BEGIN
 	        WHERE c.COMP_NAME_DNRM = ca.COMP_NAME
 	 );
 	
+   DECLARE @ClubCode BIGINT;
+   SELECT @ClubCode = Code FROM dbo.Club;
+ 
+	INSERT INTO dbo.User_Region_Fgac( FGA_CODE ,REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
+   SELECT dbo.GNRT_NVID_U(), '001', '017', '001', USER_DB, '002', '002' 
+     FROM dbo.V#Users 
+    WHERE NOT EXISTS(
+          SELECT *
+            FROM dbo.User_Region_Fgac
+           WHERE USER_DB = SYS_USER
+    );
+   
+   INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
+   SELECT dbo.GNRT_NVID_U(), @ClubCode, USER_DB, '002', '002' 
+     FROM dbo.V#Users
+    WHERE NOT EXISTS(
+          SELECT *
+           FROM dbo.User_Club_Fgac
+          WHERE USER_DB = SYS_USER
+    );
+	
 END
 GO
