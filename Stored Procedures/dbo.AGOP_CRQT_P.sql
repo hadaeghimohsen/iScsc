@@ -24,6 +24,7 @@ BEGIN
 	       ,@FromDate DATE
 	       ,@ToDate DATE
 	       ,@NumbMontOfer INT
+	       ,@NumbOfAttnMont INT
 	       ,@MtodCodeDnrm BIGINT
 	       ,@CtgyCodeDnrm BIGINT
 	       ,@CbmtCodeDnrm BIGINT
@@ -36,26 +37,46 @@ BEGIN
 	      ,@FileNo = @X.query('//Aodt').value('(Aodt/@fighfileno)[1]'    , 'BIGINT')
 	      ,@Rwno = @X.query('//Aodt').value('(Aodt/@rwno)[1]'    , 'INT');
 	
-	SELECT @OprtType = OPRT_TYPE, @RqttCode = RQTT_CODE, @FromDate = FROM_DATE, @ToDate = TO_DATE, @NumbMontOfer = NUMB_MONT_OFFR, @NewCbmtCode = NEW_CBMT_CODE, @NewMtodCode = NEW_MTOD_CODE, @NewCtgyCode = NEW_CTGY_CODE FROM dbo.Aggregation_Operation WHERE code = @agopcode;
+	SELECT @OprtType = OPRT_TYPE, @RqttCode = RQTT_CODE, @FromDate = FROM_DATE, @ToDate = TO_DATE, @NumbMontOfer = NUMB_MONT_OFFR, @NumbOfAttnMont = NUMB_OF_ATTN_MONT, @NewCbmtCode = NEW_CBMT_CODE, @NewMtodCode = NEW_MTOD_CODE, @NewCtgyCode = NEW_CTGY_CODE FROM dbo.Aggregation_Operation WHERE code = @agopcode;
 	SELECT @RegnCode = REGN_CODE, @PrvnCode = REGN_PRVN_CODE, @MtodCodeDnrm = MTOD_CODE_DNRM, @CtgyCodeDnrm = CTGY_CODE_DNRM, @CbmtCodeDnrm = CBMT_CODE_DNRM FROM dbo.Fighter WHERE FILE_NO = @FileNo;
 	
 	IF @OprtType = '001' --تمدید گروهی
 	BEGIN
 	   IF @FromDate IS NULL RAISERROR(N'تاریخ شروع مشخص نشده', 16, 1);
 	   IF @ToDate IS NULL RAISERROR(N'تاریخ پایان مشخص نشده',16, 1);
+	   IF @NewCbmtCode IS NULL RAISERROR(N'زمان ساعت کلاسی جدید را وارد نکرده اید', 16, 1);
+	   IF @NewMtodCode IS NULL RAISERROR(N'گروه جدید را وارد نکرده اید', 16, 1);
+	   IF @NewCtgyCode IS NULL RAISERROR(N'زیرگروه جدید را وارد نکرده اید', 16, 1);
 	   
 	   SET @X = '<Process><Request rqtpcode="009" rqttcode="" regncode="" prvncode=""><Request_Row fileno=""><Fighter mtodcodednrm="" ctgycodednrm="" cbmtcodednrm=""/><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
       SET @X.modify('replace value of (/Process/Request/@rqttcode)[1] with sql:variable("@RqttCode")');
       SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
       SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
       SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@mtodcodednrm)[1] with sql:variable("@MtodCodeDnrm")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@ctgycodednrm)[1] with sql:variable("@CtgyCodeDnrm")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@cbmtcodednrm)[1] with sql:variable("@CbmtCodeDnrm")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@mtodcodednrm)[1] with sql:variable("@NewMtodCode")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@ctgycodednrm)[1] with sql:variable("@NewCtgyCode")');
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Fighter/@cbmtcodednrm)[1] with sql:variable("@NewCbmtCode")');
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@FromDate")');
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@ToDate")');      
       SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-      EXEC UCC_TRQT_P @X;      
+      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
+      EXEC UCC_TRQT_P @X;   
+      
+      UPDATE ms
+         SET ms.NUMB_OF_ATTN_MONT = @NumbOfAttnMont
+            ,ms.NUMB_MONT_OFER = @NumbMontOfer
+        FROM dbo.Member_Ship ms, dbo.Fighter f
+       WHERE ms.FIGH_FILE_NO = f.FILE_NO
+         AND ms.RQRO_RQST_RQID = f.RQST_RQID
+         AND f.FILE_NO = @Fileno;
+
+      UPDATE f
+         SET f.CTGY_CODE_DNRM = @NewCtgyCode
+            ,f.MTOD_CODE_DNRM = @NewMtodCode
+            ,f.CBMT_CODE_DNRM = @NewCbmtCode
+        FROM dbo.Fighter f
+       WHERE f.FILE_NO = @Fileno;
+      
 	END
 	ELSE IF @OprtType = '002' -- تغییر برنامه کلاسی گروهی
 	BEGIN
@@ -135,8 +156,8 @@ BEGIN
 	ELSE IF @OprtType = '003'
 	BEGIN
 	   IF @NewCbmtCode IS NULL RAISERROR(N'زمان ساعت کلاسی جدید را وارد نکرده اید', 16, 1);
-	   IF @NewMtodCode IS NULL RAISERROR(N'سبک جدید مشخص نشده', 16, 1);
-	   IF @NewCtgyCode IS NULL RAISERROR(N'رسته جدید مشخص نشده', 16, 1);
+	   IF @NewMtodCode IS NULL RAISERROR(N'گروه جدید مشخص نشده', 16, 1);
+	   IF @NewCtgyCode IS NULL RAISERROR(N'زیرگروه جدید مشخص نشده', 16, 1);
 	      
 	   SELECT @X = (
 	      SELECT 0 AS '@rqid'

@@ -16,6 +16,7 @@ CREATE TABLE [dbo].[Aggregation_Operation]
 [OPRT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Aggregation_Operation_OPRT_STAT] DEFAULT ('001'),
 [FROM_DATE] [date] NULL,
 [TO_DATE] [date] NULL,
+[NUMB_OF_ATTN_MONT] [int] NULL,
 [NUMB_MONT_OFFR] [int] NULL,
 [NEW_CBMT_CODE] [bigint] NULL,
 [NEW_MTOD_CODE] [bigint] NULL,
@@ -278,11 +279,14 @@ BEGIN
       END
       ELSE
       BEGIN
-         SELECT @X =(
-          SELECT @RqstRqid AS '@rqid'
-          FOR XML PATH('Request'), ROOT('Process')
-         );
-         EXEC dbo.CNCL_RQST_F @X;
+         IF NOT EXISTS(SELECT * FROM dbo.Request WHERE RQID = @RqstRqid AND RQST_STAT IN ( '003', '002' ) )
+         BEGIN
+            SELECT @X =(
+             SELECT @RqstRqid AS '@rqid'
+             FOR XML PATH('Request'), ROOT('Process')
+            );
+            EXEC dbo.CNCL_RQST_F @X;
+         END
       END
       
       GOTO L$FC$Figh002004;
@@ -324,12 +328,15 @@ BEGIN
       IF @@FETCH_STATUS <> 0
          GOTO L$EC$Figh002003;
       
-      BEGIN
-         SELECT @X =(
-          SELECT @RqstRqid AS '@rqid'
-          FOR XML PATH('Request'), ROOT('Process')
-         );
-         EXEC dbo.CNCL_RQST_F @X;
+      BEGIN         
+         IF NOT EXISTS(SELECT * FROM dbo.Request WHERE RQID = @RqstRqid AND RQST_STAT IN ( '003', '002' ))
+         BEGIN
+            SELECT @X =(
+             SELECT @RqstRqid AS '@rqid'
+             FOR XML PATH('Request'), ROOT('Process')
+            );
+            EXEC dbo.CNCL_RQST_F @X;
+         END
       END
       
       GOTO L$FC$Figh002003;

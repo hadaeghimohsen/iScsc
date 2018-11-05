@@ -27,6 +27,7 @@ BEGIN
 	       ,@FromDate DATE
 	       ,@ToDate DATE
 	       ,@NumbMontOffr INT
+	       ,@NumbOfAttnMont INT
 	       ,@NewCbmtCode BIGINT
 	       ,@NewMtodCode BIGINT
 	       ,@NewCtgyCode BIGINT
@@ -47,6 +48,7 @@ BEGIN
          ,@FromDate = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@fromdate)[1]'    , 'DATE')
          ,@ToDate = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@todate)[1]'    , 'DATE')
          ,@NumbMontOffr = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@numbmontoffr)[1]'    , 'INT')
+         ,@NumbOfAttnMont = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@numbofattnmont)[1]'    , 'INT')
          ,@NewCbmtCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newcbmtcode)[1]'    , 'BIGINT')
          ,@NewMtodCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newmtodcode)[1]'    , 'BIGINT')
          ,@NewCtgyCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newctgycode)[1]'    , 'BIGINT')
@@ -148,6 +150,7 @@ BEGIN
                 FROM_DATE ,
                 TO_DATE ,
                 NUMB_MONT_OFFR,
+                NUMB_OF_ATTN_MONT,
                 NEW_CBMT_CODE,
                 NEW_MTOD_CODE,
                 NEW_CTGY_CODE,
@@ -170,6 +173,7 @@ BEGIN
                 @FromDate , -- FROM_DATE - date
                 @ToDate , -- TO_DATE - date
                 @NumbMontOffr,  -- NUMB_MONT_OFFR - int
+                @NumbOfAttnMont,
                 @NewCbmtCode, -- NEW_CBMT_CODE - bigint
                 @NewMtodCode,
                 @NewCtgyCode,
@@ -193,6 +197,7 @@ BEGIN
             ,FROM_DATE = @FromDate
             ,TO_DATE = @ToDate
             ,NUMB_MONT_OFFR = @NumbMontOffr
+            ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont
             ,NEW_CBMT_CODE = CASE @NewCbmtCode WHEN 0 THEN NULL ELSE @NewCbmtCode END
             ,NEW_MTOD_CODE = CASE @NewMtodCode WHEN 0 THEN NULL ELSE @NewMtodCode END
             ,NEW_CTGY_CODE = CASE @NewCtgyCode WHEN 0 THEN NULL ELSE @NewCtgyCode END
