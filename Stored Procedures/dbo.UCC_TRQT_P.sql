@@ -157,6 +157,11 @@ BEGIN
          BEGIN
             RAISERROR(N'ساعت کلاسی مربی با سبک ورزشی که انتخاب کرده اید مطابقت ندارد، لطفا اصلاح فرمایید', 16, 1);
          END;
+         
+         IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "گروه" اطلاعات وارد نشده' , 16, 1);
+         IF ISNULL(@CtgyCode, 0) = 0 RAISERROR (N'برای فیلد "زیرگروه" اطلاعات وارد نشده' , 16, 1);
+         IF ISNULL(@CbmtCode, 0) = 0 RAISERROR (N'برای فیلد "برنامه گروه" اطلاعات وارد نشده' , 16, 1);
+         
          UPDATE dbo.Fighter
             SET MTOD_CODE_DNRM = @MtodCode
                ,CTGY_CODE_DNRM = @CtgyCode

@@ -330,16 +330,16 @@ BEGIN
             --,@CochCrtfDate = @X.query('//Coch_Crtf_Date').value('.', 'DATE');
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
       -- Begin Check Validate
-      IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" درخواست اطلاعات وارد نشده' , 16, 1);
-      IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" اطلاعات وارد نشده' , 16, 1);
       --IF LEN(@FathName)        = 0 RAISERROR (N'برای فیلد "نام پدر" درخواست اطلاعات وارد نشده' , 16, 1);
       IF LEN(@SexType)         = 0 RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
       IF @BrthDate             = '1900-01-01' SET @BrthDate = GETDATE()--RAISERROR (N'برای فیلد "تاریخ تولد" درخواست اطلاعات وارد نشده' , 16, 1);
       IF ISNULL(@DiseCode, 0)  = 0 SET @DiseCode = NULL;
-      --IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "سبک" درخواست اطلاعات وارد نشده' , 16, 1);
-      --IF ISNULL(@CtgyCode, 0) = 0 RAISERROR (N'برای فیلد "رده کمربندی" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "گروه" اطلاعات وارد نشده' , 16, 1);
+      IF ISNULL(@CtgyCode, 0) = 0 RAISERROR (N'برای فیلد "زیرگروه" اطلاعات وارد نشده' , 16, 1);
       --IF ISNULL(@ClubCode, 0) = 0 RAISERROR (N'برای فیلد "باشگاه" درخواست اطلاعات وارد نشده' , 16, 1);
-      IF LEN(@Type)            = 0 RAISERROR (N'برای فیلد "نوع هنرجو" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@Type)            = 0 RAISERROR (N'برای فیلد "نوع اعضا" اطلاعات وارد نشده' , 16, 1);
       IF ISNULL(@CbmtCode , 0) = 0 AND @Type IN ('001', '004') RAISERROR(N'ساعت کلاسی برای هنرجو وارد نشده', 16, 1);
       SET @SuntBuntDeptOrgnCode = CASE LEN(@SuntBuntDeptOrgnCode) WHEN 2 THEN @SuntBuntDeptOrgnCode ELSE '00'   END;
       SET @SuntBuntDeptCode     = CASE LEN(@SuntBuntDeptCode)     WHEN 2 THEN @SuntBuntDeptCode     ELSE '00'   END;
@@ -363,8 +363,8 @@ BEGIN
       
       IF @Type IN ('006')
       BEGIN
-         IF LEN(@InsrNumb) = 0 RAISERROR (N'برای فیلد "شماره بیمه" درخواست اطلاعات وارد نشده' , 16, 1);
-         IF @InsrDate IN ('1900-01-01', '0001-01-01') RAISERROR (N'برای فیلد "تاریخ بیمه" درخواست اطلاعات وارد نشده' , 16, 1);
+         IF LEN(@InsrNumb) = 0 RAISERROR (N'برای فیلد "شماره بیمه" اطلاعات وارد نشده' , 16, 1);
+         IF @InsrDate IN ('1900-01-01', '0001-01-01') RAISERROR (N'برای فیلد "تاریخ بیمه" اطلاعات وارد نشده' , 16, 1);
       END
       
       IF ISNULL(@ClubCode, 0) = 0 AND (SELECT COUNT(CODE) FROM Club) = 1
