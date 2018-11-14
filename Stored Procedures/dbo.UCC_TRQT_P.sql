@@ -129,14 +129,14 @@ BEGIN
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
             ,@NumbOfAttnWeek = r.query('Member_Ship').value('(Member_Ship/@numbofattnweek)[1]', 'INT')
             ,@AttnDayTYpe = r.query('Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)')
-            ,@MtodCode = r.query('Fighter').value('(Fighter/@mtodcodednrm)[1]', 'BIGINT')
+            --,@MtodCode = r.query('Fighter').value('(Fighter/@mtodcodednrm)[1]', 'BIGINT')
             ,@CtgyCode = r.query('Fighter').value('(Fighter/@ctgycodednrm)[1]', 'BIGINT')
             ,@CbmtCode = r.query('Fighter').value('(Fighter/@cbmtcodednrm)[1]', 'BIGINT')
         FROM @X.nodes('//Request_Row') Rqrv(r)
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
       -- 1395/06/17 * برای ثبت ابتدایی درخواست تمدید
-      IF (ISNULL(@MtodCode, 0) = 0 OR ISNULL(@CtgyCode, 0) = 0) OR @FrstTime = '002'
+      IF (/*ISNULL(@MtodCode, 0) = 0 OR*/ ISNULL(@CtgyCode, 0) = 0) OR @FrstTime = '002'
       BEGIN
          SELECT @MtodCode = MTOD_CODE_DNRM
                ,@CtgyCode = CTGY_CODE_DNRM
@@ -152,15 +152,20 @@ BEGIN
             SELECT * 
               FROM dbo.Club_Method
              WHERE CODE = @CbmtCode
-               AND MTOD_CODE = @MtodCode
+               --AND MTOD_CODE = @MtodCode
          )
          BEGIN
             RAISERROR(N'ساعت کلاسی مربی با سبک ورزشی که انتخاب کرده اید مطابقت ندارد، لطفا اصلاح فرمایید', 16, 1);
          END;
          
-         IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "گروه" اطلاعات وارد نشده' , 16, 1);
+         --IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "گروه" اطلاعات وارد نشده' , 16, 1);
          IF ISNULL(@CtgyCode, 0) = 0 RAISERROR (N'برای فیلد "زیرگروه" اطلاعات وارد نشده' , 16, 1);
          IF ISNULL(@CbmtCode, 0) = 0 RAISERROR (N'برای فیلد "برنامه گروه" اطلاعات وارد نشده' , 16, 1);
+         
+         -- 1397/08/22 * تغییر فرم تمدید
+         SELECT @MtodCode = MTOD_CODE
+           FROM dbo.Club_Method
+          WHERE CODE = @CbmtCode;
          
          UPDATE dbo.Fighter
             SET MTOD_CODE_DNRM = @MtodCode
