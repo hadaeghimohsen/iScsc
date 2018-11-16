@@ -79,6 +79,36 @@ BEGIN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE();
+   
+   
+   MERGE dbo.Settings T
+   USING (SELECT * FROM Inserted) S
+   ON (T.CLUB_CODE = s.CODE)
+   WHEN NOT MATCHED THEN 
+      INSERT ( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,BACK_UP_IN_TRED ,
+               BACK_UP_OPTN_PATH ,BACK_UP_OPTN_PATH_ADRS ,BACK_UP_ROOT_PATH ,DRES_STAT ,
+               DRES_AUTO ,MORE_FIGH_ONE_DRES ,MORE_ATTN_SESN ,NOTF_STAT ,NOTF_EXP_DAY ,
+               NOTF_VIST_DATE ,ATTN_SYST_TYPE ,COMM_PORT_NAME ,BAND_RATE ,BAR_CODE_DATA_TYPE ,
+               ATN3_EVNT_ACTN_TYPE ,IP_ADDR ,PORT_NUMB ,ATTN_COMP_CONCT ,ATN1_EVNT_ACTN_TYPE ,
+               IP_ADR2 ,PORT_NUM2 ,ATTN_COMP_CNC2 ,ATN2_EVNT_ACTN_TYPE ,ATTN_NOTF_STAT ,
+               ATTN_NOTF_CLOS_TYPE ,ATTN_NOTF_CLOS_INTR ,DEBT_CLNG_STAT ,MOST_DEBT_CLNG_AMNT ,
+               EXPR_DEBT_DAY ,TRY_VALD_SBMT ,DEBT_CHCK_STAT ,GATE_ATTN_STAT ,GATE_COMM_PORT_NAME ,
+               GATE_BAND_RATE ,GATE_TIME_CLOS ,GATE_ENTR_OPEN ,GATE_EXIT_OPEN ,EXPN_EXTR_STAT ,
+               EXPN_COMM_PORT_NAME ,EXPN_BAND_RATE ,RUN_QURY ,ATTN_PRNT_STAT ,SHAR_MBSP_STAT ,
+               RUN_RBOT ,HLDY_CONT ,CLER_ZERO
+             )
+      VALUES (S.CODE , '002' , NULL , NULL , 
+          NULL , NULL , N'' , N'' , '' , 
+          '' , '001' , '001' , '' , 0 , GETDATE() , 
+          '000' , '' , 9600 , '002' , 
+          '' , '' , 4370 , '' , '' , 
+          '' , 4370 , '' , '' , '002' , 
+          '' , 0 , '001' , 0 , 
+          0 , '' , '001' , '001' , '' , 
+          9600 , 0 , '' , '' , '001' , 
+          '' , 9600 , '002' , '001' , '001' , 
+          '001' , 0 , '001' );
+   
 END
 ;
 GO
