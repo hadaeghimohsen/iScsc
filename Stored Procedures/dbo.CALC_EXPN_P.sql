@@ -112,7 +112,7 @@ BEGIN
          AND F.File_No = P.Figh_File_No 
          AND F.Fgpb_Rwno_Dnrm = P.Rwno
          AND P.Rect_Code = '004'
-         AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')
+         /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
          AND C.Stat = '002'
          AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
          AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
@@ -203,7 +203,7 @@ BEGIN
          AND F.File_No = P.Figh_File_No 
          AND F.Fgpb_Rwno_Dnrm = P.Rwno
          AND P.Rect_Code = '004'
-         AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')
+         /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
          AND C.Stat = '002'
          AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
          AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
@@ -297,7 +297,7 @@ BEGIN
          AND F.File_No = P.Figh_File_No 
          AND F.Fgpb_Rwno_Dnrm = P.Rwno
          AND P.Rect_Code = '004'
-         AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')
+         /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
          AND C.Stat = '002'
          AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
          AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
@@ -408,7 +408,7 @@ BEGIN
          AND F.File_No = P.Figh_File_No 
          AND F.Fgpb_Rwno_Dnrm = P.Rwno
          AND P.Rect_Code = '004'
-         AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')
+         /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
          AND C.Stat = '002'
          AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
          AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)

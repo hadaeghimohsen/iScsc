@@ -142,11 +142,11 @@ BEGIN
 	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
 	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT');
          
-         IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
+         /*IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
          
          IF EXISTS(SELECT * FROM dbo.Settings WHERE DFLT_STAT = '002' AND @DlftStat = '002' AND CLUB_CODE != @ClubCode)
-            SET @DlftStat = '001';
+            SET @DlftStat = '001';*/
             
          UPDATE Settings
             SET BACK_UP = COALESCE(@BackUp, 1)
@@ -203,8 +203,8 @@ BEGIN
                ,RUN_RBOT = @RunRbot
                
                ,HLDY_CONT = @HldyCont
-               ,CLER_ZERO = @ClerZero
-          WHERE CLUB_CODE = @ClubCode;
+               ,CLER_ZERO = @ClerZero;
+          --WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN
       BEGIN

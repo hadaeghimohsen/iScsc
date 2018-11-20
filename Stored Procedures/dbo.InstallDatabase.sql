@@ -88,7 +88,7 @@ BEGIN
    INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
    SELECT dbo.GNRT_NVID_U(), @ClubCode, USER_DB, '002', '002' FROM dbo.V#Users;
    
-   INSERT INTO dbo.Settings( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,
+   /*INSERT INTO dbo.Settings( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,
    BACK_UP_IN_TRED ,BACK_UP_OPTN_PATH ,BACK_UP_OPTN_PATH_ADRS ,BACK_UP_ROOT_PATH ,
    DRES_STAT ,DRES_AUTO ,MORE_FIGH_ONE_DRES ,MORE_ATTN_SESN ,NOTF_STAT ,NOTF_EXP_DAY ,
    NOTF_VIST_DATE ,ATTN_SYST_TYPE ,COMM_PORT_NAME ,BAND_RATE ,BAR_CODE_DATA_TYPE ,
@@ -109,7 +109,7 @@ BEGIN
           0 , '' , '001' , '001' , '' , 
           9600 , 0 , '' , '' , '001' , 
           '' , 9600 , '002' , '001' , '001' , 
-          '001' , 0 , '001'  );
+          '001' , 0 , '001'  );*/
    
    -- Save Host Info
    IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'iProject')
