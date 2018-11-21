@@ -85,7 +85,7 @@ BEGIN
    USING (SELECT * FROM Inserted) S
    ON (T.CLUB_CODE = s.CODE)
    WHEN NOT MATCHED THEN 
-      INSERT ( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,BACK_UP_IN_TRED ,
+      INSERT ( CLUB_CODE, CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,BACK_UP_IN_TRED ,
                BACK_UP_OPTN_PATH ,BACK_UP_OPTN_PATH_ADRS ,BACK_UP_ROOT_PATH ,DRES_STAT ,
                DRES_AUTO ,MORE_FIGH_ONE_DRES ,MORE_ATTN_SESN ,NOTF_STAT ,NOTF_EXP_DAY ,
                NOTF_VIST_DATE ,ATTN_SYST_TYPE ,COMM_PORT_NAME ,BAND_RATE ,BAR_CODE_DATA_TYPE ,
@@ -97,14 +97,14 @@ BEGIN
                EXPN_COMM_PORT_NAME ,EXPN_BAND_RATE ,RUN_QURY ,ATTN_PRNT_STAT ,SHAR_MBSP_STAT ,
                RUN_RBOT ,HLDY_CONT ,CLER_ZERO
              )
-      VALUES (S.CODE , '002' , NULL , NULL , 
+      VALUES (S.CODE, dbo.GNRT_NVID_U() , '002' , NULL , NULL , 
           NULL , NULL , N'' , N'' , '' , 
           '' , '001' , '001' , '' , 0 , GETDATE() , 
           '000' , '' , 9600 , '002' , 
           '' , '' , 4370 , '' , '' , 
           '' , 4370 , '' , '' , '002' , 
           '' , 0 , '001' , 0 , 
-          0 , '' , '001' , '001' , '' , 
+          0 , '002' , '001' , '001' , '' , 
           9600 , 0 , '' , '' , '001' , 
           '' , 9600 , '002' , '001' , '001' , 
           '001' , 0 , '001' );

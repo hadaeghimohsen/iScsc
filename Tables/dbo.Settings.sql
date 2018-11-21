@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].[Settings]
 (
 [CLUB_CODE] [bigint] NULL,
+[CODE] [bigint] NOT NULL,
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Settings_DFLT_STAT] DEFAULT ('001'),
 [BACK_UP] [bit] NULL,
 [BACK_UP_APP_EXIT] [bit] NULL,
@@ -52,6 +53,34 @@ CREATE TABLE [dbo].[Settings]
 [HLDY_CONT] [int] NULL,
 [CLER_ZERO] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE TRIGGER [dbo].[CG$AINS_STNG]
+   ON  [dbo].[Settings]
+   AFTER INSERT
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for trigger here
+   MERGE dbo.Settings T
+   USING (SELECT * FROM Inserted) S
+   ON (T.CLUB_CODE = S.CLUB_CODE)
+   WHEN MATCHED THEN
+      UPDATE SET T.CODE = dbo.GNRT_NVID_U();
+END
+GO
+ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [PK_Settings] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [FK_STNG_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE]) ON DELETE CASCADE
 GO

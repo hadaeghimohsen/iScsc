@@ -142,69 +142,78 @@ BEGIN
 	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
 	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT');
          
-         /*IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
+         IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode AND @ClubCode != 0)
             INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
          
          IF EXISTS(SELECT * FROM dbo.Settings WHERE DFLT_STAT = '002' AND @DlftStat = '002' AND CLUB_CODE != @ClubCode)
-            SET @DlftStat = '001';*/
-            
-         UPDATE Settings
-            SET BACK_UP = COALESCE(@BackUp, 1)
-               ,BACK_UP_APP_EXIT = COALESCE(@BackupAppExit, 1)
-               ,BACK_UP_IN_TRED = COALESCE(@BackupInTred, 1)
-               ,BACK_UP_OPTN_PATH = COALESCE(@BackupOptnPath, 1)
-               ,BACK_UP_OPTN_PATH_ADRS = COALESCE(@BackupOptnPathAdrs, 'D:\iData\Asre Andishe Project\Database Backup')
-               ,BACK_UP_ROOT_PATH = COALESCE(@BackupRootPath, 'C:\Backup')
-               ,DRES_STAT = COALESCE(@DresStat, '002')
-               ,DRES_AUTO = COALESCE(@DresAuto, '002')
-               ,MORE_FIGH_ONE_DRES = COALESCE(@MoreFighOneDres, '001')
-               ,MORE_ATTN_SESN = COALESCE(@MoreAttnSesn, '002')
-               ,NOTF_STAT = COALESCE(@NotfStat, '002')
-               ,NOTF_EXP_DAY = COALESCE(@NotfExpDay, 3)
-               ,ATTN_SYST_TYPE = COALESCE(@AttnSysmType, '001')
-               ,COMM_PORT_NAME = COALESCE(@CommPortName, 'COM1')
-               ,BAND_RATE = COALESCE(@BandRate, 9600)
-               ,BAR_CODE_DATA_TYPE = COALESCE(@BarCodeDataType, '001')
-               ,ATN3_EVNT_ACTN_TYPE = @Atn3EvntActnType
-               
-               ,IP_ADDR = @IPAddr
-               ,PORT_NUMB = @PortNumb
-               ,ATTN_COMP_CONCT = @AttnCompConct
-               ,ATN1_EVNT_ACTN_TYPE = @Atn1EvntActnType
-               
-               ,IP_ADR2 = @IPAdr2
-               ,PORT_NUM2 = @PortNum2
-               ,ATTN_COMP_CNC2 = @AttnCompCnc2
-               ,ATN2_EVNT_ACTN_TYPE = @Atn2EvntActnType
-               
-               ,ATTN_NOTF_STAT = @AttnNotfStat
-               ,ATTN_NOTF_CLOS_TYPE = @AttnNotfClosType
-               ,ATTN_NOTF_CLOS_INTR = @AttnNotfClosIntr
-               ,DEBT_CLNG_STAT = @DebtClngStat
-               ,MOST_DEBT_CLNG_AMNT = @MostDebtClngAmnt
-               ,EXPR_DEBT_DAY = @ExprDebtDay
-               ,TRY_VALD_SBMT = @TryValdSbmt
-               ,DEBT_CHCK_STAT = @DebtChckStat
-               
-               ,GATE_ATTN_STAT = @GateAttnStat
-               ,GATE_COMM_PORT_NAME = @GateCommPortName
-               ,GATE_BAND_RATE = @GateBandRate
-               ,GATE_TIME_CLOS = @GateTimeClos
-               ,GATE_ENTR_OPEN = @GateEntrOpen
-               ,GATE_EXIT_OPEN = @GateExitOpen
-               
-               ,EXPN_EXTR_STAT = @ExpnExtrStat
-               ,EXPN_COMM_PORT_NAME = @ExpnCommPortName
-               ,EXPN_BAND_RATE = @ExpnBandRate
-               
-               ,RUN_QURY = @RunQury
-               ,ATTN_PRNT_STAT = @AttnPrntStat
-               ,SHAR_MBSP_STAT = @SharMbspStat
-               ,RUN_RBOT = @RunRbot
-               
-               ,HLDY_CONT = @HldyCont
-               ,CLER_ZERO = @ClerZero;
-          --WHERE CLUB_CODE = @ClubCode;
+            SET @DlftStat = '001';
+         
+         IF @ClubCode = 0
+            UPDATE Settings
+               SET BACK_UP = 1
+                  ,BACK_UP_APP_EXIT = 1
+                  ,BACK_UP_IN_TRED = 1
+                  ,BACK_UP_OPTN_PATH = 1
+                  ,BACK_UP_OPTN_PATH_ADRS = COALESCE(@BackupOptnPathAdrs, 'D:\iData\Asre Andishe Project\Database Backup')
+                  ,BACK_UP_ROOT_PATH = COALESCE(@BackupRootPath, 'C:\Backup');
+         ELSE                     
+            UPDATE Settings
+               SET /*BACK_UP = COALESCE(@BackUp, 1)
+                  ,BACK_UP_APP_EXIT = COALESCE(@BackupAppExit, 1)
+                  ,BACK_UP_IN_TRED = COALESCE(@BackupInTred, 1)
+                  ,BACK_UP_OPTN_PATH = COALESCE(@BackupOptnPath, 1)
+                  ,BACK_UP_OPTN_PATH_ADRS = COALESCE(@BackupOptnPathAdrs, 'D:\iData\Asre Andishe Project\Database Backup')
+                  ,BACK_UP_ROOT_PATH = COALESCE(@BackupRootPath, 'C:\Backup')*/
+                   DRES_STAT = COALESCE(@DresStat, '002')
+                  ,DRES_AUTO = COALESCE(@DresAuto, '002')
+                  ,MORE_FIGH_ONE_DRES = COALESCE(@MoreFighOneDres, '001')
+                  ,MORE_ATTN_SESN = COALESCE(@MoreAttnSesn, '002')
+                  ,NOTF_STAT = COALESCE(@NotfStat, '002')
+                  ,NOTF_EXP_DAY = COALESCE(@NotfExpDay, 3)
+                  ,ATTN_SYST_TYPE = COALESCE(@AttnSysmType, '001')
+                  ,COMM_PORT_NAME = COALESCE(@CommPortName, 'COM1')
+                  ,BAND_RATE = COALESCE(@BandRate, 9600)
+                  ,BAR_CODE_DATA_TYPE = COALESCE(@BarCodeDataType, '001')
+                  ,ATN3_EVNT_ACTN_TYPE = @Atn3EvntActnType
+                  
+                  ,IP_ADDR = @IPAddr
+                  ,PORT_NUMB = @PortNumb
+                  ,ATTN_COMP_CONCT = @AttnCompConct
+                  ,ATN1_EVNT_ACTN_TYPE = @Atn1EvntActnType
+                  
+                  ,IP_ADR2 = @IPAdr2
+                  ,PORT_NUM2 = @PortNum2
+                  ,ATTN_COMP_CNC2 = @AttnCompCnc2
+                  ,ATN2_EVNT_ACTN_TYPE = @Atn2EvntActnType
+                  
+                  ,ATTN_NOTF_STAT = @AttnNotfStat
+                  ,ATTN_NOTF_CLOS_TYPE = @AttnNotfClosType
+                  ,ATTN_NOTF_CLOS_INTR = @AttnNotfClosIntr
+                  ,DEBT_CLNG_STAT = @DebtClngStat
+                  ,MOST_DEBT_CLNG_AMNT = @MostDebtClngAmnt
+                  ,EXPR_DEBT_DAY = @ExprDebtDay
+                  ,TRY_VALD_SBMT = @TryValdSbmt
+                  ,DEBT_CHCK_STAT = @DebtChckStat
+                  
+                  ,GATE_ATTN_STAT = @GateAttnStat
+                  ,GATE_COMM_PORT_NAME = @GateCommPortName
+                  ,GATE_BAND_RATE = @GateBandRate
+                  ,GATE_TIME_CLOS = @GateTimeClos
+                  ,GATE_ENTR_OPEN = @GateEntrOpen
+                  ,GATE_EXIT_OPEN = @GateExitOpen
+                  
+                  ,EXPN_EXTR_STAT = @ExpnExtrStat
+                  ,EXPN_COMM_PORT_NAME = @ExpnCommPortName
+                  ,EXPN_BAND_RATE = @ExpnBandRate
+                  
+                  ,RUN_QURY = @RunQury
+                  ,ATTN_PRNT_STAT = @AttnPrntStat
+                  ,SHAR_MBSP_STAT = @SharMbspStat
+                  ,RUN_RBOT = @RunRbot
+                  
+                  ,HLDY_CONT = @HldyCont
+                  ,CLER_ZERO = @ClerZero
+             WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN
       BEGIN
