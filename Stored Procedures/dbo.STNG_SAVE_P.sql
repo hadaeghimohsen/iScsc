@@ -142,8 +142,8 @@ BEGIN
 	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
 	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT');
          
-         IF NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode AND @ClubCode != 0)
-            INSERT INTO Settings (CLUB_CODE) VALUES(@ClubCode);
+         IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
+            INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
          
          IF EXISTS(SELECT * FROM dbo.Settings WHERE DFLT_STAT = '002' AND @DlftStat = '002' AND CLUB_CODE != @ClubCode)
             SET @DlftStat = '001';
