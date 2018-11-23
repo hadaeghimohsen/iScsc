@@ -17,7 +17,10 @@ CREATE PROCEDURE [dbo].[UPD_CLUB_P]
 	@Cord_X    FLOAT,
 	@Cord_Y    FLOAT,
 	@Tell_Phon VARCHAR(15),
-	@Cell_Phon VARCHAR(11)
+	@Cell_Phon VARCHAR(11),
+	@Zip_Code VARCHAR(10),
+	@Econ_Code VARCHAR(15),
+	@Club_Desc NVARCHAR(100)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -44,6 +47,9 @@ BEGIN
          ,CORD_Y = @Cord_Y
          ,TELL_PHON = @Tell_Phon
          ,CELL_PHON = @Cell_Phon
+         ,ZIP_CODE = @Zip_Code
+         ,ECON_CODE = @Econ_Code
+         ,CLUB_DESC = @Club_Desc
     WHERE CODE = @Code;
 END
 GO

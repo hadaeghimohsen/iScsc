@@ -19,7 +19,10 @@ CREATE PROCEDURE [dbo].[INS_CLUB_P]
 	@Cord_X    FLOAT,
 	@Cord_Y    FLOAT,
 	@Tell_Phon VARCHAR(15),
-	@Cell_Phon VARCHAR(11)
+	@Cell_Phon VARCHAR(11),
+	@Zip_Code  VARCHAR(10),
+	@Econ_Code VARCHAR(15),
+	@Club_Desc NVARCHAR(100)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -37,7 +40,7 @@ BEGIN
    END
    -- پایان دسترسی
    
-   INSERT INTO Club (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, NAME, POST_ADRS, EMAL_ADRS, WEB_SITE,CORD_X, CORD_Y, TELL_PHON, CELL_PHON)
-   VALUES (@Regn_Prvn_Cnty_Code, @Regn_Prvn_Code, @Regn_Code, @Name, @Post_Adrs, @Emal_Adrs, @Web_Site, @Cord_X, @Cord_Y, @Tell_Phon, @Cell_Phon);
+   INSERT INTO Club (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, NAME, POST_ADRS, EMAL_ADRS, WEB_SITE,CORD_X, CORD_Y, TELL_PHON, CELL_PHON, ZIP_CODE, ECON_CODE, CLUB_DESC)
+   VALUES (@Regn_Prvn_Cnty_Code, @Regn_Prvn_Code, @Regn_Code, @Name, @Post_Adrs, @Emal_Adrs, @Web_Site, @Cord_X, @Cord_Y, @Tell_Phon, @Cell_Phon, @Zip_Code, @Econ_Code, @Club_Desc);
 END
 GO
