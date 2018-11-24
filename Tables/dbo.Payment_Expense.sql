@@ -62,7 +62,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = dbo.Gnrt_Nvid_U();
+            ,CODE      = CASE WHEN S.CODE = 0 THEN dbo.Gnrt_Nvid_U() ELSE S.CODE END;
 END
 GO
 SET QUOTED_IDENTIFIER ON
@@ -86,6 +86,14 @@ BEGIN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE();
+   
+   IF (SELECT COUNT(*) FROM Inserted) = 1
+      MERGE dbo.Misc_Expense T
+      USING (SELECT * FROM Inserted) S
+      ON (t.CODE = s.MSEX_CODE)
+      WHEN MATCHED THEN
+         UPDATE SET
+            t.EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE);
 END
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [PK_PMEX] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

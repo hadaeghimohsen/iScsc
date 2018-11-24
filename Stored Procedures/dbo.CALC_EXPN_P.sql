@@ -345,9 +345,9 @@ BEGIN
              '002', -- تعداد جلسات
              '001', -- درصدی
              @PymtStat,
-             NULL,
-             NULL,
-             NULL,
+             FIGH.FILE_NO,
+             '004',
+             (CASE WHEN RQRO.Rqtp_Code = '001' THEN 1 ELSE (SELECT Rwno FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = RQRO.RQST_RQID AND RECT_CODE = '004') END),
              @FromPymtDate,
              @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
@@ -376,7 +376,9 @@ BEGIN
           (
             (pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
             (((pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100) * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM
+          ) * ms.SUM_ATTN_MONT_DNRM,
+          pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
+          pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
     WHERE pe.MBSP_FIGH_FILE_NO = ms.FIGH_FILE_NO
       AND pe.MBSP_RWNO = ms.RWNO
@@ -456,9 +458,9 @@ BEGIN
              '002', -- تعداد جلسات
              '002', -- مبلغی
              @PymtStat,
-             NULL,
-             NULL,
-             NULL,
+             FIGH.FILE_NO,
+             '004',
+             (CASE WHEN RQRO.Rqtp_Code = '001' THEN 1 ELSE (SELECT Rwno FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = RQRO.RQST_RQID AND RECT_CODE = '004') END),
              @FromPymtDate,
              @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
@@ -487,7 +489,9 @@ BEGIN
           (
             @PrctValu - 
             (@PrctValu * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM
+          ) * ms.SUM_ATTN_MONT_DNRM,
+          pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
+          pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
     WHERE pe.MBSP_FIGH_FILE_NO = ms.FIGH_FILE_NO
       AND pe.MBSP_RWNO = ms.RWNO
@@ -724,7 +728,7 @@ BEGIN
 
    -- پارت هفتم
    --**********************************************************************
-   --***************** محاسبه مربیان برای تعداد جلسات اعضا *********************
+   --************* محاسبه مربیان برای تعداد جلسات گروهی اعضا **************
    --**********************************************************************
    DECLARE C$CochFileNo$CalcExpnPAG CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
@@ -856,6 +860,13 @@ BEGIN
        WHERE pe.VALD_TYPE = '001'
          AND pe.PYDT_CODE IS NULL
          AND pe.CLUB_CODE = c.CODE
+         AND NOT EXISTS(
+             SELECT *
+               FROM dbo.Misc_Expense ME
+              WHERE me.CALC_EXPN_TYPE = '001'
+                AND me.CLUB_CODE = c.CODE
+                AND me.COCH_FILE_NO = pe.COCH_FILE_NO
+         )
     GROUP BY c.REGN_PRVN_CNTY_CODE, c.REGN_PRVN_CODE, 
              c.REGN_CODE, c.CODE, 
              pe.COCH_FILE_NO ) T	  	  
@@ -868,6 +879,12 @@ BEGIN
       AND pe.MSEX_CODE IS NULL
       AND me.CALC_EXPN_TYPE = '001'
       AND me.DELV_STAT IS NULL;  
+   
+   --1397/09/04 * برای بروزرسانی مبلغ رکورد های پدر
+   UPDATE dbo.Misc_Expense
+      SET EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE)
+     WHERE VALD_TYPE = '001'
+       AND CALC_EXPN_TYPE = '001';
          
    COMMIT TRAN T1;  
    END TRY
