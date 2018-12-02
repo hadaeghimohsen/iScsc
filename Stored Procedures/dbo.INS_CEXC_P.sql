@@ -23,7 +23,9 @@ CREATE PROCEDURE [dbo].[INS_CEXC_P]
     @Calc_Expn_Type VARCHAR(3) ,
     @Pymt_Stat VARCHAR(3),
     @Min_Numb_Attn SMALLINT,
-    @Min_Attn_Stat VARCHAR(3)
+    @Min_Attn_Stat VARCHAR(3),
+    @Rduc_Amnt BIGINT,
+    @Cbmt_Code BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -93,7 +95,9 @@ BEGIN
               CALC_EXPN_TYPE ,
               PYMT_STAT,
               MIN_NUMB_ATTN,
-              MIN_ATTN_STAT
+              MIN_ATTN_STAT,
+              RDUC_AMNT,
+              CBMT_CODE
             )
     VALUES  ( dbo.GNRT_NVID_U() ,
               @Epit_Code ,
@@ -110,7 +114,9 @@ BEGIN
               @Calc_Expn_Type ,
               @Pymt_Stat,
               @Min_Numb_Attn,
-              @Min_Attn_Stat
+              @Min_Attn_Stat,
+              @Rduc_Amnt,
+              @Cbmt_Code
             );
    
     IF @Calc_Expn_Type NOT IN ('003', '004', '005')
@@ -146,7 +152,9 @@ BEGIN
                       RQTP_CODE ,
                       PYMT_STAT ,
                       MIN_NUMB_ATTN,
-                      MIN_ATTN_STAT
+                      MIN_ATTN_STAT,
+                      RDUC_AMNT,
+                      CBMT_CODE
                     )
             VALUES  ( dbo.GNRT_NVID_U() ,
                       @Epit_Code ,
@@ -165,7 +173,9 @@ BEGIN
                       END ,
                       @Pymt_Stat,
                       @Min_Numb_Attn,
-                      @Min_Attn_Stat
+                      @Min_Attn_Stat,
+                      @Rduc_Amnt,
+                      @Cbmt_Code
                     );
         END; 
 END;

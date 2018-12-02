@@ -25,6 +25,8 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Pymt_Stat VARCHAR(3)
   ,@Min_Numb_Attn SMALLINT
   ,@Min_Attn_Stat VARCHAR(3)
+  ,@Rduc_Amnt BIGINT
+  ,@Cbmt_Code BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -94,6 +96,8 @@ BEGIN
          ,PYMT_STAT = @Pymt_Stat
          ,MIN_NUMB_ATTN = @Min_Numb_Attn
          ,MIN_ATTN_STAT = @Min_Attn_Stat
+         ,RDUC_AMNT = @Rduc_Amnt
+         ,CBMT_CODE = @Cbmt_Code
     WHERE CODE = @Code;
 END
 GO
