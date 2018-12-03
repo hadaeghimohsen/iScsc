@@ -21,9 +21,7 @@ CREATE TABLE [dbo].[Calculate_Expense_Coach]
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL,
-[RDUC_AMNT] [bigint] NULL,
-[CBMT_CODE] [bigint] NULL
+[MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
