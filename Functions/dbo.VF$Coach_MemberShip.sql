@@ -29,8 +29,11 @@ SELECT ms.RWNO
       ,f.BRTH_DATE_DNRM
       ,dbo.GET_MTOS_U(f.BRTH_DATE_DNRM) AS PERS_BRTH_DATE
       ,DATEDIFF(YEAR, f.BRTH_DATE_DNRM, GETDATE()) AS AGE
+      ,m.CODE AS MTOD_CODE
       ,m.MTOD_DESC
+      ,cb.CODE AS CTGY_CODE
       ,cb.CTGY_DESC
+      ,c.FILE_NO AS COCH_FILE_NO
       ,c.NAME_DNRM AS COCH_NAME_DNRM
   FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Fighter f, dbo.Club_Method cm, dbo.Method m, dbo.Category_Belt cb, dbo.Fighter c, QXML Qx
  WHERE ms.FIGH_FILE_NO = fp.FIGH_FILE_NO

@@ -19,7 +19,9 @@ CREATE TABLE [dbo].[Calculate_Expense_Coach]
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL
+[MDFY_DATE] [datetime] NULL,
+[RDUC_AMNT] [bigint] NULL,
+[CBMT_CODE] [bigint] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -39,20 +41,20 @@ BEGIN
    
    MERGE dbo.Calculate_Expense_Coach T
    USING (SELECT * FROM INSERTED i) S
-   ON (T.Code      = S.Code AND
+   ON (T.Code         = S.Code /*AND
        T.Coch_File_No = S.Coch_File_No AND
        T.Epit_Code    = S.Epit_Code AND
        T.Rqtt_Code    = S.Rqtt_Code AND 
-       T.RQTP_CODE = S.RQTP_CODE AND
-       T.MTOD_CODE = S.MTOD_CODE AND
-       T.CTGY_CODE = S.CTGY_CODE AND 
-       t.COCH_DEG = s.COCH_DEG)
+       T.RQTP_CODE    = S.RQTP_CODE AND
+       T.MTOD_CODE    = S.MTOD_CODE AND
+       T.CTGY_CODE    = S.CTGY_CODE AND 
+       t.COCH_DEG     = s.COCH_DEG*/)
    WHEN MATCHED THEN
       UPDATE 
       SET CRET_BY   = UPPER(SUSER_NAME())
          ,CRET_DATE = GETDATE()
-         ,CODE      = dbo.Gnrt_nvid_U()
-         ,STAT      = '002';
+         ,CODE      = CASE s.CODE WHEN 0 THEN dbo.Gnrt_nvid_U() ELSE s.CODE END;
+         
 END;
 GO
 SET QUOTED_IDENTIFIER ON
@@ -81,6 +83,8 @@ END;
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [PK_CEXC] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_CBMT] FOREIGN KEY ([CBMT_CODE]) REFERENCES [dbo].[Club_Method] ([CODE])
+GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EPIT] FOREIGN KEY ([EPIT_CODE]) REFERENCES [dbo].[Expense_Item] ([CODE])
@@ -99,6 +103,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'مبلغ دوره مورد نظ
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع محاسبه هزینه (مبلغی یا درصدی)', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CALC_TYPE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مشخص کردن سانس کلاسی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CBMT_CODE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'رسته', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'CTGY_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع آیتم درآمدی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EXTP_CODE'
@@ -106,4 +112,7 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'سبک', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'MTOD_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'درصد محاسبه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'PRCT_VALU'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ کاهش
+این گزینه بیشتر برای برنامه های خصوصی می باشد که بخواهیم با مربی حساب کنیم این گزینه ابتدا میگیم که مبلغ شهریه باشگاه کسر شود و بعد مبلغ باقیمانده درصد آن را محاسبه میکنیم', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'RDUC_AMNT'
 GO

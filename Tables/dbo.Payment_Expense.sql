@@ -35,6 +35,8 @@ CREATE TABLE [dbo].[Payment_Expense]
 [RCPT_NUMB_ATTN] [int] NULL,
 [MIN_NUMB_ATTN] [smallint] NULL,
 [NUMB_PKET_ATTN] [smallint] NULL,
+[CBMT_CODE] [bigint] NULL,
+[RDUC_AMNT] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -98,6 +100,8 @@ END
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [PK_PMEX] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_CBMT] FOREIGN KEY ([CBMT_CODE]) REFERENCES [dbo].[Club_Method] ([CODE])
+GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
@@ -128,6 +132,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل دسته های گروهی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'NUMB_PKET_ATTN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد حضوری های اعمال شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RCPT_NUMB_ATTN'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کاهش مبلغ', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RDUC_AMNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل حضوری اعضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'TOTL_NUMB_ATTN'
 GO

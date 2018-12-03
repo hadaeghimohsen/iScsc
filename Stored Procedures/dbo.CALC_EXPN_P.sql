@@ -48,8 +48,10 @@ BEGIN
 	       ,@RqtpCode     VARCHAR(3)
 	       ,@MtodCode     BIGINT
 	       ,@CtgyCode     BIGINT
+	       ,@CbmtCode     BIGINT
 	       ,@CalcType     VARCHAR(3)
-	       ,@PymtStat     VARCHAR(3);
+	       ,@PymtStat     VARCHAR(3)
+	       ,@RducAmnt     BIGINT;
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -106,7 +108,7 @@ BEGIN
    -- برای محاسبه درصدی آیتم هایی که برای مربی مشخص کرده ایم که باید بر اساس مبلغ دوره محسابه شود
    DECLARE C$CochFileNo$CalcExpnP CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
-             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT, c.RDUC_AMNT
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -128,7 +130,7 @@ BEGIN
    OPEN C$CochFileNo$CalcExpnP;
    NextC$CochFileNo$CalcExpnP:
    FETCH NEXT FROM C$CochFileNo$CalcExpnP INTO 
-   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @RducAmnt;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnP;
@@ -139,7 +141,7 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
          MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE)
+         FROM_DATE, TO_DATE, RDUC_AMNT)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -163,9 +165,10 @@ BEGIN
              @PymtStat,
              RQRO.FIGH_FILE_NO,
              '004',
-             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
+             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
              @FromPymtDate,
-             @ToPymtDate
+             @ToPymtDate,
+             @RducAmnt
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -179,14 +182,48 @@ BEGIN
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
          AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
-         AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
+         AND (PYDT.FIGH_FILE_NO = @CochFileNo)
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
          AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
-  
+      
+      -- بروز کردن رکورد هایی که مبلغ کاهش در ردیف آنها لحاظ شده است
+      UPDATE pe
+         SET pe.EXPN_AMNT = (
+                (
+                   (
+                        pe.EXPN_PRIC
+                     -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                     -  (
+                             pe.RDUC_AMNT -- سهم باشگاه
+                          -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
+                        )
+                     
+                   ) * @PrctValu / 100 
+                ) - 
+                (
+                   (
+                     (
+                           pe.EXPN_PRIC 
+                        -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                        -  (
+                                pe.RDUC_AMNT -- سهم باشگاه
+                             -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
+                           )
+                     ) * @PrctValu / 100 
+                   ) * @DecrPrct / 100
+                )                
+             )
+        FROM dbo.Payment_Expense pe
+       WHERE COCH_FILE_NO = @CochFileNo
+         AND CALC_EXPN_TYPE = '001' -- مبلع دوره * Cycl Amnt
+         and CALC_TYPE = '001' -- درصدی
+         AND VALD_TYPE = '001'
+         AND RDUC_AMNT > 0;
+         
    GOTO NextC$CochFileNo$CalcExpnP;
    EndC$CochFileNo$CalcExpnP:
    CLOSE C$CochFileNo$CalcExpnP;
@@ -254,7 +291,7 @@ BEGIN
              @PymtStat,
              RQRO.FIGH_FILE_NO,
              '004',
-             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
+             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
              @FromPymtDate,
              @ToPymtDate
         FROM Payment_Detail AS PYDT INNER JOIN
@@ -270,7 +307,7 @@ BEGIN
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
          AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
-         AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
+         AND (PYDT.FIGH_FILE_NO = @CochFileNo)
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
@@ -278,6 +315,27 @@ BEGIN
          AND (RQRO.RQTP_CODE = @RqtpCode)
          AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
   
+      -- بروز کردن رکورد هایی که مبلغ کاهش در ردیف آنها لحاظ شده است
+      UPDATE pe
+         SET pe.EXPN_AMNT = (
+                (                   
+                     pe.EXPN_AMNT
+                  -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی                    
+                ) - 
+                (
+                   (
+                        pe.EXPN_AMNT
+                     -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی                        
+                   ) * @DecrPrct / 100
+                )                
+             )
+        FROM dbo.Payment_Expense pe
+       WHERE COCH_FILE_NO = @CochFileNo
+         AND CALC_EXPN_TYPE = '001' -- مبلع دوره * Cycl Amnt
+         and CALC_TYPE = '002' -- درصدی
+         AND VALD_TYPE = '001'
+         AND RDUC_AMNT > 0;
+         
    GOTO NextC$CochFileNo$CalcExpnPA;
    EndC$CochFileNo$CalcExpnPA:
    CLOSE C$CochFileNo$CalcExpnPA;
@@ -363,7 +421,7 @@ BEGIN
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
          AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
-         AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
+         AND (PYDT.FIGH_FILE_NO = @CochFileNo)
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
@@ -376,7 +434,8 @@ BEGIN
           (
             (pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
             (((pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100) * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM,
+          ) * ms.SUM_ATTN_MONT_DNRM
+          -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
           pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
           pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
@@ -476,7 +535,7 @@ BEGIN
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
          AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
-         AND (FIGH.COCH_FILE_NO_DNRM = @CochFileNo)
+         AND (PYDT.FIGH_FILE_NO = @CochFileNo)
          AND (EPIT.CODE = @EpitCode)
          AND (RQRQ.RQTT_CODE = @RqttCode)
          AND (pydt.MTOD_CODE_DNRM = @MtodCode)
@@ -489,7 +548,8 @@ BEGIN
           (
             @PrctValu - 
             (@PrctValu * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM,
+          ) * ms.SUM_ATTN_MONT_DNRM
+          -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
           pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
           pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
@@ -612,17 +672,17 @@ BEGIN
       CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
       CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
       FROM_DATE, TO_DATE, NUMB_HORS, NUMB_MINT, NUMB_DAYS
-      )
-      SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
-             (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) - ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
-             (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
-             NULL,@ClubCode,
-             ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
-             NULL,NULL,
-             '003', -- محاسبه ساعتی
-             '002', -- مبلغی
-             NULL,@CochFileNo,'004',@MbspRwno,
-             @FromPymtDate, @ToPymtDate, @TotlHors, @TotlMint, @NumbAttnDay;
+   )
+   SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
+          (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) - ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
+          (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
+          NULL,@ClubCode,
+          ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
+          NULL,NULL,
+          '003', -- محاسبه ساعتی
+          '002', -- مبلغی
+          NULL,@CochFileNo,'004',@MbspRwno,
+          @FromPymtDate, @ToPymtDate, @TotlHors, @TotlMint, @NumbAttnDay;
    
    SET @ClubCode = NULL;             
    GOTO JUMPS$CbmtPH;   
@@ -822,6 +882,91 @@ BEGIN
    EndC$CochFileNo$CalcExpnPAG:
    CLOSE C$CochFileNo$CalcExpnPAG;
    DEALLOCATE C$CochFileNo$CalcExpnPAG;
+
+   -- پارت هشتم
+   -- محاسبه بر اساس مبلغی برای هر سانس عمومی
+   -- برای محاسبه مشخص میکنیم که در این سانس آیا مربی ثبت نامی عمومی داشته یا نه اگر داشته باشد مبلغی به آن اضافه میکنیم
+   DECLARE C$CochFileNo$CalcExpnPI CURSOR FOR
+      SELECT C.Coch_File_No, C.CBMT_CODE, C.Rqtt_Code, C.Prct_Valu,
+             c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT
+        FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
+       WHERE F.File_No = C.Coch_File_No
+         AND F.File_No = P.Figh_File_No 
+         AND F.Fgpb_Rwno_Dnrm = P.Rwno
+         AND P.Rect_Code = '004'
+         /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
+         AND C.Stat = '002'
+         AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
+         AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
+         AND (@CtgyCodeP IS NULL OR c.CTGY_CODE = @CtgyCodeP)
+         AND (@EpitCodeP IS NULL OR c.EPIT_CODE = @EpitCodeP)
+         AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
+         AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
+         AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)         
+         AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
+         AND C.CALC_TYPE = '002' /* مبلغی */
+         AND c.CALC_EXPN_TYPE = '006' /* مبلغ دوره */;
+    
+   OPEN C$CochFileNo$CalcExpnPI;
+   NextC$CochFileNo$CalcExpnPI:
+   FETCH NEXT FROM C$CochFileNo$CalcExpnPI INTO 
+   @CochFileNo, @CbmtCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   
+   SELECT @MbspRwno = f.MBSP_RWNO_DNRM
+     FROM dbo.Fighter f
+    WHERE f.FILE_NO = @CochFileNo;
+   
+   SELECT @ClubCode = CLUB_CODE
+     FROM dbo.Club_Method
+    WHERE CODE = @CbmtCode;    
+   
+   IF @@FETCH_STATUS <> 0
+      GOTO EndC$CochFileNo$CalcExpnPI;
+      
+      IF EXISTS(
+         SELECT *
+           FROM dbo.[VF$Coach_MemberShip](REPLACE('<Club_Method code="{0}"/>', '{0}', @CbmtCode))
+          WHERE CTGY_CODE = ISNULL(@CtgyCode, CTGY_CODE)
+            AND STRT_DATE BETWEEN @FromPymtDate AND @ToPymtDate
+      )
+      AND NOT EXISTS(
+         SELECT *
+           FROM dbo.Payment_Expense
+          WHERE CALC_EXPN_TYPE = '006'
+            AND CALC_TYPE = '002'
+            AND COCH_FILE_NO = @CochFileNo
+            AND FROM_DATE = @FromPymtDate
+            AND TO_DATE = @ToPymtDate
+            AND CLUB_CODE = @ClubCode
+            AND MTOD_CODE = @MtodCode
+            AND CTGY_CODE = ISNULL(@CtgyCode, CTGY_CODE)
+            AND CBMT_CODE = @CbmtCode
+      )
+      BEGIN
+         INSERT INTO Payment_Expense (
+            Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+            DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
+            CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
+            CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
+            FROM_DATE, TO_DATE, CBMT_CODE
+         )
+         SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
+                (@PrctValu) - (@PrctValu * @DecrPrct / 100),NULL,NULL,
+                NULL,@PrctValu,@DecrPrct,NULL,@MtodCode,@CtgyCode,
+                @ClubCode,
+                (@PrctValu * @DecrPrct / 100),
+                NULL,NULL,
+                '006', -- مبلغ سانس کلاسی
+                '002', -- مبلغی
+                NULL,@CochFileNo,'004',@MbspRwno,
+                @FromPymtDate, @ToPymtDate, @CbmtCode;
+      END;
+  
+   GOTO NextC$CochFileNo$CalcExpnPI;
+   EndC$CochFileNo$CalcExpnPI:
+   CLOSE C$CochFileNo$CalcExpnPI;
+   DEALLOCATE C$CochFileNo$CalcExpnPI;
+
    
    --***********************************
    --******** محاسبه درآمد متفرقه *********
@@ -864,6 +1009,7 @@ BEGIN
              SELECT *
                FROM dbo.Misc_Expense ME
               WHERE me.CALC_EXPN_TYPE = '001'
+                AND me.VALD_TYPE = '001'
                 AND me.CLUB_CODE = c.CODE
                 AND me.COCH_FILE_NO = pe.COCH_FILE_NO
          )
