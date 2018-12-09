@@ -31,6 +31,7 @@ BEGIN
    DELETE dbo.Heart_Zone;
    DELETE dbo.Physical_Fitness;
    DELETE dbo.Test;
+   DELETE dbo.Member_Ship_Mark;
    DELETE dbo.Member_Ship;
    DELETE dbo.Request_Regulation_History;
    DELETE dbo.Payment_Detail;
