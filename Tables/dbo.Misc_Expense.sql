@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[Misc_Expense]
 [EPIT_CODE] [bigint] NULL,
 [COCH_FILE_NO] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
+[RWNO] [bigint] NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_AMNT] [bigint] NULL,
 [EXPN_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -73,6 +74,7 @@ BEGIN
 	      ,CRET_DATE = GETDATE()
 	      ,CALC_EXPN_TYPE = CASE WHEN @EpitCode IS NOT NULL THEN '002' ELSE '001' END
 	      ,VALD_TYPE = '001'
+	      ,RWNO = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.Misc_Expense)	      
 	 WHERE CODE = @Code;
 	   
 	GOTO NEXTCG$AINS_MSEX;
