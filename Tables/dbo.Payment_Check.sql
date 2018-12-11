@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Payment_Check]
 [RQRO_RWNO] [smallint] NOT NULL,
 [RWNO] [smallint] NOT NULL,
 [AMNT] [bigint] NULL,
+[AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHEK_OWNR] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHEK_NO] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHEK_DATE] [date] NULL,
@@ -177,4 +178,8 @@ GO
 ALTER TABLE [dbo].[Payment_Check] ADD CONSTRAINT [FK_PMTC_PYMT] FOREIGN KEY ([PYMT_CASH_CODE], [PYMT_RQST_RQID]) REFERENCES [dbo].[Payment] ([CASH_CODE], [RQST_RQID]) ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[Payment_Check] ADD CONSTRAINT [FK_PMTC_RQRO] FOREIGN KEY ([RQRO_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع مبلغ
+چک
+دفترچه قسط', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Check', 'COLUMN', N'AMNT_TYPE'
 GO
