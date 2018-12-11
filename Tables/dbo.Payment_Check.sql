@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Payment_Check]
 [RQRO_RWNO] [smallint] NOT NULL,
 [RWNO] [smallint] NOT NULL,
 [AMNT] [bigint] NULL,
+[DEBT_AMNT_DNRM] [bigint] NULL,
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHEK_OWNR] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHEK_NO] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -182,4 +183,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع مبلغ
 چک
 دفترچه قسط', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Check', 'COLUMN', N'AMNT_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'میزان مبلغ باقیمانده دفترچه قسط', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Check', 'COLUMN', N'DEBT_AMNT_DNRM'
 GO
