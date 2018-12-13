@@ -213,7 +213,9 @@ AS
                                                               AND m.CHCK_ATTN_ALRM = '002'
                                                              )
                                                           OR ( A.ATTN_TYPE = '002'
-                                                              AND A.EXIT_TIME IS NOT NULL
+                                                              -- 1397/09/22 * اگر غیبت ثبت شود از تعداد جلسات کم شود
+                                                              --AND A.EXIT_TIME IS NOT NULL
+                                                              AND a.EXIT_TIME IS NULL
                                                              )
                                                         ) );
 						

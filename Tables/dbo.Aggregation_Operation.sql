@@ -138,6 +138,7 @@ BEGIN
           WHERE Ao.CODE = @Code
             AND F.REGN_PRVN_CNTY_CODE = Ao.REGN_PRVN_CNTY_CODE
             AND f.CONF_STAT = '002' -- تایید شده باشد            
+            AND f.ACTV_TAG_DNRM >= '101'
             AND 1 = (
                CASE 
                   WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003' )
