@@ -75,5 +75,7 @@ ALTER TABLE [dbo].[App_Base_Define] ADD CONSTRAINT [FK_RAPB_APBS] FOREIGN KEY ([
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'دامنه های کاربری', 'SCHEMA', N'dbo', 'TABLE', N'App_Base_Define', NULL, NULL
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد', 'SCHEMA', N'dbo', 'TABLE', N'App_Base_Define', 'COLUMN', N'CODE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'ترتیب', 'SCHEMA', N'dbo', 'TABLE', N'App_Base_Define', 'COLUMN', N'RWNO'
 GO
