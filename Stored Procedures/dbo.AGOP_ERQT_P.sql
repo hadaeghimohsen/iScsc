@@ -110,12 +110,25 @@ BEGIN
 	       @Attn_Date = @FromDate, -- date
 	       @CochFileNo = @CochFileNo, -- bigint
 	       @Attn_TYPE = @AttnType,
-	       @Mbsp_Rwno = @MbspRwno; -- varchar(3)
+	       @Mbsp_Rwno = @MbspRwno,
+	       @Attn_Sys_Type = '001',
+	       @Attn_Ignr_Stat = '002'; -- varchar(3)
 	   
 	   UPDATE dbo.Aggregation_Operation_Detail
 	      SET ATTN_CODE = (SELECT MAX(Code) from dbo.Attendance WHERE FIGH_FILE_NO = @FileNo AND ATTN_DATE = @FromDate AND ATTN_TYPE = @AttnType AND CRET_BY = UPPER(SUSER_NAME()))
 	    WHERE AGOP_CODE = @AgopCode
 	      AND FIGH_FILE_NO = @FileNo;
+	   
+	   UPDATE dbo.Attendance
+	      SET EXIT_TIME = GETDATE()
+	    WHERE EXISTS(
+	            SELECT *
+	              FROM dbo.Aggregation_Operation_Detail 
+	             WHERE AGOP_CODE = @AgopCode
+	               AND FIGH_FILE_NO = @FileNo
+	               AND ATTN_CODE = dbo.Attendance.CODE
+	               AND ATTN_TYPE IN ( '002' )	             
+	          );
 	END
 	ELSE IF @OprtType = '005' -- ثبت هزینه میز و بوفه
 	BEGIN

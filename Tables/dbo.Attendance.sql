@@ -38,6 +38,7 @@ CREATE TABLE [dbo].[Attendance]
 [PRNT_CONT] [int] NULL CONSTRAINT [DF_Attendance_PRNT_CONT] DEFAULT ((0)),
 [RCPT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PMEX_CODE] [bigint] NULL,
+[ATTN_SYS_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -128,7 +129,7 @@ AS
                     T.DEBT_DNRM = S.DEBT_DNRM ,
                     T.BUFE_DEBT_DNRM = S.BUFE_DEBT_DNTM ,
                     T.MBSP_STRT_DATE_DNRM = S.MBSP_STRT_DATE ,
-                    T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
+           T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
                     T.BRTH_DATE_DNRM = S.BRTH_DATE_DNRM ,
                     T.NUMB_OF_ATTN_MONT = S.NUMB_OF_ATTN_MONT ,
       T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
@@ -195,7 +196,7 @@ AS
                                 AND RECT_CODE = '004'
                                 AND EXISTS ( SELECT *
                                              FROM   INSERTED I ,
-                                                    Attendance A ,
+                           Attendance A ,
                                                     dbo.Method m
                                              WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
                                                     AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
@@ -435,6 +436,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'تاریخ حضور', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'ATTN_DATE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت حضور و غیاب', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'ATTN_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نحوه حضور و غیاب', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'ATTN_SYS_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع حضوری', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'ATTN_TYPE'
 GO
