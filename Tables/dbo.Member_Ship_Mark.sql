@@ -90,6 +90,23 @@ BEGIN
       RAISERROR(N'این آیتم قبلا برای این دوره ثبت شده و تکراری میباشد', 16, 1);
       RETURN;
    END
+   
+   IF EXISTS(
+	   SELECT * 
+	     FROM dbo.Member_Ship_Mark t, Inserted s , dbo.App_Base_Define ad
+	    WHERE T.MBSP_FIGH_FILE_NO = s.MBSP_FIGH_FILE_NO 
+         AND T.MBSP_RWNO = S.MBSP_RWNO 
+         AND T.MBSP_RECT_CODE = S.MBSP_RECT_CODE 
+         AND T.MARK_CODE = S.MARK_CODE
+         AND t.CODE = s.CODE
+         AND ad.CODE = t.MARK_CODE
+         AND (ad.NUMB IS NOT NULL AND ad.NUMB > 0)
+         AND s.MARK_NUMB > ad.NUMB * ISNULL(ad.UNIT, 1)
+   )
+   BEGIN
+      RAISERROR(N'میزان نمره وارد شده بیش از حد مجاز می باشد، لطفا اصلاح کنید', 16, 1);
+      RETURN;
+   END
 
    -- Insert statements for trigger here
    MERGE dbo.Member_Ship_Mark T

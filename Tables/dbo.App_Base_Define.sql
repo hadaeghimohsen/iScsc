@@ -5,6 +5,8 @@ CREATE TABLE [dbo].[App_Base_Define]
 [TITL_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ENTY_NAME] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [REF_CODE] [bigint] NULL,
+[NUMB] [float] NULL,
+[UNIT] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

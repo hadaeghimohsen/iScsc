@@ -79,9 +79,11 @@ BEGIN
    
    SELECT @EpitCode = Et.EPIT_CODE
          ,@CovrDsct = COVR_DSCT
-     FROM Expense E, Expense_Type Et
+     FROM Expense E, Expense_Type Et, Request_Requester Rr
     WHERE E.CODE = @ExpnCode
-      AND E.EXTP_CODE = Et.CODE;      
+      AND E.EXTP_CODE = Et.CODE
+	    AND Et.RQRQ_CODE = rr.CODE
+	    AND rr.RQTP_CODE = @RqtpCode;      
    
    -- محاسبه تخفیف عادی
    IF EXISTS(
@@ -94,6 +96,7 @@ BEGIN
          AND REGL_YEAR = @ReglYear
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
+         AND RQTP_CODE = @RqtpCode
          AND ACTN_TYPE = '001' -- تخفیف عادی
          AND STAT = '002'
    )
@@ -116,6 +119,7 @@ BEGIN
          AND REGL_YEAR = @ReglYear
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
+         AND RQTP_CODE = @RqtpCode
          AND ACTN_TYPE = '001'
          AND STAT = '002';
 
@@ -156,6 +160,7 @@ BEGIN
          AND REGL_YEAR = @ReglYear
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
+         AND RQTP_CODE = @RqtpCode
          AND ACTN_TYPE != '001' -- تخفیف دوره و تخفیف بازه زمانی
          AND STAT = '002'
          AND (
@@ -178,6 +183,7 @@ BEGIN
          AND REGL_YEAR = @ReglYear
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
+         AND RQTP_CODE = @RqtpCode
          AND ACTN_TYPE != '001'
          AND STAT = '002'
          AND (

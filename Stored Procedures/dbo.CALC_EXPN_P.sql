@@ -81,9 +81,19 @@ BEGIN
    DECLARE @PmexCode BIGINT;
 
    -- DELETE FOR Paymemt_Expense FOR Coach With Vald_Type = '001'
+   ALTER TABLE dbo.Attendance DISABLE TRIGGER [CG$AUPD_ATTN];
    UPDATE dbo.Attendance
       SET RCPT_STAT = NULL
     WHERE RCPT_STAT != '003'
+      AND EXISTS(
+          SELECT * 
+            FROM dbo.Calculate_Expense_Coach cec
+           WHERE cec.CALC_EXPN_TYPE = '005'
+             AND cec.STAT = '002'
+             AND dbo.Attendance.MTOD_CODE_DNRM = cec.MTOD_CODE
+             AND dbo.Attendance.CTGY_CODE_DNRM = cec.CTGY_CODE
+             AND dbo.Attendance.COCH_FILE_NO = cec.COCH_FILE_NO
+      )
       AND EXISTS(
           SELECT *
             FROM dbo.Payment_Expense
@@ -95,6 +105,7 @@ BEGIN
             FROM dbo.Payment_Expense
            WHERE CODE = PMEX_CODE
     );
+   ALTER TABLE dbo.Attendance ENABLE TRIGGER [CG$AUPD_ATTN];
    
    DELETE Misc_Expense
     WHERE CALC_EXPN_TYPE = '001'

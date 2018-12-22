@@ -8,18 +8,19 @@ CREATE TABLE [dbo].[Basic_Calculate_Discount]
 [REGL_CODE] [int] NOT NULL,
 [RWNO] [int] NOT NULL CONSTRAINT [DF_Basic_Calculate_Discount_RWNO] DEFAULT ((0)),
 [EPIT_CODE] [bigint] NULL,
+[RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [AMNT_DSCT] [int] NULL,
 [PRCT_DSCT] [int] NULL,
 [DSCT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Basic_Calculate_Discount_STAT] DEFAULT ('002'),
-[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CRET_DATE] [datetime] NULL,
-[MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL,
 [ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DSCT_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FROM_DATE] [date] NULL,
-[TO_DATE] [date] NULL
+[TO_DATE] [date] NULL,
+[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CRET_DATE] [datetime] NULL,
+[MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -51,7 +52,8 @@ BEGIN
                    T.SUNT_Bunt_Dept_Orgn_Code = S.SUNT_Bunt_Dept_Orgn_Code AND
                    T.REGL_YEAR                = S.REGL_YEAR AND
                    T.REGL_CODE                = S.REGL_CODE AND
-                   (S.EPIT_CODE IS NULL AND T.EPIT_CODE IS NULL)
+                   (S.EPIT_CODE IS NULL AND T.EPIT_CODE IS NULL) AND 
+                   (S.RQTP_CODE IS NULL AND T.RQTP_CODE IS NULL)
          ) > 1 
          BEGIN
             RAISERROR ( N'تخفیف برای کل هزینه قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
@@ -69,7 +71,8 @@ BEGIN
                    T.SUNT_Bunt_Dept_Orgn_Code = S.SUNT_Bunt_Dept_Orgn_Code AND
                    T.REGL_YEAR                = S.REGL_YEAR AND
                    T.REGL_CODE                = S.REGL_CODE AND
-                   (S.EPIT_CODE               = T.EPIT_CODE )
+                   S.EPIT_CODE                = T.EPIT_CODE AND 
+                   S.RQTP_CODE                = T.RQTP_CODE
          ) > 1 
          BEGIN
             RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.

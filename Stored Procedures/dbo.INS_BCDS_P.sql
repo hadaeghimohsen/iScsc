@@ -14,8 +14,9 @@ CREATE PROCEDURE [dbo].[INS_BCDS_P]
 	@SUNT_BUNT_CODE VARCHAR(2),
 	@SUNT_CODE VARCHAR(4),
    @REGL_YEAR SMALLINT,
-   @REGL_CODE INT,
+   @REGL_CODE INT,   
    @EPIT_CODE BIGINT,
+   @RQTP_CODE VARCHAR(3),
    @AMNT_DSCT INT,
    @PRCT_DSCT INT,
    @DSCT_TYPE VARCHAR(3),
@@ -80,6 +81,9 @@ BEGIN
    IF @ACTN_TYPE != '001' AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
    
+   IF @RQTP_CODE IS NULL 
+      RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
+   
    SELECT @REGL_YEAR = [YEAR], @REGL_CODE = CODE   
      FROM dbo.Regulation
     WHERE REGL_STAT = '002'
@@ -94,7 +98,8 @@ BEGIN
              T.SUNT_Bunt_Dept_Orgn_Code = @SUNT_Bunt_Dept_Orgn_Code AND
              T.REGL_YEAR                = @REGL_YEAR AND
              T.REGL_CODE                = @REGL_CODE AND
-             T.EPIT_CODE                = @EPIT_CODE 
+             T.EPIT_CODE                = @EPIT_CODE AND
+             T.RQTP_CODE                = @RQTP_CODE
    ) >= 1 
    BEGIN
       RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
@@ -113,6 +118,7 @@ BEGIN
              REGL_CODE ,
              RWNO ,
              EPIT_CODE ,
+             RQTP_CODE ,
              AMNT_DSCT ,
              PRCT_DSCT ,
              DSCT_TYPE ,
@@ -129,6 +135,7 @@ BEGIN
              @REGL_CODE , -- REGL_CODE - int
              0 , -- RWNO - int
              @EPIT_CODE , -- EPIT_CODE - bigint
+             @RQTP_CODE ,
              @AMNT_DSCT , -- AMNT_DSCT - int
              @PRCT_DSCT , -- PRCT_DSCT - int
              @DSCT_TYPE , -- DSCT_TYPE - varchar(3)

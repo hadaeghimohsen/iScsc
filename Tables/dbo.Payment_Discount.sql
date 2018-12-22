@@ -116,6 +116,9 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
    
+   DELETE dbo.Payment_Discount 
+    WHERE AMNT = 0;
+   
    -- Insert statements for trigger here
    MERGE Payment_Discount T
    USING (SELECT * FROM INSERTED) S
@@ -126,9 +129,8 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE
          SET MDFY_BY = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();
-
-   
+            ,MDFY_DATE = GETDATE();   
+      
    UPDATE Payment 
       SET SUM_PYMT_DSCN_DNRM = (SELECT ISNULL(SUM(ISNULL(AMNT, 0)), 0) FROM Payment_Discount Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID AND STAT = '002')
          ,SUM_EXPN_PRIC = ROUND((   

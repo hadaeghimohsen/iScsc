@@ -17,6 +17,7 @@ CREATE PROCEDURE [dbo].[UPD_BCDS_P]
    @REGL_CODE INT,
    @Rwno INT,
    @EPIT_CODE BIGINT,
+   @RQTP_CODE VARCHAR(3),
    @AMNT_DSCT INT,
    @PRCT_DSCT INT,
    @DSCT_TYPE VARCHAR(3),
@@ -80,9 +81,13 @@ BEGIN
    
    IF @ACTN_TYPE != '001' AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
+   
+   IF @RQTP_CODE IS NULL
+      RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
       
    UPDATE dbo.Basic_Calculate_Discount
       SET EPIT_CODE = @EPIT_CODE
+         ,RQTP_CODE = @RQTP_CODE
          ,AMNT_DSCT = @AMNT_DSCT
          ,PRCT_DSCT = @PRCT_DSCT
          ,DSCT_TYPE = @DSCT_TYPE

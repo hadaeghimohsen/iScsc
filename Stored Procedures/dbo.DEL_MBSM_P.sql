@@ -1,0 +1,12 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+CREATE PROC [dbo].[DEL_MBSM_P]
+   @Code BIGINT
+AS 
+BEGIN
+   DELETE dbo.Member_Ship_Mark
+    WHERE CODE = @Code;   
+END;
+GO

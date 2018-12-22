@@ -6,7 +6,9 @@ CREATE PROCEDURE [dbo].[INS_APBS_P]
    @Titl_Desc NVARCHAR(250),
    @Enty_Name VARCHAR(250),
    @Ref_Code BIGINT,
-   @Rwno INT
+   @Rwno INT,
+   @Numb FLOAT,
+   @Unit SMALLINT   
 AS 
 BEGIN
    MERGE dbo.App_Base_Define T
@@ -15,8 +17,8 @@ BEGIN
        T.ENTY_NAME = S.Enty_Name AND
        T.REF_CODE = S.Ref_Code)
    WHEN NOT MATCHED THEN
-      INSERT (code, TITL_DESC, ENTY_NAME, REF_CODE, RWNO)
-      VALUES (0, s.Titl_Desc, s.Enty_Name, s.Ref_Code, @Rwno);
+      INSERT (code, TITL_DESC, ENTY_NAME, REF_CODE, RWNO, NUMB, UNIT)
+      VALUES (0, s.Titl_Desc, s.Enty_Name, s.Ref_Code, @Rwno, @Numb, @Unit);
          
 END 
 GO
