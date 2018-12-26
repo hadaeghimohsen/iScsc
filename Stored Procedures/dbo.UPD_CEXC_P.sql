@@ -27,6 +27,7 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Min_Attn_Stat VARCHAR(3)
   ,@Rduc_Amnt BIGINT
   ,@Cbmt_Code BIGINT
+  ,@Efct_Date_Type VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -98,6 +99,8 @@ BEGIN
          ,MIN_ATTN_STAT = @Min_Attn_Stat
          ,RDUC_AMNT = @Rduc_Amnt
          ,CBMT_CODE = @Cbmt_Code
+         ,EFCT_DATE_TYPE = @Efct_Date_Type
     WHERE CODE = @Code;
 END
+
 GO

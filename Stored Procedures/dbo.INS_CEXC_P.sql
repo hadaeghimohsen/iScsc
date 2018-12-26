@@ -25,7 +25,8 @@ CREATE PROCEDURE [dbo].[INS_CEXC_P]
     @Min_Numb_Attn SMALLINT,
     @Min_Attn_Stat VARCHAR(3),
     @Rduc_Amnt BIGINT,
-    @Cbmt_Code BIGINT
+    @Cbmt_Code BIGINT,
+    @Efct_Date_Type VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -97,7 +98,8 @@ BEGIN
               MIN_NUMB_ATTN,
               MIN_ATTN_STAT,
               RDUC_AMNT,
-              CBMT_CODE
+              CBMT_CODE,
+              EFCT_DATE_TYPE
             )
     VALUES  ( dbo.GNRT_NVID_U() ,
               @Epit_Code ,
@@ -116,7 +118,8 @@ BEGIN
               @Min_Numb_Attn,
               @Min_Attn_Stat,
               @Rduc_Amnt,
-              @Cbmt_Code
+              @Cbmt_Code,
+              @Efct_Date_Type
             );
    
     IF @Calc_Expn_Type NOT IN ('003', '004', '005', '006')
@@ -155,7 +158,8 @@ BEGIN
                       MIN_NUMB_ATTN,
                       MIN_ATTN_STAT,
                       RDUC_AMNT,
-                      CBMT_CODE
+                      CBMT_CODE,
+                      EFCT_DATE_TYPE
                     )
             VALUES  ( dbo.GNRT_NVID_U() ,
                       @Epit_Code ,
@@ -176,8 +180,10 @@ BEGIN
                       @Min_Numb_Attn,
                       @Min_Attn_Stat,
                       @Rduc_Amnt,
-                      @Cbmt_Code
+                      @Cbmt_Code,
+                      @Efct_Date_Type
                     );
         END; 
 END;
+
 GO

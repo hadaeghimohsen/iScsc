@@ -37,6 +37,7 @@ CREATE TABLE [dbo].[Payment_Expense]
 [NUMB_PKET_ATTN] [smallint] NULL,
 [CBMT_CODE] [bigint] NULL,
 [RDUC_AMNT] [bigint] NULL,
+[EFCT_DATE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

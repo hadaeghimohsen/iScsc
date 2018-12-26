@@ -122,11 +122,11 @@ BEGIN
 	BEGIN TRY
 	   BEGIN TRAN CG$AUPD_MDRP
          DECLARE C$AUPD_MDRP CURSOR FOR
-            SELECT Code, Mdul_Name, Rprt_Desc, Rprt_Path, Dflt, Stat, Sect_Name, Prnt_Aftr_Pay FROM INSERTED;
+            SELECT Code, Mdul_Name, SECT_NAME, Rprt_Desc, Rprt_Path, Dflt, Stat, Sect_Name, Prnt_Aftr_Pay FROM INSERTED;
          
          OPEN C$AUPD_MDRP;
          FNFC$AUPD_MDRP:
-         FETCH NEXT FROM C$AUPD_MDRP INTO @Code, @MdulName, @RprtDesc, @RprtPath, @Dflt, @Stat, @SectName, @PrntAftrPay;
+         FETCH NEXT FROM C$AUPD_MDRP INTO @Code, @MdulName, @SectName, @RprtDesc, @RprtPath, @Dflt, @Stat, @SectName, @PrntAftrPay;
          
          IF @@FETCH_STATUS <> 0
             GOTO CDC$AUPD_MDRP;
@@ -138,6 +138,7 @@ BEGIN
             UPDATE Modual_Report
                SET DFLT = '001'
              WHERE MDUL_NAME = @MdulName
+               AND SECT_NAME = @SectName
                AND CODE <> @Code;
          
          UPDATE Modual_Report
