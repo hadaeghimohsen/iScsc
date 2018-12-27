@@ -561,7 +561,7 @@ BEGIN
    OPEN C$CochFileNo$CalcExpnPT;
    NextC$CochFileNo$CalcExpnPT:
    FETCH NEXT FROM C$CochFileNo$CalcExpnPT INTO 
-   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat;
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @EfctDateType;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPT;
