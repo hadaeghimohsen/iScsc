@@ -9,6 +9,7 @@ AS
 BEGIN
    BEGIN TRY   
    -- Delete Record From Database
+   DELETE dbo.Basic_Calculate_Discount;
    DELETE dbo.Pre_Expense;
    DELETE dbo.Account;
    DELETE dbo.Account_Detail;
@@ -17,6 +18,7 @@ BEGIN
    DELETE dbo.Attendance;
    DELETE dbo.Buffet;
    DELETE dbo.Payment_Expense;
+   DELETE dbo.Member_Ship_Mark;
    DELETE dbo.Misc_Expense;
    DELETE dbo.Member_Ship
    DELETE dbo.Fighter_Public;
@@ -31,8 +33,6 @@ BEGIN
    DELETE dbo.Heart_Zone;
    DELETE dbo.Physical_Fitness;
    DELETE dbo.Test;
-   DELETE dbo.Member_Ship_Mark;
-   DELETE dbo.Member_Ship;
    DELETE dbo.Request_Regulation_History;
    DELETE dbo.Payment_Detail;
    DELETE dbo.Payment_Discount;
@@ -58,7 +58,7 @@ BEGIN
    DELETE dbo.Distance_Category
    DELETE dbo.Category_Belt;
    DELETE dbo.Dresser_Attendance;
-   DELETE dbo.Dresser;
+   DELETE dbo.Dresser;   
    DELETE dbo.Expense_Item;
    DELETE dbo.Group_Expense;
    DELETE dbo.Holidays;
