@@ -7,88 +7,96 @@ CREATE PROCEDURE [dbo].[InstallDatabase]
 	@X XML
 AS
 BEGIN
+   DECLARE @Emptydb VARCHAR(3);
+   SELECT @Emptydb = @X.query('//Params').value('(Params/@emptydb)[1]', 'VARCHAR(3)');
    BEGIN TRY   
-   -- Delete Record From Database
-   DELETE dbo.Basic_Calculate_Discount;
-   DELETE dbo.Pre_Expense;
-   DELETE dbo.Account;
-   DELETE dbo.Account_Detail;
-   DELETE dbo.Aggregation_Operation;
-   DELETE dbo.Aggregation_Operation_Detail;
-   DELETE dbo.Attendance;
-   DELETE dbo.Buffet;
-   DELETE dbo.Payment_Expense;
-   DELETE dbo.Member_Ship_Mark;
-   DELETE dbo.Misc_Expense;
-   DELETE dbo.Member_Ship
-   DELETE dbo.Fighter_Public;
-   DELETE dbo.Calculate_Calorie;
-   DELETE dbo.Campitition;
-   DELETE dbo.Meeting_Comment;
-   DELETE dbo.Present_Comment;
-   DELETE dbo.Present;
-   DELETE dbo.Meeting;
-   DELETE dbo.Committee;
-   DELETE dbo.Exam;
-   DELETE dbo.Heart_Zone;
-   DELETE dbo.Physical_Fitness;
-   DELETE dbo.Test;
-   DELETE dbo.Request_Regulation_History;
-   DELETE dbo.Payment_Detail;
-   DELETE dbo.Payment_Discount;
-   DELETE dbo.Payment_Method;
-   DELETE dbo.Payment_Check;
-   DELETE dbo.Payment;
-   DELETE dbo.Gain_Loss_Rail_Detail;
-   DELETE dbo.Gain_Loss_Rial;
-   DELETE dbo.Request_Row;
-   DELETE dbo.Request;
-   UPDATE dbo.Club_Method SET COCH_FILE_NO = NULL;
-   DELETE dbo.Calculate_Expense_Coach
-   DELETE dbo.Base_Calculate_Expense;
-   DELETE dbo.Planning_Overview;
-   DELETE dbo.Fighter;
-   DELETE dbo.Club_Method;
-   DELETE dbo.Computer_Action;
-   DELETE dbo.App_Base_Define;
-   DELETE dbo.Cando_Block_Unit;
-   DELETE dbo.Cando_Block;
-   DELETE dbo.Cando;
-   DELETE dbo.Method;
-   DELETE dbo.Distance_Category
-   DELETE dbo.Category_Belt;
-   DELETE dbo.Dresser_Attendance;
-   DELETE dbo.Dresser;   
-   DELETE dbo.Expense_Item;
-   DELETE dbo.Group_Expense;
-   DELETE dbo.Holidays;
-   DELETE dbo.Organ WHERE CODE != '00';
-   DELETE dbo.Sub_Unit WHERE CODE != '0000';
-   DELETE dbo.Session;
-   DELETE dbo.Session_Meeting;
-   DELETE dbo.Step_History_Summery;
-   DELETE dbo.Step_History_Detail;
-   DELETE dbo.User_Club_Fgac;
-   DELETE dbo.User_Region_Fgac;
-   DELETE dbo.Settings;
-   UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL;
-   DELETE dbo.Club;
+   
+   IF @Emptydb = '002'
+   BEGIN
+      -- Delete Record From Database
+      DELETE dbo.Basic_Calculate_Discount;
+      DELETE dbo.Pre_Expense;
+      DELETE dbo.Account;
+      DELETE dbo.Account_Detail;
+      DELETE dbo.Aggregation_Operation;
+      DELETE dbo.Aggregation_Operation_Detail;
+      DELETE dbo.Attendance;
+      DELETE dbo.Buffet;
+      DELETE dbo.Payment_Expense;
+      DELETE dbo.Member_Ship_Mark;
+      DELETE dbo.Misc_Expense;
+      DELETE dbo.Member_Ship
+      DELETE dbo.Fighter_Public;
+      DELETE dbo.Calculate_Calorie;
+      DELETE dbo.Campitition;
+      DELETE dbo.Meeting_Comment;
+      DELETE dbo.Present_Comment;
+      DELETE dbo.Present;
+      DELETE dbo.Meeting;
+      DELETE dbo.Committee;
+      DELETE dbo.Exam;
+      DELETE dbo.Heart_Zone;
+      DELETE dbo.Physical_Fitness;
+      DELETE dbo.Test;
+      DELETE dbo.Request_Regulation_History;
+      DELETE dbo.Payment_Detail;
+      DELETE dbo.Payment_Discount;
+      DELETE dbo.Payment_Method;
+      DELETE dbo.Payment_Check;
+      DELETE dbo.Payment;
+      DELETE dbo.Gain_Loss_Rail_Detail;
+      DELETE dbo.Gain_Loss_Rial;
+      DELETE dbo.Request_Row;
+      DELETE dbo.Request;
+      UPDATE dbo.Club_Method SET COCH_FILE_NO = NULL;
+      DELETE dbo.Calculate_Expense_Coach
+      DELETE dbo.Base_Calculate_Expense;
+      DELETE dbo.Planning_Overview;
+      DELETE dbo.Fighter;
+      DELETE dbo.Club_Method;
+      DELETE dbo.Computer_Action;
+      DELETE dbo.App_Base_Define;
+      DELETE dbo.Cando_Block_Unit;
+      DELETE dbo.Cando_Block;
+      DELETE dbo.Cando;
+      DELETE dbo.Method;
+      DELETE dbo.Distance_Category
+      DELETE dbo.Category_Belt;
+      DELETE dbo.Dresser_Attendance;
+      DELETE dbo.Dresser;   
+      DELETE dbo.Expense_Item;
+      DELETE dbo.Group_Expense;
+      DELETE dbo.Holidays;
+      DELETE dbo.Organ WHERE CODE != '00';
+      DELETE dbo.Sub_Unit WHERE CODE != '0000';
+      DELETE dbo.Session;
+      DELETE dbo.Session_Meeting;
+      DELETE dbo.Step_History_Summery;
+      DELETE dbo.Step_History_Detail;
+      DELETE dbo.User_Club_Fgac;
+      DELETE dbo.User_Region_Fgac;
+      DELETE dbo.Settings;
+      UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL;
+      DELETE dbo.Club;
+   END;
    
    BEGIN TRAN T_INSTALLDB
    
-   -- Insert Into Default Value
-   INSERT INTO dbo.Club ( REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,CODE ,NAME )
-   VALUES  ( '001' , '017' , '001' , 0 , N'بی نام' );
-   
-   DECLARE @ClubCode BIGINT;
-   SELECT @ClubCode = Code FROM dbo.Club;
-   
-   INSERT INTO dbo.User_Region_Fgac( FGA_CODE ,REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
-   SELECT dbo.GNRT_NVID_U(), '001', '017', '001', USER_DB, '002', '002' FROM dbo.V#Users;
-   
-   INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
-   SELECT dbo.GNRT_NVID_U(), @ClubCode, USER_DB, '002', '002' FROM dbo.V#Users;
-   
+   IF @Emptydb = '002'
+   BEGIN
+      -- Insert Into Default Value
+      INSERT INTO dbo.Club ( REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,CODE ,NAME )
+      VALUES  ( '001' , '017' , '001' , 0 , N'بی نام' );
+      
+      DECLARE @ClubCode BIGINT;
+      SELECT @ClubCode = Code FROM dbo.Club;
+      
+      INSERT INTO dbo.User_Region_Fgac( FGA_CODE ,REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
+      SELECT dbo.GNRT_NVID_U(), '001', '017', '001', USER_DB, '002', '002' FROM dbo.V#Users;
+      
+      INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
+      SELECT dbo.GNRT_NVID_U(), @ClubCode, USER_DB, '002', '002' FROM dbo.V#Users;
+   END
    /*INSERT INTO dbo.Settings( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,
    BACK_UP_IN_TRED ,BACK_UP_OPTN_PATH ,BACK_UP_OPTN_PATH_ADRS ,BACK_UP_ROOT_PATH ,
    DRES_STAT ,DRES_AUTO ,MORE_FIGH_ONE_DRES ,MORE_ATTN_SESN ,NOTF_STAT ,NOTF_EXP_DAY ,
