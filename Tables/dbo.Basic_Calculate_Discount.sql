@@ -17,6 +17,8 @@ CREATE TABLE [dbo].[Basic_Calculate_Discount]
 [DSCT_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FROM_DATE] [date] NULL,
 [TO_DATE] [date] NULL,
+[MTOD_CODE] [bigint] NULL,
+[CTGY_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -43,24 +45,25 @@ BEGIN
 	      -- interfering with SELECT statements.
 	      SET NOCOUNT ON;
          
-         IF (
-            SELECT COUNT(*)
-              FROM dbo.Basic_Calculate_Discount T, INSERTED S
-             WHERE T.SUNT_Code          = S.SUNT_Code AND
-                   T.SUNT_Bunt_Code           = S.SUNT_Bunt_Code AND
-                   T.SUNT_BUNT_Dept_Code      = S.SUNT_BUNT_Dept_Code AND
-                   T.SUNT_Bunt_Dept_Orgn_Code = S.SUNT_Bunt_Dept_Orgn_Code AND
-                   T.REGL_YEAR                = S.REGL_YEAR AND
-                   T.REGL_CODE                = S.REGL_CODE AND
-                   (S.EPIT_CODE IS NULL AND T.EPIT_CODE IS NULL) AND 
-                   (S.RQTP_CODE IS NULL AND T.RQTP_CODE IS NULL)
-         ) > 1 
-         BEGIN
-            RAISERROR ( N'تخفیف برای کل هزینه قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
-                     16, -- Severity.
-                     1 -- State.
-                     );
-         END;
+         --IF (
+         --   SELECT COUNT(*)
+         --     FROM dbo.Basic_Calculate_Discount T, INSERTED S
+         --    WHERE T.SUNT_Code          = S.SUNT_Code AND
+         --          T.SUNT_Bunt_Code           = S.SUNT_Bunt_Code AND
+         --          T.SUNT_BUNT_Dept_Code      = S.SUNT_BUNT_Dept_Code AND
+         --          T.SUNT_Bunt_Dept_Orgn_Code = S.SUNT_Bunt_Dept_Orgn_Code AND
+         --          T.REGL_YEAR                = S.REGL_YEAR AND
+         --          T.REGL_CODE                = S.REGL_CODE AND
+         --          ISNULL(S.EPIT_CODE, 0)     = ISNULL(T.EPIT_CODE, 0) AND 
+         --          ISNULL(S.RQTP_CODE, '000') = ISNULL(T.RQTP_CODE, '000') AND 
+         --          ISNULL(S.CTGY_CODE, 0)     = ISNULL(T.CTGY_CODE, 0)
+         --) > 1 
+         --BEGIN
+         --   RAISERROR ( N'تخفیف برای کل هزینه قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
+         --            16, -- Severity.
+         --            1 -- State.
+         --            );
+         --END;
          
          IF (
             SELECT COUNT(*)
@@ -72,7 +75,8 @@ BEGIN
                    T.REGL_YEAR                = S.REGL_YEAR AND
                    T.REGL_CODE                = S.REGL_CODE AND
                    S.EPIT_CODE                = T.EPIT_CODE AND 
-                   S.RQTP_CODE                = T.RQTP_CODE
+                   S.RQTP_CODE                = T.RQTP_CODE AND
+                   S.CTGY_CODE                = T.CTGY_CODE
          ) > 1 
          BEGIN
             RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
@@ -148,12 +152,17 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE 
       SET MDFY_BY   = UPPER(SUSER_NAME())
-         ,MDFY_DATE = GETDATE();
+         ,MDFY_DATE = GETDATE()
+         ,MTOD_CODE = (SELECT cb.MTOD_CODE FROM dbo.Category_Belt cb WHERE cb.CODE = s.CTGY_CODE);
 END
 GO
 ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [PK_BCDS] PRIMARY KEY CLUSTERED  ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE], [REGL_YEAR], [REGL_CODE], [RWNO]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [FK_BCDS_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
+GO
 ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [FK_BCDS_EPIT] FOREIGN KEY ([EPIT_CODE]) REFERENCES [dbo].[Expense_Item] ([CODE])
+GO
+ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [FK_BCDS_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE])
 GO
 ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [FK_BCDS_REGL] FOREIGN KEY ([REGL_YEAR], [REGL_CODE]) REFERENCES [dbo].[Regulation] ([YEAR], [CODE]) ON DELETE CASCADE
 GO

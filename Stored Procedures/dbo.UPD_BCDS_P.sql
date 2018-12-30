@@ -25,7 +25,8 @@ CREATE PROCEDURE [dbo].[UPD_BCDS_P]
    @ACTN_TYPE VARCHAR(3),
    @DSCT_DESC NVARCHAR(500),
    @FROM_DATE DATE,
-   @TO_DATE DATE
+   @TO_DATE DATE ,
+   @CTGY_CODE BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -85,6 +86,9 @@ BEGIN
    IF @RQTP_CODE IS NULL
       RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
       
+   IF @CTGY_CODE IS NULL
+      RAISERROR(N'نوع زیر گروه وارد نشده', 16, 1);
+      
    UPDATE dbo.Basic_Calculate_Discount
       SET EPIT_CODE = @EPIT_CODE
          ,RQTP_CODE = @RQTP_CODE
@@ -96,6 +100,7 @@ BEGIN
          ,DSCT_DESC = @DSCT_DESC
          ,FROM_DATE = @FROM_DATE
          ,TO_DATE = @TO_DATE
+         ,CTGY_CODE = @CTGY_CODE
     WHERE SUNT_BUNT_DEPT_ORGN_CODE = @SUNT_BUNT_DEPT_ORGN_CODE
       AND SUNT_BUNT_DEPT_CODE = @SUNT_BUNT_DEPT_CODE
       AND SUNT_BUNT_CODE = @SUNT_BUNT_CODE

@@ -23,7 +23,8 @@ CREATE PROCEDURE [dbo].[INS_BCDS_P]
    @ACTN_TYPE VARCHAR(3),
    @DSCT_DESC NVARCHAR(500),
    @FROM_DATE DATE,
-   @TO_DATE DATE
+   @TO_DATE DATE,
+   @CTGY_CODE BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -84,6 +85,9 @@ BEGIN
    IF @RQTP_CODE IS NULL 
       RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
    
+   IF @CTGY_CODE IS NULL 
+      RAISERROR(N'نوع زیر گروه وارد نشده', 16, 1);
+   
    SELECT @REGL_YEAR = [YEAR], @REGL_CODE = CODE   
      FROM dbo.Regulation
     WHERE REGL_STAT = '002'
@@ -99,7 +103,8 @@ BEGIN
              T.REGL_YEAR                = @REGL_YEAR AND
              T.REGL_CODE                = @REGL_CODE AND
              T.EPIT_CODE                = @EPIT_CODE AND
-             T.RQTP_CODE                = @RQTP_CODE
+             T.RQTP_CODE                = @RQTP_CODE AND 
+             t.CTGY_CODE                = @CTGY_CODE
    ) >= 1 
    BEGIN
       RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
@@ -125,7 +130,8 @@ BEGIN
              ACTN_TYPE ,
              DSCT_DESC ,
              FROM_DATE ,
-             TO_DATE             
+             TO_DATE ,
+             CTGY_CODE            
            )
    VALUES  ( @SUNT_BUNT_DEPT_ORGN_CODE , -- SUNT_BUNT_DEPT_ORGN_CODE - varchar(2)
              @SUNT_BUNT_DEPT_CODE , -- SUNT_BUNT_DEPT_CODE - varchar(2)
@@ -142,7 +148,8 @@ BEGIN
              @ACTN_TYPE ,
              @DSCT_DESC ,
              @FROM_DATE ,
-             @TO_DATE
+             @TO_DATE ,
+             @CTGY_CODE
            );
    
 END
