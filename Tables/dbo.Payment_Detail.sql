@@ -431,11 +431,13 @@ WHERE RQST_RQID = @RqstRqid
             ,@AmntDsct = @Rslt.query('Result').value('(Result/@amntdsct)[1]', 'INT')
             ,@DsctDesc = @Rslt.query('Result').value('(Result/@dsctdesc)[1]', 'NVARCHAR(500)');
       -- 1395/06/17 * پاک کردن مبلغ های تخفیف محاسبه شده
+      -- 1397/10/08 * حذف تمامی تخفیفات محاسباتی
       DELETE dbo.Payment_Discount
        WHERE PYMT_CASH_CODE = @CashCode
          AND PYMT_RQST_RQID = @Rqid
          AND RQRO_RWNO = @RqroRwno
-         AND EXPN_CODE = @ExpnCode;
+         AND AMNT_TYPE = '001';
+         --AND EXPN_CODE = @ExpnCode;
       
       IF @Type = 1
       BEGIN

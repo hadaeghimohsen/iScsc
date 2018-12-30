@@ -45,6 +45,8 @@ BEGIN
           ,@SuntBuntDeptCode     VARCHAR(2)
           ,@SuntBuntCode         VARCHAR(2)
           ,@SuntCode             VARCHAR(4)
+          ,@MtodCode             BIGINT
+          ,@CtgyCode             BIGINT
           ,@ReglYear             SMALLINT
           ,@ReglCode             INT
           ,@EpitCode             BIGINT
@@ -56,17 +58,21 @@ BEGIN
             ,@SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE
             ,@SuntBuntCode = SUNT_BUNT_CODE
             ,@SuntCode = SUNT_CODE
+            ,@MtodCode = MTOD_CODE
+            ,@CtgyCode = CTGY_CODE
         FROM Fighter_Public
        WHERE RQRO_RQST_RQID = @Rqid
          AND RQRO_RWNO = @RqroRwno
          AND RECT_CODE = '001';      
    END
-   ELSE 
+   ELSE IF @RqtpCode IN ('009')
    BEGIN
       SELECT @SuntBuntDeptOrgnCode = SUNT_BUNT_DEPT_ORGN_CODE_DNRM
             ,@SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE_DNRM
             ,@SuntBuntCode = SUNT_BUNT_CODE_DNRM
             ,@SuntCode = SUNT_CODE_DNRM
+            ,@MtodCode = MTOD_CODE_DNRM
+            ,@CtgyCode = CTGY_CODE_DNRM
         FROM Fighter
        WHERE RQST_RQID = @Rqid;
    END
@@ -97,6 +103,8 @@ BEGIN
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
          AND RQTP_CODE = @RqtpCode
+         AND MTOD_CODE = @MtodCode
+         AND CTGY_CODE = @CtgyCode
          AND ACTN_TYPE = '001' -- تخفیف عادی
          AND STAT = '002'
    )
@@ -120,6 +128,8 @@ BEGIN
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
          AND RQTP_CODE = @RqtpCode
+         AND MTOD_CODE = @MtodCode
+         AND CTGY_CODE = @CtgyCode
          AND ACTN_TYPE = '001'
          AND STAT = '002';
 
@@ -161,6 +171,8 @@ BEGIN
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
          AND RQTP_CODE = @RqtpCode
+         AND MTOD_CODE = @MtodCode
+         AND CTGY_CODE = @CtgyCode
          AND ACTN_TYPE != '001' -- تخفیف دوره و تخفیف بازه زمانی
          AND STAT = '002'
          AND (
@@ -184,6 +196,8 @@ BEGIN
          AND REGL_CODE = @ReglCode
          AND EPIT_CODE = @EpitCode
          AND RQTP_CODE = @RqtpCode
+         AND MTOD_CODE = @MtodCode
+         AND CTGY_CODE = @CtgyCode
          AND ACTN_TYPE != '001'
          AND STAT = '002'
          AND (

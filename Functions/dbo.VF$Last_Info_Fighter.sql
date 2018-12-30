@@ -16,7 +16,8 @@ CREATE FUNCTION [dbo].[VF$Last_Info_Fighter] (
    @MomCellPhon VARCHAR(11),
    @MomTellPhon VARCHAR(11),
    @DadCellPHon VARCHAR(11),
-   @DadTellPHon VARCHAR(11)   
+   @DadTellPHon VARCHAR(11),
+   @SuntCode VARCHAR(4)  
 )RETURNS TABLE 
 AS
 RETURN
@@ -114,6 +115,7 @@ WHERE (f.CONF_STAT = '002')
   AND f.ACTV_TAG_DNRM = dbo.[D$ACTG].VALU
   AND (f.FGPB_TYPE_DNRM IN ( '002','003', '004' ) OR dbo.PLC_CLUB_U('<Club code="' + CAST(f.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002')
   AND (f.ACTV_TAG_DNRM >= '101')
+    
   AND (@FileNo IS NULL OR f.FILE_NO = @FileNo)
   AND (@FrstName IS NULL OR @FrstName = '' OR f.FRST_NAME_DNRM LIKE N'%' + @FrstName + N'%')
   AND (@LastName IS NULL OR @LastName = '' OR f.LAST_NAME_DNRM LIKE N'%' + @LastName + N'%')
@@ -128,5 +130,6 @@ WHERE (f.CONF_STAT = '002')
   AND (@MomTellPhon IS NULL OR @MomTellPhon = '' OR f.MOM_TELL_PHON_DNRM LIKE N'%' + @MomTellPhon + N'%')
   AND (@DadCellPhon IS NULL OR @DadCellPhon = '' OR f.DAD_CELL_PHON_DNRM LIKE N'%' + @DadCellPhon + N'%')
   AND (@DadTellPhon IS NULL OR @DadTellPhon = '' OR f.DAD_TELL_PHON_DNRM LIKE N'%' + @DadTellPhon + N'%')  
+  AND (@SuntCode IS NULL OR @SuntCode = '' OR F.SUNT_CODE_DNRM = @SuntCode)
 )
 GO
