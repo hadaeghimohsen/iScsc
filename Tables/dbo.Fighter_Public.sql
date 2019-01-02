@@ -186,7 +186,9 @@ BEGIN
             ,MOM_CHAT_ID_DNRM = s.MOM_CHAT_ID
             ,DAD_CELL_PHON_DNRM = s.DAD_CELL_PHON
             ,DAD_TELL_PHON_DNRM = S.DAD_TELL_PHON
-            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID;
+            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID
+            ,DPST_ACNT_SLRY_BANK_DNRM = s.DPST_ACNT_SLRY_BANK
+            ,DPST_ACNT_SLRY_DNRM = s.DPST_ACNT_SLRY;;
    
    IF NOT EXISTS(SELECT * FROM Fighter_Public
                   WHERE FIGH_FILE_NO = @FighFileNo
@@ -235,6 +237,8 @@ BEGIN
             ,DAD_CELL_PHON_DNRM = NULL
             ,DAD_TELL_PHON_DNRM = NULL
             ,DAD_CHAT_ID_DNRM = NULL
+            ,DPST_ACNT_SLRY_BANK_DNRM = NULL
+            ,DPST_ACNT_SLRY_DNRM = NULL
       WHERE FILE_NO = @FighFileNo;
 
    CLOSE C$FGPB;
@@ -559,7 +563,9 @@ SELECT *
             ,MOM_CHAT_ID_DNRM = s.MOM_CHAT_ID
             ,DAD_CELL_PHON_DNRM = s.DAD_CELL_PHON
             ,DAD_TELL_PHON_DNRM = S.DAD_TELL_PHON
-            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID;
+            ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID
+            ,DPST_ACNT_SLRY_BANK_DNRM = s.DPST_ACNT_SLRY_BANK
+            ,DPST_ACNT_SLRY_DNRM = s.DPST_ACNT_SLRY;
 END
 ;
 GO

@@ -150,8 +150,8 @@ BEGIN
 	-- 1397/10/11 * ثبت اطلاعات محاسبه شده به صورت فشرده تر با کمی جزئیات گروه برای مربیان
 	IF @ValdType = '002' 
 	BEGIN
-	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE )
-	   SELECT DISTINCT MSEX_CODE, 0, COCH_FILE_NO, MTOD_CODE
+	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE , STAT, ACTN_DATE, RECT_CODE)
+	   SELECT DISTINCT MSEX_CODE, 0, COCH_FILE_NO, MTOD_CODE, '001', GETDATE(), '001'
 	     FROM dbo.Payment_Expense pe
 	    WHERE MSEX_CODE = @Code
 	      AND COCH_FILE_NO = @CochFileNo
