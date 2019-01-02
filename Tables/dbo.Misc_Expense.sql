@@ -147,6 +147,24 @@ BEGIN
 	      ,REGN_PRVN_CNTY_CODE = @RegnPrvnCntyCode
 	 WHERE CODE = @Code;
 	
+	-- 1397/10/11 * ثبت اطلاعات محاسبه شده به صورت فشرده تر با کمی جزئیات گروه برای مربیان
+	IF @ValdType = '002' 
+	BEGIN
+	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE )
+	   SELECT DISTINCT MSEX_CODE, 0, COCH_FILE_NO, MTOD_CODE
+	     FROM dbo.Payment_Expense pe
+	    WHERE MSEX_CODE = @Code
+	      AND COCH_FILE_NO = @CochFileNo
+	      AND NOT EXISTS(
+	          SELECT * 
+	            FROM dbo.Misc_Expense_Detail 
+	           WHERE MSEX_CODE = @Code
+	             AND COCH_FILE_NO = @CochFileNo
+	             AND MTOD_CODE = pe.MTOD_CODE
+	          );
+
+	END 
+	
 	-- ثبت اطلاعات هزینه های ثبت شده در جدول حسابداری برای باشگاه
 	/*IF @ValdType = '002'
 	BEGIN

@@ -24,6 +24,7 @@ BEGIN
       DELETE dbo.Buffet;
       DELETE dbo.Payment_Expense;
       DELETE dbo.Member_Ship_Mark;
+      DELETE dbo.Misc_Expense_Detail;
       DELETE dbo.Misc_Expense;
       DELETE dbo.Member_Ship
       DELETE dbo.Fighter_Public;
