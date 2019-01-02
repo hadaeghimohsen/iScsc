@@ -150,18 +150,21 @@ BEGIN
 	-- 1397/10/11 * ثبت اطلاعات محاسبه شده به صورت فشرده تر با کمی جزئیات گروه برای مربیان
 	IF @ValdType = '002' 
 	BEGIN
-	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE , STAT, ACTN_DATE, RECT_CODE)
-	   SELECT DISTINCT MSEX_CODE, 0, COCH_FILE_NO, MTOD_CODE, '001', GETDATE(), '001'
-	     FROM dbo.Payment_Expense pe
-	    WHERE MSEX_CODE = @Code
-	      AND COCH_FILE_NO = @CochFileNo
-	      AND NOT EXISTS(
-	          SELECT * 
-	            FROM dbo.Misc_Expense_Detail 
-	           WHERE MSEX_CODE = @Code
-	             AND COCH_FILE_NO = @CochFileNo
-	             AND MTOD_CODE = pe.MTOD_CODE
-	          );
+	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE , UNIT_AMNT_DNRM, STAT, ACTN_DATE, RECT_CODE)
+	   SELECT T.MSEX_CODE, dbo.GNRT_NVID_U(), T.COCH_FILE_NO, T.MTOD_CODE, T.EXPN_AMNT, '001', GETDATE(), '001'
+	     FROM (
+	         SELECT DISTINCT MSEX_CODE, COCH_FILE_NO, MTOD_CODE, pe.EXPN_AMNT
+	           FROM dbo.Payment_Expense pe
+	          WHERE MSEX_CODE = @Code
+	            AND COCH_FILE_NO = @CochFileNo
+	            AND NOT EXISTS(
+	                SELECT * 
+	                  FROM dbo.Misc_Expense_Detail 
+	                 WHERE MSEX_CODE = @Code
+	                   AND COCH_FILE_NO = @CochFileNo
+	                   AND MTOD_CODE = pe.MTOD_CODE
+	                )
+	     ) T;
 
 	END 
 	

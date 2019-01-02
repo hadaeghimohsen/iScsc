@@ -124,6 +124,7 @@ BEGIN
          ,med.PRVS_DELV_AMNT_DNRM = ISNULL(@PrvsDelvAmnt, 0)
          ,med.CRNT_AMNT_DNRM = ISNULL(@UnitAmnt, 0) * ISNULL(@ActnCont, 0) + ISNULL(@PrvsDelvAmnt, 0)
          ,med.MAX_CNTR_AMNT_DNRM = ISNULL(@MaxCntrAmnt, 0)
+         ,med.STAT = '002'
      FROM dbo.Misc_Expense_Detail med
     WHERE med.MSEX_CODE = @MsexCode
       AND med.COCH_FILE_NO = @CochFileNo
@@ -151,13 +152,15 @@ BEGIN
    begin
       INSERT INTO dbo.Misc_Expense_Detail
       ( MSEX_CODE , CODE , RECT_CODE , COCH_FILE_NO , MTOD_CODE ,
-        TOTL_AMNT_DNRM , PRVS_DELV_AMNT_DNRM , MAX_CNTR_AMNT_DNRM )
-      SELECT T.MSEX_CODE, dbo.GNRT_NVID_U(), '004', T.COCH_FILE_NO, T.MTOD_CODE,
-             T.TOTL_AMNT, T.PRVS_DEVL_AMNT, T.MAX_CNTR_AMNT
-        FROM (
+        TOTL_AMNT_DNRM , PRVS_DELV_AMNT_DNRM , MAX_CNTR_AMNT_DNRM , CRNT_AMNT_DNRM)
+       SELECT T.MSEX_CODE, dbo.GNRT_NVID_U(), '004', T.COCH_FILE_NO, T.MTOD_CODE,
+              T.TOTL_AMNT, T.PRVS_DEVL_AMNT, T.MAX_CNTR_AMNT, T.CRNT_AMNT
+         FROM (
          SELECT MSEX_CODE, COCH_FILE_NO, MTOD_CODE,
-                SUM(t.UNIT_AMNT_DNRM * t.ACTN_CONT_DNRM) AS TOTL_AMNT, MIN(t.PRVS_DELV_AMNT_DNRM) AS PRVS_DEVL_AMNT,
-                MIN(t.MAX_CNTR_AMNT_DNRM) AS MAX_CNTR_AMNT
+                SUM(t.UNIT_AMNT_DNRM * t.ACTN_CONT_DNRM) AS TOTL_AMNT, 
+                MIN(t.PRVS_DELV_AMNT_DNRM) AS PRVS_DEVL_AMNT,
+                MIN(t.MAX_CNTR_AMNT_DNRM) AS MAX_CNTR_AMNT,
+                SUM(t.UNIT_AMNT_DNRM * t.ACTN_CONT_DNRM) + MIN(T.PRVS_DELV_AMNT_DNRM) AS CRNT_AMNT
            FROM dbo.Misc_Expense_Detail t
           WHERE EXISTS(
                 SELECT *
@@ -167,7 +170,22 @@ BEGIN
                    AND s.MTOD_CODE = t.MTOD_CODE
           )
           GROUP BY MSEX_CODE, COCH_FILE_NO, MTOD_CODE
-       ) T;
+      ) T;
+      
+      UPDATE t
+         SET PRVS_DELV_AMNT_DNRM = NULL
+            ,CRNT_AMNT_DNRM = NULL
+            ,MAX_CNTR_AMNT_DNRM = NULL
+        FROM dbo.Misc_Expense_Detail t
+       WHERE EXISTS(
+         SELECT *
+           FROM Inserted s
+          WHERE t.MSEX_CODE = s.MSEX_CODE
+            AND t.COCH_FILE_NO = s.COCH_FILE_NO
+            AND t.MTOD_CODE = s.MTOD_CODE
+            AND t.RECT_CODE = s.RECT_CODE
+            AND s.RECT_CODE = '001'            
+       );       
     END
    
 END
