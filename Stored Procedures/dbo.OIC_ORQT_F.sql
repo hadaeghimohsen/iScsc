@@ -261,7 +261,8 @@ BEGIN
               ,@CPTV_DAY_NUMB = NULL
               ,@MRID_TYPE = NULL
               ,@JOB_TITL_CODE = NULL
-              ,@CMNT = NULL;
+              ,@CMNT = NULL
+              ,@Pass_Word = NULL;
          END
          UPDATE Fighter
             SET CONF_STAT = '002'
@@ -390,7 +391,8 @@ BEGIN
               ,@CPTV_DAY_NUMB = NULL
               ,@MRID_TYPE = NULL
               ,@JOB_TITL_CODE = NULL
-              ,@CMNT = NULL;
+              ,@CMNT = NULL
+              ,@Pass_Word = NULL;
          END
          ELSE
          BEGIN
@@ -493,7 +495,8 @@ BEGIN
               ,@CPTV_DAY_NUMB = NULL
               ,@MRID_TYPE = NULL
               ,@JOB_TITL_CODE = NULL
-              ,@CMNT = NULL;
+              ,@CMNT = NULL
+              ,@Pass_Word = NULL;
          END
       END
 

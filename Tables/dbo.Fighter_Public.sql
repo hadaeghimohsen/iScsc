@@ -101,6 +101,7 @@ CREATE TABLE [dbo].[Fighter_Public]
 [MRID_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [JOB_TITL_CODE] [bigint] NULL,
 [CMNT] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PASS_WORD] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -664,6 +665,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'معرف', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'INTR_FILE_NO'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'محل صدور', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'ISSU_PLAC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'رمز اینترنتی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PASS_WORD'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره فاز پروژه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PHAS_NUMB'
 GO

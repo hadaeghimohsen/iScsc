@@ -174,7 +174,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
              
              
       DECLARE @CrtfDate DATE
@@ -390,7 +391,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
            
       END
       

@@ -115,7 +115,7 @@ BEGIN
              ,@MomChatId BIGINT
              ,@DadCellPhon VARCHAR(11)
              ,@DadTellPhon VARCHAR(11)
-             ,@DadChatId BIGINT                          
+             ,@DadChatId BIGINT
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -320,7 +320,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = NULL
            ,@MRID_TYPE = NULL
            ,@JOB_TITL_CODE = NULL
-           ,@CMNT = NULL;           
+           ,@CMNT = NULL
+           ,@Pass_Word = NULL;           
       END
       ELSE
       BEGIN
@@ -423,7 +424,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = NULL
            ,@MRID_TYPE = NULL
            ,@JOB_TITL_CODE = NULL
-           ,@CMNT = NULL;
+           ,@CMNT = NULL
+           ,@Pass_Word = NULL;
       END
       COMMIT TRAN T1;
    END TRY

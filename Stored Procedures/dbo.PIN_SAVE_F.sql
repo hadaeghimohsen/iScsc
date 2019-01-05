@@ -157,7 +157,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
       
        SELECT @DiseCode = P.DISE_CODE
              ,@ClubCode = p.CLUB_CODE
@@ -210,6 +211,7 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@Password = P.PASS_WORD
          FROM Fighter_Public P
         WHERE P.FIGH_FILE_NO = @FileNo
           AND P.RQRO_RQST_RQID = @Rqid
@@ -332,7 +334,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       ELSE
       BEGIN
@@ -435,7 +438,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       
       GOTO NextFromRqrv;

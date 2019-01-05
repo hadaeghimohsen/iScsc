@@ -88,7 +88,7 @@ BEGIN
              ,@DadCellPhon VARCHAR(11)
              ,@DadTellPhon VARCHAR(11)
              ,@DadChatId BIGINT
-,@IdtyNumb VARCHAR(20)
+             ,@IdtyNumb VARCHAR(20)
              ,@WatrFabrNumb NVARCHAR(30)
              ,@GasFabrNumb NVARCHAR(30)
              ,@PowrFabrNumb NVARCHAR(30)
@@ -127,7 +127,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);                         
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
 
       SELECT @DiseCode     = P.DISE_CODE
             ,@MtodCode     = P.MTOD_CODE
@@ -179,6 +180,7 @@ BEGIN
             ,@DadCellPhon = P.DAD_CELL_PHON
             ,@DadTellPhon = P.DAD_TELL_PHON
             ,@DadChatId = P.DAD_CHAT_ID
+            ,@Password = P.PASS_WORD
         FROM Fighter_Public P
        WHERE P.FIGH_FILE_NO = @FileNo
          AND P.RQRO_RQST_RQID = @Rqid
@@ -293,7 +295,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;                    
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;                    
       END
       -- اگر ثبت نام هنرجوی قدیمی باشه
       IF EXISTS(

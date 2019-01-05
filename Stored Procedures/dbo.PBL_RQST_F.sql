@@ -262,7 +262,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
       
       IF EXISTS(
          SELECT *
@@ -361,6 +362,7 @@ BEGIN
              ,@MRIDTYPE = r.query('Fighter_Public/Mrid_Type').value('.', 'VARCHAR(3)')
              ,@JOBTITLCODE = r.query('Fighter_Public/Job_Titl_Code').value('.', 'BIGINT')
              ,@CMNT = r.query('Fighter_Public/Cmnt').value('.', 'NVARCHAR(4000)')
+             ,@Password = r.query('Fighter_Public/Pass_Word').value('.', 'VARCHAR(250)')
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
          
@@ -521,6 +523,7 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@Password = P.PASS_WORD
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -641,7 +644,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       ELSE
       BEGIN
@@ -744,7 +748,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       
       GOTO NextFromRqrv;

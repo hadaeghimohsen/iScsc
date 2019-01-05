@@ -166,7 +166,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
              
       SELECT @DiseCode = P.DISE_CODE
             ,@ClubCode = P.CLUB_CODE
@@ -213,6 +214,7 @@ BEGIN
             ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
             ,@DpstAcntSlry = P.DPST_ACNT_SLRY
             ,@ChatId = P.CHAT_ID
+            ,@Password = P.PASS_WORD
         FROM Fighter_Public P, Fighter F
        WHERE P.FIGH_FILE_NO = @FileNo
          AND P.FIGH_FILE_NO = F.FILE_NO
@@ -329,7 +331,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       
       SaveResultTest:      

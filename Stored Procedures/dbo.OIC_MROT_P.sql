@@ -125,6 +125,7 @@ BEGIN
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250)
 	          ,@MtodCode BIGINT
 	          ,@CtgyCode BIGINT
 	          ,@StrtDate DATE
@@ -368,7 +369,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       ELSE
       BEGIN
@@ -471,7 +473,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       
       -- مرحله بعدی ثبت اطلاعات در جدول عضویت

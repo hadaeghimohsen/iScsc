@@ -107,7 +107,8 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Cptv_Day_Numb SMALLINT,
 	@Mrid_Type VARCHAR(3),
 	@Job_Titl_Code BIGINT,
-	@Cmnt NVARCHAR(4000)	
+	@Cmnt NVARCHAR(4000),
+	@Pass_Word VARCHAR(250)	
 AS
 BEGIN
    IF @Intr_File_No = 0 SET @Intr_File_No = NULL
@@ -158,6 +159,7 @@ BEGIN
    IF @Zip_Code = '' SET @Zip_Code = NULL
    IF @Risk_Code = '' SET @Risk_Code = NULL
    IF @Job_Titl_Code = 0 SET @Job_Titl_Code = NULL   	
+	IF @Pass_Word = '' SET @Pass_Word = NULL
 	
 	UPDATE [dbo].[Fighter_Public]
 	   SET [REGN_PRVN_CODE] = @Prvn_Code
@@ -256,6 +258,7 @@ BEGIN
          ,MRID_TYPE = @MRID_TYPE
          ,JOB_TITL_CODE = @JOB_TITL_CODE
          ,CMNT = @CMNT
+         ,PASS_WORD = @Pass_Word
      WHERE Figh_File_No = @File_No
        AND [RQRO_RQST_RQID] = @Rqro_Rqst_Rqid
        AND [RQRO_RWNO] = @Rqro_Rwno;

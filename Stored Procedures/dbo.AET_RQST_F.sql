@@ -253,7 +253,8 @@ BEGIN
              ,@CptvDayNumb SMALLINT
              ,@MridType VARCHAR(3)
              ,@JobTitlCode BIGINT
-             ,@Cmnt NVARCHAR(4000);
+             ,@Cmnt NVARCHAR(4000)
+             ,@Password VARCHAR(250);
       
       IF EXISTS(
          SELECT *
@@ -359,6 +360,7 @@ BEGIN
               ,@MRIDTYPE = P.MRID_TYPE
               ,@JOBTITLCODE = P.JOB_TITL_CODE
               ,@CMNT = P.CMNT
+              ,@Password = P.PASS_WORD
           FROM Fighter_Public P
          WHERE P.FIGH_FILE_NO = @FileNo
            AND P.RQRO_RQST_RQID = @Rqid
@@ -462,6 +464,7 @@ BEGIN
              ,@MRIDTYPE = P.MRID_TYPE
              ,@JOBTITLCODE = P.JOB_TITL_CODE
              ,@CMNT = P.CMNT
+             ,@Password = P.PASS_WORD
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -588,7 +591,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       ELSE
       BEGIN
@@ -691,7 +695,8 @@ BEGIN
            ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
            ,@MRID_TYPE = @MRIDTYPE
            ,@JOB_TITL_CODE = @JOBTITLCODE
-           ,@CMNT = @CMNT;
+           ,@CMNT = @CMNT
+           ,@Pass_Word = @Password;
       END
       
       GOTO NextFromRqrv;
