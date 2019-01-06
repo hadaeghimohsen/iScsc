@@ -14,7 +14,17 @@ CREATE PROC [dbo].[INS_CUNT_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Cando_Block_Unit
+       WHERE BLOK_CNDO_CODE = @Blok_Cndo_Code
+         AND BLOK_CODE = @Blok_Code
+         AND CODE = dbo.GET_PSTR_U(@Code, 3)
+   )
+   RETURN;
+
+   BEGIN TRAN [INS_CUNT_T]
+   
    INSERT INTO dbo.Cando_Block_Unit           
            ( Blok_CNDO_CODE ,
              BLOK_CODE ,
@@ -35,7 +45,7 @@ BEGIN
              @Cord_Y  -- CORD_Y - float             
            );
    
-   COMMIT TRAN;
+   COMMIT TRAN [INS_CUNT_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -44,7 +54,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN;
+      ROLLBACK TRAN [INS_CUNT_T]
    END CATCH           
 END;
 GO

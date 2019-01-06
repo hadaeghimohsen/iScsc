@@ -15,7 +15,7 @@ CREATE PROC [dbo].[UPD_CNDO_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   BEGIN TRAN [UPD_CNDO_T]
       UPDATE dbo.Cando
          SET NAME = @Name
             ,POST_ADRS = @Post_Adrs
@@ -26,7 +26,7 @@ BEGIN
          AND REGN_PRVN_CODE = @Regn_Prvn_Code
          AND REGN_CODE = @Regn_Code
          AND CODE = @Code;         
-   COMMIT TRAN;
+   COMMIT TRAN [UPD_CNDO_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(Max);
@@ -35,7 +35,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN T1;
+      ROLLBACK TRAN [UPD_CNDO_T];
    END CATCH;
 END;
 GO

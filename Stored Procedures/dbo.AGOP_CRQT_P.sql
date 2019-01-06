@@ -178,7 +178,22 @@ BEGIN
 	   )	 
 	   EXEC dbo.CMC_RQST_F @X = @X -- xml
 	END
-
+   ELSE IF @OprtType = '006'
+   BEGIN
+      SELECT @X = (
+         SELECT 0 AS '@rqid'
+               ,'016' AS '@rqtpcode'
+               ,'007' AS '@rqttcode'
+               ,(
+                  SELECT @FileNo AS '@fileno'
+                    FOR XML PATH('Request_Row'), TYPE
+               )
+            FOR XML PATH('Request'), ROOT('Process'), TYPE
+      );
+      
+      EXEC dbo.OIC_ERQT_F @X = @X -- xml
+   END 
+   
    SELECT @RqstRqid = F.RQST_RQID
      FROM Fighter F
     WHERE F.FILE_NO = @FileNo;

@@ -10,14 +10,14 @@ CREATE PROC [dbo].[DEL_CNDO_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN      
+   BEGIN TRAN [DEL_CNDO_T]
       DELETE dbo.Cando
        WHERE REGN_PRVN_CNTY_CODE = @Regn_Prvn_Cnty_Code
          AND REGN_PRVN_CODE = @Regn_Prvn_Code
          AND REGN_CODE = @Regn_Code
          AND CODE = @Code;         
    
-   COMMIT TRAN   
+   COMMIT TRAN [DEL_CNDO_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -26,7 +26,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN;
+      ROLLBACK TRAN [DEL_CNDO_T]
    END CATCH
 END;
 GO

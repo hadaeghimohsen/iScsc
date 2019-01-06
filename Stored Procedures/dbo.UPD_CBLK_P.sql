@@ -13,7 +13,7 @@ CREATE PROC [dbo].[UPD_CBLK_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   BEGIN TRAN [UPD_CBLK_T]
       UPDATE dbo.Cando_Block
          SET NAME = @Name
             ,POST_ADRS = @Post_Adrs
@@ -22,7 +22,7 @@ BEGIN
             ,CORD_Y = @Cord_Y
        WHERE CNDO_CODE = @Cndo_Code
          AND CODE = @Code;         
-   COMMIT TRAN;
+   COMMIT TRAN [UPD_CBLK_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(Max);
@@ -31,7 +31,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN T1;
+      ROLLBACK TRAN [UPD_CBLK_T]
    END CATCH;
 END;
 GO

@@ -130,7 +130,7 @@ BEGIN
 	               AND ATTN_TYPE IN ( '002' )	             
 	          );
 	END
-	ELSE IF @OprtType = '005' -- ثبت هزینه میز و بوفه
+	ELSE IF @OprtType IN ( '005', '006' ) -- ثبت هزینه میز و بوفه
 	BEGIN
 	   DECLARE C$FighRecStat002Stat001 CURSOR FOR
 	      SELECT AGOP_CODE
@@ -150,15 +150,43 @@ BEGIN
 	   IF @@FETCH_STATUS <> 0
 	      GOTO L$C$C$FighRecStat002Stat001;
 	   
-	   SELECT @X = (
-	      SELECT @AgopCode AS '@agopcode'
-	            ,@rwno AS '@rwno'
-	            ,@FileNo AS '@fileno'
-	         FOR XML PATH('Aggregation_Operation_Detail'), TYPE
-	   );
-	   
-	   EXEC dbo.ENDO_RSBU_P @X = @X -- xml	   
-	      
+	   IF @OprtType = '005'
+	   BEGIN
+	      SELECT @X = (
+	         SELECT @AgopCode AS '@agopcode'
+	               ,@rwno AS '@rwno'
+	               ,@FileNo AS '@fileno'
+	            FOR XML PATH('Aggregation_Operation_Detail'), TYPE
+	      );
+   	   
+	      EXEC dbo.ENDO_RSBU_P @X = @X -- xml	   
+	   END
+	   ELSE IF @OprtType = '006'
+	   BEGIN
+	      SELECT @X = (
+	         SELECT R.RQID AS '@rqid'
+	               ,R.REGN_CODE AS '@regncode'
+	               ,R.REGN_PRVN_CODE AS '@prvncode'
+	               ,'016' AS '@rqtpcode'
+	               ,'001' AS '@rqttcode'
+                  ,(
+                     SELECT 
+                        F.File_No AS '@fileno',
+                        1 AS '@rwno'
+                     FOR XML PATH('Request_Row'), TYPE 
+                  ),
+                  (
+                     SELECT '1' AS 'setondebt'
+                        FOR XML PATH('Payment') , TYPE
+                  )
+                  FROM Request R, dbo.Fighter F
+                 WHERE R.Rqid = F.RQST_RQID  
+                   AND F.FILE_NO = @FileNo            
+               FOR XML PATH('Request'), ROOT('Process'), TYPE
+	      );
+         
+         EXEC dbo.OIC_ESAV_F @X = @X -- xml
+	   END
 	   GOTO L$O$C$FighRecStat002Stat001
 	   L$C$C$FighRecStat002Stat001:
 	   CLOSE C$FighRecStat002Stat001;

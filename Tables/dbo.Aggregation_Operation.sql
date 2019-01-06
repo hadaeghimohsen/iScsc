@@ -141,7 +141,7 @@ BEGIN
             AND f.ACTV_TAG_DNRM >= '101'
             AND 1 = (
                CASE 
-                  WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003' )
+                  WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003', '006' )
                      AND F.FIGH_STAT = '002' -- ازاد باشد
                      AND F.FGPB_TYPE_DNRM IN ('001')
                      AND EXISTS(

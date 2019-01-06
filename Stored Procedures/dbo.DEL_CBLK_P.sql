@@ -8,12 +8,12 @@ CREATE PROC [dbo].[DEL_CBLK_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN      
+   BEGIN TRAN [DEL_CBLK_T]
       DELETE dbo.Cando_Block
        WHERE CNDO_CODE = @Cndo_Code
          AND CODE = @Code;         
    
-   COMMIT TRAN   
+   COMMIT TRAN [DEL_CBLK_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -22,7 +22,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN;
+      ROLLBACK TRAN [DEL_CBLK_T]
    END CATCH
 END;
 GO

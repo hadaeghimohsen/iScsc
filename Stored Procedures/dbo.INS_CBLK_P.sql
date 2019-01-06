@@ -13,7 +13,16 @@ CREATE PROC [dbo].[INS_CBLK_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   IF EXISTS(
+      SELECT *
+        FROM dbo.Cando_Block
+       WHERE CNDO_CODE = @Cndo_Code
+         AND CODE = dbo.GET_PSTR_U(@Code, 3)
+   )
+   RETURN;
+
+   BEGIN TRAN INS_CBLK_T
+      
    INSERT INTO dbo.Cando_Block
            ( CNDO_CODE ,
              CODE ,
@@ -32,7 +41,7 @@ BEGIN
              @Cord_Y  -- CORD_Y - float             
            );
    
-   COMMIT TRAN;
+   COMMIT TRAN INS_CBLK_T;
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -41,7 +50,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN;
+      ROLLBACK TRAN INS_CBLK_T;
    END CATCH           
 END;
 GO

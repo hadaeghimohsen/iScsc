@@ -280,6 +280,9 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@UnitBlokCndoCode = P.UNIT_BLOK_CNDO_CODE
+             ,@UnitBlokCode = P.UNIT_BLOK_CODE
+             ,@UnitCode = P.UNIT_CODE
              ,@Password = P.PASS_WORD
          FROM Fighter_Public P
         WHERE P.FIGH_FILE_NO = @FileNo

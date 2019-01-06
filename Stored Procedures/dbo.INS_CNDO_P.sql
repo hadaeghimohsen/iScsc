@@ -15,7 +15,7 @@ CREATE PROC [dbo].[INS_CNDO_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   BEGIN TRAN INS_CNDO_T
    INSERT INTO dbo.Cando
            ( REGN_PRVN_CNTY_CODE ,
              REGN_PRVN_CODE ,
@@ -38,7 +38,7 @@ BEGIN
              @Cord_Y  -- CORD_Y - float             
            );
    
-   COMMIT TRAN;
+   COMMIT TRAN INS_CNDO_T
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -47,7 +47,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN;
+      ROLLBACK TRAN INS_CNDO_T
    END CATCH           
 END;
 GO

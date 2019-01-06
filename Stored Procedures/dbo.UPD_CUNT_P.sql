@@ -14,7 +14,7 @@ CREATE PROC [dbo].[UPD_CUNT_P]
 AS 
 BEGIN
    BEGIN TRY
-   BEGIN TRAN
+   BEGIN TRAN [UPD_CUNT_T]
       UPDATE dbo.Cando_Block_Unit
          SET NAME = @Name
             ,POST_ADRS = @Post_Adrs
@@ -24,7 +24,7 @@ BEGIN
        WHERE BLOK_CNDO_CODE = @Blok_Cndo_Code
          AND BLOK_CODE = @Blok_Code
          AND CODE = @Code;         
-   COMMIT TRAN;
+   COMMIT TRAN [UPD_CUNT_T]
    END TRY
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(Max);
@@ -33,7 +33,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN T1;
+      ROLLBACK TRAN [UPD_CUNT_T]
    END CATCH;
 END;
 GO
