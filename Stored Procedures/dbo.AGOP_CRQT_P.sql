@@ -183,7 +183,9 @@ BEGIN
       SELECT @X = (
          SELECT 0 AS '@rqid'
                ,'016' AS '@rqtpcode'
-               ,'007' AS '@rqttcode'
+               ,'001' AS '@rqttcode'
+               ,'OIC_TOTL_F' AS '@mdulname'
+               ,'OIC_001_F' AS '@sctnname'
                ,(
                   SELECT @FileNo AS '@fileno'
                     FOR XML PATH('Request_Row'), TYPE
