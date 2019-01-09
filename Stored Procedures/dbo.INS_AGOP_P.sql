@@ -31,7 +31,10 @@ BEGIN
 	       ,@NewCbmtCode BIGINT
 	       ,@NewMtodCode BIGINT
 	       ,@NewCtgyCode BIGINT
-	       ,@AgopDesc NVARCHAR(500);
+	       ,@AgopDesc NVARCHAR(500)
+	       ,@UnitBlokCndoCode VARCHAR(3)
+	       ,@UnitBlokCode VARCHAR(3)
+	       ,@UnitCode VARCHAR(3);
    
    SELECT @Code = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@code)[1]'    , 'BIGINT')
          ,@RegnPrvnCntyCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@regnprvncntycode)[1]'    , 'VARCHAR(3)')
@@ -52,7 +55,10 @@ BEGIN
          ,@NewCbmtCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newcbmtcode)[1]'    , 'BIGINT')
          ,@NewMtodCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newmtodcode)[1]'    , 'BIGINT')
          ,@NewCtgyCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@newctgycode)[1]'    , 'BIGINT')
-         ,@AgopDesc = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@agopdesc)[1]'    , 'NVARCHAR(500)');
+         ,@AgopDesc = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@agopdesc)[1]'    , 'NVARCHAR(500)')
+         ,@UnitBlokCndoCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitblokcndocode)[1]'    , 'VARCHAR(3)')
+         ,@UnitBlokCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitblokcode)[1]'    , 'VARCHAR(3)')
+         ,@UnitCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitcode)[1]'    , 'VARCHAR(3)');
    
    -- Check Validate Data
    IF @RegnCode IS NOT NULL AND @RegnPrvnCode IS NULL
@@ -154,7 +160,10 @@ BEGIN
                 NEW_CBMT_CODE,
                 NEW_MTOD_CODE,
                 NEW_CTGY_CODE,
-                AGOP_DESC
+                AGOP_DESC,
+                UNIT_BLOK_CNDO_CODE,
+                UNIT_BLOK_CODE,
+                UNIT_CODE
               )
       VALUES  ( @Code , -- CODE - bigint
                 @RegnPrvnCntyCode , -- REGN_PRVN_CNTY_CODE - varchar(3)
@@ -177,7 +186,10 @@ BEGIN
                 @NewCbmtCode, -- NEW_CBMT_CODE - bigint
                 @NewMtodCode,
                 @NewCtgyCode,
-                @AgopDesc
+                @AgopDesc,
+                @UnitBlokCndoCode,
+                @UnitBlokCode,
+                @UnitCode
               );
    END
    ELSE
@@ -202,6 +214,9 @@ BEGIN
             ,NEW_MTOD_CODE = CASE @NewMtodCode WHEN 0 THEN NULL ELSE @NewMtodCode END
             ,NEW_CTGY_CODE = CASE @NewCtgyCode WHEN 0 THEN NULL ELSE @NewCtgyCode END
             ,AGOP_DESC = @AgopDesc
+            ,UNIT_BLOK_CNDO_CODE = @UnitBlokCndoCode
+            ,UNIT_BLOK_CODE = @UnitBlokCode
+            ,UNIT_CODE = @UnitCode
       WHERE Code = @Code;
    END
 END
