@@ -44,6 +44,8 @@ RETURN
             ,@X.query('//Fighter').value('(Fighter/@ctgycode)[1]',     'BIGINT') AS CTGY_CODE
             ,@X.query('//Fighter').value('(Fighter/@frstname)[1]',     'NVARCHAR(250)') AS FRST_NAME
             ,@X.query('//Fighter').value('(Fighter/@lastname)[1]',     'NVARCHAR(250)') AS LAST_NAME
+            ,@X.query('//Fighter').value('(Fighter/@sextype)[1]',      'VARCHAR(3)') AS SEX_TYPE
+            ,@X.query('//Fighter').value('(Fighter/@fgpbtype)[1]',     'VARCHAR(3)') AS FGPB_TYPE
             ,@X.query('//Fighter').value('(Fighter/@suntbuntdeptorgncode)[1]',     'VARCHAR(2)') AS SUNT_BUNT_DEPT_ORGN_CODE
             ,@X.query('//Fighter').value('(Fighter/@suntbuntdeptcode)[1]',     'VARCHAR(2)') AS SUNT_BUNT_DEPT_CODE
             ,@X.query('//Fighter').value('(Fighter/@suntbuntcode)[1]',     'VARCHAR(2)') AS SUNT_BUNT_CODE
@@ -89,6 +91,8 @@ RETURN
 	   AND (QX.CTGY_CODE IS NULL OR F.CTGY_CODE_DNRM = QX.CTGY_CODE)
 	   AND (QX.FRST_NAME IS NULL OR F.NAME_DNRM LIKE N'%' + QX.FRST_NAME + N'%')
 	   AND (QX.LAST_NAME IS NULL OR F.NAME_DNRM LIKE N'%' + QX.LAST_NAME + N'%')
+	   AND (QX.SEX_TYPE IS NULL OR F.SEX_TYPE_DNRM = QX.SEX_TYPE )
+	   AND (QX.FGPB_TYPE IS NULL OR F.FGPB_TYPE_DNRM = QX.FGPB_TYPE)
 	   AND (QX.SUNT_BUNT_DEPT_ORGN_CODE IS NULL OR F.SUNT_BUNT_DEPT_ORGN_CODE_DNRM = Qx.SUNT_BUNT_DEPT_ORGN_CODE)
 	   AND (QX.SUNT_BUNT_DEPT_CODE IS NULL OR F.SUNT_BUNT_DEPT_CODE_DNRM = Qx.SUNT_BUNT_DEPT_CODE)
 	   AND (QX.SUNT_BUNT_CODE IS NULL OR F.SUNT_BUNT_CODE_DNRM = Qx.SUNT_BUNT_CODE)
