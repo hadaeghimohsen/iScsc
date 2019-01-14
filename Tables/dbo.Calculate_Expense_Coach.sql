@@ -19,6 +19,7 @@ CREATE TABLE [dbo].[Calculate_Expense_Coach]
 [RDUC_AMNT] [bigint] NULL,
 [CBMT_CODE] [bigint] NULL,
 [EFCT_DATE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXPR_PAY_DAY] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -114,6 +115,9 @@ EXEC sp_addextendedproperty N'MS_Description', N'جمع آوری اطلاعات 
 تاریخ تایید
 تاریخ شروع
 تاریخ پایان', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EFCT_DATE_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد روز تاخیر در پرداخت حقوق
+این گزینه برای نحوه محاسبه جلسه ای می باشد', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EXPR_PAY_DAY'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع آیتم درآمدی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EXTP_CODE'
 GO

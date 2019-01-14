@@ -180,8 +180,36 @@ BEGIN
              RQRO.FIGH_FILE_NO,
              '004',
              CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
-             @FromPymtDate,
-             @ToPymtDate,
+             /*@FromPymtDate,
+             @ToPymtDate,*/
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
              @RducAmnt,
              @EfctDateType
         FROM Payment_Detail AS PYDT INNER JOIN
@@ -197,6 +225,10 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
+                ( @EfctDateType = '007' -- تاریخ تسویه حساب
+                  AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
+                ) OR 
                 ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
                   AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)
@@ -394,8 +426,36 @@ BEGIN
              RQRO.FIGH_FILE_NO,
              '004',
              CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
-             @FromPymtDate,
-             @ToPymtDate,
+             /*@FromPymtDate,
+             @ToPymtDate,*/
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
              @EfctDateType
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
@@ -410,6 +470,10 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
+                ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
+                  AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
+                ) OR 
                 ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
                   AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)
@@ -596,8 +660,36 @@ BEGIN
              FIGH.FILE_NO,
              '004',
              (CASE WHEN RQRO.Rqtp_Code = '001' THEN 1 ELSE (SELECT Rwno FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = RQRO.RQST_RQID AND RECT_CODE = '004') END),
-             @FromPymtDate,
-             @ToPymtDate,
+             /*@FromPymtDate,
+             @ToPymtDate,*/
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
              @EfctDateType
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
@@ -612,6 +704,10 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
+                ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
+                  AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
+                ) OR 
                 ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
                   AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)
@@ -798,8 +894,36 @@ BEGIN
              FIGH.FILE_NO,
              '004',
              (CASE WHEN RQRO.Rqtp_Code = '001' THEN 1 ELSE (SELECT Rwno FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = RQRO.RQST_RQID AND RECT_CODE = '004') END),
-             @FromPymtDate,
-             @ToPymtDate,
+             /*@FromPymtDate,
+             @ToPymtDate,*/
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.STRT_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
+             CASE RQST.RQTP_CODE
+               WHEN '001' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RWNO = 1)
+               WHEN '009' THEN (SELECT ms.END_DATE
+                                  FROM dbo.Member_Ship ms
+                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                   AND ms.RECT_CODE = '004'
+                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                   AND ms.RQRO_RWNO = RQRO.RWNO)
+               WHEN '016' THEN rqst.SAVE_DATE
+             END ,
              @EfctDateType
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
@@ -814,6 +938,10 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
+                ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
+                  AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
+                ) OR 
                 ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
                   AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)

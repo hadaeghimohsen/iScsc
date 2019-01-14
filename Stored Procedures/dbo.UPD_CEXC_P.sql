@@ -28,6 +28,7 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Rduc_Amnt BIGINT
   ,@Cbmt_Code BIGINT
   ,@Efct_Date_Type VARCHAR(3)
+  ,@Expr_Pay_Day INT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -100,6 +101,7 @@ BEGIN
          ,RDUC_AMNT = @Rduc_Amnt
          ,CBMT_CODE = @Cbmt_Code
          ,EFCT_DATE_TYPE = @Efct_Date_Type
+         ,EXPR_PAY_DAY = @Expr_Pay_Day
     WHERE CODE = @Code;
 END
 

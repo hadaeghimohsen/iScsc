@@ -38,6 +38,8 @@ CREATE TABLE [dbo].[Payment_Expense]
 [CBMT_CODE] [bigint] NULL,
 [RDUC_AMNT] [bigint] NULL,
 [EFCT_DATE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ACTN_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -120,6 +122,12 @@ GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQRO] FOREIGN KEY ([RQRO_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO])
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تاریخ اقدام برای پرداخت حق و دستمزد سرپرست', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'ACTN_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'برای اینکه متوجه شویم آیا بابت دوره باید به سرپرست مبلغ را ارائه کنیم از این ستون استفاده میکنیم
+مثلا اگر کد تاییدیه خورده باشد مبلغ محاسبه میگردد
+اگر کد قفل رکورد برای مشخص شدن تاییدیه خورده باشد رکورد قفل شده تا اینکه مشخص شود این ردیف کی باید پرداخت شود.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'ACTN_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرح تاییدیه یا تایید نشده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_DESC'
 GO
