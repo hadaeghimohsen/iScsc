@@ -144,7 +144,7 @@ BEGIN
             AND f.ACTV_TAG_DNRM >= '101'
             AND 1 = (
                CASE 
-                  WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003', '006' )
+                  WHEN Ao.OPRT_TYPE IN ( '001' , '002', '003' )
                      AND F.FIGH_STAT = '002' -- ازاد باشد
                      AND F.FGPB_TYPE_DNRM IN ('001')
                      AND EXISTS(
@@ -168,7 +168,7 @@ BEGIN
                            AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
                            AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)
                      )                         
-                  THEN 1                         
+                  THEN 1                                           
                   WHEN   Ao.OPRT_TYPE IN ( '004' )
                      AND F.FGPB_TYPE_DNRM IN ('001')
                      AND EXISTS(
@@ -189,7 +189,27 @@ BEGIN
                            AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
                            AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE)
                      )                     
-                  THEN 1                         
+                  THEN 1 
+                  WHEN   Ao.OPRT_TYPE IN ('006')
+                     AND F.FGPB_TYPE_DNRM IN ('001')
+                     AND F.CONF_STAT = '002'
+                     AND f.ACTV_TAG_DNRM >= '101'
+                     AND EXISTS(
+                         SELECT *
+                           FROM dbo.Fighter_Public Fp
+                          WHERE f.FILE_NO = fp.FIGH_FILE_NO
+                            AND f.FGPB_RWNO_DNRM = fp.RWNO
+                            AND fp.RECT_CODE = '004'
+                            AND (ao.REGN_CODE IS NULL OR Fp.REGN_CODE = Ao.REGN_CODE AND Fp.REGN_PRVN_CODE = Ao.REGN_PRVN_CODE)
+                            AND (ao.MTOD_CODE IS NULL OR fp.MTOD_CODE = ao.MTOD_CODE)
+                            AND (ao.CTGY_CODE IS NULL OR fp.CTGY_CODE = ao.CTGY_CODE)
+                            AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
+                            AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE) 
+                            AND (ao.UNIT_BLOK_CNDO_CODE IS NULL OR fp.UNIT_BLOK_CNDO_CODE = ao.UNIT_BLOK_CNDO_CODE)
+                            AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
+                            AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)                            
+                     )
+                  THEN 1
                   ELSE 0
                END
             );

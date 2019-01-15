@@ -10,6 +10,8 @@ CREATE TABLE [dbo].[Misc_Expense]
 [RWNO] [bigint] NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_AMNT] [bigint] NULL,
+[LOCK_EXPN_AMNT_DNRM] [bigint] NULL,
+[LOCK_DATE_DNRM] [date] NULL,
 [EXPN_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CALC_EXPN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DECR_PRCT] [float] NULL,
@@ -194,6 +196,10 @@ GO
 ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [FK_MSEX_FIGH] FOREIGN KEY ([COCH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [FK_MSEX_REGN] FOREIGN KEY ([REGN_PRVN_CNTY_CODE], [REGN_PRVN_CODE], [REGN_CODE]) REFERENCES [dbo].[Region] ([PRVN_CNTY_CODE], [PRVN_CODE], [CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تاریخ نگهداشتن مبلغ', 'SCHEMA', N'dbo', 'TABLE', N'Misc_Expense', 'COLUMN', N'LOCK_DATE_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نگهداشتن مبلغ محاسبه شده', 'SCHEMA', N'dbo', 'TABLE', N'Misc_Expense', 'COLUMN', N'LOCK_EXPN_AMNT_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد', 'SCHEMA', N'dbo', 'TABLE', N'Misc_Expense', 'COLUMN', N'QNTY'
 GO

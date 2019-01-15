@@ -52,7 +52,9 @@ BEGIN
 	       ,@CalcType     VARCHAR(3)
 	       ,@PymtStat     VARCHAR(3)
 	       ,@RducAmnt     BIGINT
-	       ,@EfctDateType VARCHAR(3);
+	       ,@EfctDateType VARCHAR(3)
+	       ,@MinAttnStat  VARCHAR(3)
+	       ,@ExprPayDay   INT;
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -155,7 +157,8 @@ BEGIN
          Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
-         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO, FROM_DATE, TO_DATE, RDUC_AMNT, EFCT_DATE_TYPE)
+         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO, FROM_DATE, TO_DATE, RDUC_AMNT, EFCT_DATE_TYPE,
+         RECT_CODE, RECT_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -211,7 +214,9 @@ BEGIN
                WHEN '016' THEN rqst.SAVE_DATE
              END ,
              @RducAmnt,
-             @EfctDateType
+             @EfctDateType,
+             '004',
+             NULL
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -225,7 +230,7 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
-                ( @EfctDateType = '007' -- تاریخ تسویه حساب
+                ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
                   AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
                 ) OR 
@@ -401,7 +406,7 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
          CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
          CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE, EFCT_DATE_TYPE)
+         FROM_DATE, TO_DATE, EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -456,7 +461,9 @@ BEGIN
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
                WHEN '016' THEN rqst.SAVE_DATE
              END ,
-             @EfctDateType
+             @EfctDateType,
+             '004',
+             NULL
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -470,7 +477,7 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
-                ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
+                ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
                   AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
                 ) OR 
@@ -602,7 +609,7 @@ BEGIN
    DECLARE C$CochFileNo$CalcExpnPT CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
              c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT,
-             c.EFCT_DATE_TYPE
+             c.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -625,7 +632,8 @@ BEGIN
    OPEN C$CochFileNo$CalcExpnPT;
    NextC$CochFileNo$CalcExpnPT:
    FETCH NEXT FROM C$CochFileNo$CalcExpnPT INTO 
-   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat, @EfctDateType;
+   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, 
+   @CtgyCode, @CalcType, @PymtStat, @EfctDateType, @MinAttnStat, @ExprPayDay;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPT;
@@ -636,7 +644,7 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
          MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE,EFCT_DATE_TYPE)
+         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -690,7 +698,72 @@ BEGIN
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
                WHEN '016' THEN rqst.SAVE_DATE
              END ,
-             @EfctDateType
+             @EfctDateType,
+             CASE 
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '001' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN '005'
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '009' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN '005'
+               ELSE '004'
+             END,
+             CASE 
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '001' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN (
+                       SELECT DATEADD(DAY, @ExprPayDay, ms.END_DATE)
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1                          
+                    )
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '009' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN (
+                       SELECT DATEADD(DAY, @ExprPayDay, ms.END_DATE)
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                    )
+               ELSE NULL
+             END 
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -704,7 +777,7 @@ BEGIN
          AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
-                ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
+                ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
                   AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
                 ) OR 

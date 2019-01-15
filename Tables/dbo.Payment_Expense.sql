@@ -38,8 +38,8 @@ CREATE TABLE [dbo].[Payment_Expense]
 [CBMT_CODE] [bigint] NULL,
 [RDUC_AMNT] [bigint] NULL,
 [EFCT_DATE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[ACTN_DATE] [date] NULL,
+[RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RECT_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -98,7 +98,9 @@ BEGIN
       ON (t.CODE = s.MSEX_CODE)
       WHEN MATCHED THEN
          UPDATE SET
-            t.EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE);
+            t.EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '004')
+           ,t.LOCK_EXPN_AMNT_DNRM = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '005')
+           ,t.LOCK_DATE_DNRM = (SELECT MIN(pe.RECT_DATE) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '005');
 END
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [PK_PMEX] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
@@ -123,12 +125,6 @@ ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQRO] FOREIGN KEY ([
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'تاریخ اقدام برای پرداخت حق و دستمزد سرپرست', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'ACTN_DATE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'برای اینکه متوجه شویم آیا بابت دوره باید به سرپرست مبلغ را ارائه کنیم از این ستون استفاده میکنیم
-مثلا اگر کد تاییدیه خورده باشد مبلغ محاسبه میگردد
-اگر کد قفل رکورد برای مشخص شدن تاییدیه خورده باشد رکورد قفل شده تا اینکه مشخص شود این ردیف کی باید پرداخت شود.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'ACTN_TYPE'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرح تاییدیه یا تایید نشده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_DESC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت مبلغ محاسبه شده
@@ -143,6 +139,12 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد حضوری های اعمال شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RCPT_NUMB_ATTN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کاهش مبلغ', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RDUC_AMNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'برای اینکه متوجه شویم آیا بابت دوره باید به سرپرست مبلغ را ارائه کنیم از این ستون استفاده میکنیم
+مثلا اگر کد تاییدیه خورده باشد مبلغ محاسبه میگردد
+اگر کد قفل رکورد برای مشخص شدن تاییدیه خورده باشد رکورد قفل شده تا اینکه مشخص شود این ردیف کی باید پرداخت شود.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تاریخ اقدام برای پرداخت حق و دستمزد سرپرست', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_DATE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل حضوری اعضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'TOTL_NUMB_ATTN'
 GO
