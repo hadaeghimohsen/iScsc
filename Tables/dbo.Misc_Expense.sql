@@ -150,7 +150,7 @@ BEGIN
 	 WHERE CODE = @Code;
 	
 	-- 1397/10/11 * ثبت اطلاعات محاسبه شده به صورت فشرده تر با کمی جزئیات گروه برای مربیان
-	IF @ValdType = '002' 
+	IF @ValdType = '002' AND @CalcExpnType = '001'
 	BEGIN
 	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE , UNIT_AMNT_DNRM, STAT, ACTN_DATE, RECT_CODE)
 	   SELECT T.MSEX_CODE, dbo.GNRT_NVID_U(), T.COCH_FILE_NO, T.MTOD_CODE, T.EXPN_AMNT, '001', GETDATE(), '001'
