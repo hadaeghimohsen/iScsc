@@ -909,7 +909,7 @@ BEGIN
    DECLARE C$CochFileNo$CalcExpnPO CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
              c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT,
-             C.EFCT_DATE_TYPE
+             C.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -932,7 +932,9 @@ BEGIN
    OPEN C$CochFileNo$CalcExpnPO;
    NextC$CochFileNo$CalcExpnPO:
    FETCH NEXT FROM C$CochFileNo$CalcExpnPO INTO 
-   @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, @CtgyCode, @CalcType, @PymtStat,@EfctDateType;
+      @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, 
+      @MtodCode, @CtgyCode, @CalcType, @PymtStat,@EfctDateType,
+      @MinAttnStat, @ExprPayDay;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPO;
@@ -943,7 +945,7 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
          MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE,EFCT_DATE_TYPE)
+         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -997,7 +999,72 @@ BEGIN
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
                WHEN '016' THEN rqst.SAVE_DATE
              END ,
-             @EfctDateType
+             @EfctDateType,
+             CASE 
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '001' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN '005'
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '009' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN '005'
+               ELSE '004'
+             END,
+             CASE 
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '001' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN (
+                       SELECT DATEADD(DAY, @ExprPayDay, ms.END_DATE)
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RWNO = 1                          
+                    )
+               WHEN @MinAttnStat = '002' AND RQST.RQTP_CODE = '009' AND 
+                    EXISTS (
+                       SELECT *
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                          AND ms.NUMB_OF_ATTN_MONT > 0
+                          AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM
+                    )
+               THEN (
+                       SELECT DATEADD(DAY, @ExprPayDay, ms.END_DATE)
+                         FROM dbo.Member_Ship ms
+                        WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                          AND ms.RECT_CODE = '004'
+                          AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                          AND ms.RQRO_RWNO = RQRO.RWNO
+                    )
+               ELSE NULL
+             END
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -1237,7 +1304,7 @@ BEGIN
       DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
       CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
       CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-      FROM_DATE, TO_DATE, NUMB_HORS, NUMB_MINT, NUMB_DAYS, EFCT_DATE_TYPE
+      FROM_DATE, TO_DATE, NUMB_HORS, NUMB_MINT, NUMB_DAYS, EFCT_DATE_TYPE, RECT_CODE, RECT_DATE
    )
    SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
           (@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) - ((@TotlHors * @PrctValu + (@PrctValu / 60) * @TotlMint) * @DecrPrct / 100),
@@ -1248,7 +1315,8 @@ BEGIN
           '003', -- محاسبه ساعتی
           '002', -- مبلغی
           NULL,@CochFileNo,'004',@MbspRwno,
-          @FromPymtDate, @ToPymtDate, @TotlHors, @TotlMint, @NumbAttnDay, @EfctDateType;
+          @FromPymtDate, @ToPymtDate, @TotlHors, @TotlMint, @NumbAttnDay, @EfctDateType,
+          '004', NULL;
    
    SET @ClubCode = NULL;             
    GOTO JUMPS$CbmtPH;   
@@ -1332,7 +1400,7 @@ BEGIN
       DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
       CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
       CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-      FROM_DATE, TO_DATE, NUMB_DAYS, EFCT_DATE_TYPE)
+      FROM_DATE, TO_DATE, NUMB_DAYS, EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
       SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
              (@NumbAttnDay * @PrctValu) - ((@NumbAttnDay * @PrctValu) * @DecrPrct / 100),
              (@NumbAttnDay * @PrctValu),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
@@ -1342,7 +1410,7 @@ BEGIN
              '004', -- محاسبه روزکاری
              '002', -- مبلغی
              NULL,@CochFileNo,'004',@MbspRwno,
-             @FromPymtDate, @ToPymtDate, @NumbAttnDay, @EfctDateType;
+             @FromPymtDate, @ToPymtDate, @NumbAttnDay, @EfctDateType, '004', NULL;
 
    SET @ClubCode = NULL;             
    GOTO JUMPS$CbmtPD;   
@@ -1416,7 +1484,7 @@ BEGIN
          CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
          CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
          FROM_DATE, TO_DATE, TOTL_NUMB_ATTN, RCPT_NUMB_ATTN, MIN_NUMB_ATTN, NUMB_PKET_ATTN ,
-         EFCT_DATE_TYPE)
+         EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
          SELECT @PmexCode, NULL, @CochFileNo,'001',
                 ((@TotlAttnNumb / @MinNumbAttn) * @PrctValu) - (((@TotlAttnNumb / @MinNumbAttn) * @PrctValu) * @DecrPrct / 100),
                 ((@TotlAttnNumb / @MinNumbAttn) * @PrctValu),0,0,@PrctValu,@DecrPrct,NULL,@MtodCode,
@@ -1427,7 +1495,8 @@ BEGIN
                 '002', -- مبلغی
                 NULL,@CochFileNo,'004',@MbspRwno,
                 @FromPymtDate, @ToPymtDate, @TotlAttnNumb, (@TotlAttnNumb) - (@TotlAttnNumb % @MinNumbAttn),
-                @MinNumbAttn, (@TotlAttnNumb / @MinNumbAttn), @EfctDateType;
+                @MinNumbAttn, (@TotlAttnNumb / @MinNumbAttn), @EfctDateType,
+                '004', NULL;
       
       -- تنظیم کردن ستون جدول حضور و غیاب برای اعضا که با مربی حساب شده است
       UPDATE dbo.Attendance
@@ -1518,7 +1587,7 @@ BEGIN
             DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
             CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
             CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-            FROM_DATE, TO_DATE, CBMT_CODE, EFCT_DATE_TYPE
+            FROM_DATE, TO_DATE, CBMT_CODE, EFCT_DATE_TYPE, RECT_CODE, RECT_DATE
          )
          SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
                 (@PrctValu) - (@PrctValu * @DecrPrct / 100),NULL,NULL,
@@ -1529,7 +1598,8 @@ BEGIN
                 '006', -- مبلغ سانس کلاسی
                 '002', -- مبلغی
                 NULL,@CochFileNo,'004',@MbspRwno,
-                @FromPymtDate, @ToPymtDate, @CbmtCode, @EfctDateType;
+                @FromPymtDate, @ToPymtDate, @CbmtCode, @EfctDateType,
+                '004', NULL;
       END;
   
    GOTO NextC$CochFileNo$CalcExpnPI;
@@ -1594,7 +1664,7 @@ BEGIN
             DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, 
             CLUB_CODE, DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, 
             CALC_TYPE, PYMT_STAT, MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-            FROM_DATE, TO_DATE, CBMT_CODE, EFCT_DATE_TYPE
+            FROM_DATE, TO_DATE, CBMT_CODE, EFCT_DATE_TYPE, RECT_CODE, RECT_DATE
          )
          SELECT dbo.GNRT_NVID_U(), NULL, @CochFileNo,'001',
                 (@PrctValu) - (@PrctValu * @DecrPrct / 100),NULL,NULL,
@@ -1605,7 +1675,7 @@ BEGIN
                 '006', -- مبلغ ثابت ماهیانه
                 '002', -- مبلغی
                 NULL,@CochFileNo,'004',@MbspRwno,
-                @FromPymtDate, @ToPymtDate, @CbmtCode, @EfctDateType;
+                @FromPymtDate, @ToPymtDate, @CbmtCode, @EfctDateType, '004', NULL;
       END;
   
    GOTO NextC$CochFileNo$CalcExpnPK;
@@ -1673,7 +1743,9 @@ BEGIN
    
    --1397/09/04 * برای بروزرسانی مبلغ رکورد های پدر
    UPDATE dbo.Misc_Expense
-      SET EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE)
+      SET EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '004')
+         ,LOCK_EXPN_AMNT_DNRM = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '005')
+         ,LOCK_DATE_DNRM = (SELECT MIN(pe.RECT_DATE) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '005')
      WHERE VALD_TYPE = '001'
        AND CALC_EXPN_TYPE = '001';
          
