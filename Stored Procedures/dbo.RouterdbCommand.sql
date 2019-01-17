@@ -36,6 +36,7 @@ BEGIN
           ,@BrthDate DATE
           ,@SexType VARCHAR(3)
           ,@CbmtCode BIGINT
+          ,@MtodCode BIGINT
           ,@CtgyCode BIGINT;
    
    -- Temp Variable
@@ -53,41 +54,41 @@ BEGIN
    ELSE IF @CmndCode = '2'
    BEGIN
       -- خواندن اطلاعات مربوط به برنامه های کلاسی و نرخ ها
-      SELECT *
-        FROM dbo.Club_Method
-       WHERE MTOD_STAT = '002';
-      
-      SELECT *
-        FROM dbo.Category_Belt
-       WHERE CTGY_STAT = '002';      
+      SELECT cm.CLUB_CODE
+            ,cm.MTOD_CODE
+            ,cm.COCH_FILE_NO
+            ,cm.CODE
+            ,c.NAME AS CLUB_DESC
+            ,f.NAME_DNRM AS COCH_DESC
+            ,m.MTOD_DESC
+            ,dytp.DOMN_DESC AS DYTP_DESC
+            ,cm.STRT_TIME
+            ,cm.END_TIME            
+        FROM dbo.Club_Method cm, dbo.Club c, dbo.Fighter f, dbo.Method m, dbo.[D$DYTP] dytp
+       WHERE cm.MTOD_STAT = '002'
+         AND c.CODE = cm.CLUB_CODE
+         AND cm.MTOD_CODE = m.CODE
+         AND cm.COCH_FILE_NO = f.FILE_NO
+         AND cm.DAY_TYPE = dytp.VALU
+         AND m.MTOD_STAT = '002'
+         AND f.CONF_STAT = '002'
+         AND f.ACTV_TAG_DNRM >= '101';
    END 
    ELSE IF @CmndCode = '3'
    BEGIN
-      -- برای ثبت هزینه درخواست به عنوان وصولی
-      -- ابتدا مشخص شود که چه گزینه هایی برای پرداخت نیاز هست که بتوان انها را خواند و در جدول وصلی ثبت نمود
-      SELECT 1;
-   END 
-   ELSE IF @CmndCode = '4'
-   BEGIN
-      -- ثبت موقت اطلاعات برای ثبت نام
-      SELECT 1;
-   END 
-   ELSE IF @CmndCode = '5'
-   BEGIN
-      --  ذخیره نهایی اطلاعات ثبت نام
-      SELECT 1;
-   END 
-   ELSE IF @CmndCode = '6'
-   BEGIN
-      -- ثبت موقت اطلاعات برای تمدید دوره
-      SELECT 1;
-   END 
-   ELSE IF @CmndCode = '7'
-   BEGIN
-      -- ذخیره نهایی اطلاعات تمدید دوره
-      SELECT 1;
-   END 
-   ELSE IF @CmndCode = '8'  
+      -- خواندن اطلاعات زیر گروه
+      SELECT @MtodCode = @X.query('//Club_Method').value('(Club_Method/@mtodcode)[1]', 'BIGINT');
+      
+      SELECT CODE
+            ,CTGY_DESC
+            ,NUMB_OF_ATTN_MONT
+            ,NUMB_CYCL_DAY
+            ,PRIC
+        FROM dbo.Category_Belt
+       WHERE MTOD_CODE = @MtodCode
+         AND CTGY_STAT = '002';
+   END
+   ELSE IF @CmndCode = '4'  
    BEGIN
       -- بررسی اینکه شماره کد ملی و رمز در سیستم مشترکین ثبت شده است یا خیر
       SELECT @NatlCode = @X.query('//Service').value('(Service/@natlcode)[1]', 'VARCHAR(10)')
@@ -113,7 +114,7 @@ BEGIN
          SELECT 0;
       END
    END
-   ELSE IF @CmndCode = '9'
+   ELSE IF @CmndCode = '5'
    BEGIN
       -- بازیابی اطلاعات دوره های مشتری
       SELECT @NatlCode = @X.query('//Service').value('(Service/@natlcode)[1]', 'VARCHAR(10)');
@@ -133,7 +134,33 @@ BEGIN
          AND f.ACTV_TAG_DNRM >= '101'
          AND f.CONF_STAT = '002'
        ORDER BY ms.RWNO DESC;
-   END
+   END    
+   ELSE IF @CmndCode = ''
+   BEGIN
+      -- برای ثبت هزینه درخواست به عنوان وصولی
+      -- ابتدا مشخص شود که چه گزینه هایی برای پرداخت نیاز هست که بتوان انها را خواند و در جدول وصلی ثبت نمود
+      SELECT 1;
+   END 
+   ELSE IF @CmndCode = ''
+   BEGIN
+      -- ثبت موقت اطلاعات برای ثبت نام
+      SELECT 1;
+   END 
+   ELSE IF @CmndCode = ''
+   BEGIN
+      --  ذخیره نهایی اطلاعات ثبت نام
+      SELECT 1;
+   END 
+   ELSE IF @CmndCode = ''
+   BEGIN
+      -- ثبت موقت اطلاعات برای تمدید دوره
+      SELECT 1;
+   END 
+   ELSE IF @CmndCode = ''
+   BEGIN
+      -- ذخیره نهایی اطلاعات تمدید دوره
+      SELECT 1;
+   END 
   
    COMMIT TRAN ROTR_DBCM_T;
    RETURN 1;
