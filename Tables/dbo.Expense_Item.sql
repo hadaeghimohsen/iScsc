@@ -6,11 +6,12 @@ CREATE TABLE [dbo].[Expense_Item]
 [EPIT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_EPIT_TYPE] DEFAULT ('001'),
 [AUTO_GNRT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IMAG] [image] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
-) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [BLOB]
 GO
 SET QUOTED_IDENTIFIER ON
 GO
@@ -27,7 +28,7 @@ BEGIN
 
    -- Insert statements for trigger here
    MERGE dbo.Expense_Item T
-   USING (SELECT * FROM INSERTED) S
+   USING (SELECT i.CODE, i.TYPE FROM INSERTED i) S
    ON (T.CODE   = S.CODE AND
        T.[TYPE] = S.[TYPE])
    WHEN MATCHED THEN
@@ -78,7 +79,7 @@ BEGIN
 
    -- Insert statements for trigger here
    MERGE dbo.Expense_Item T
-   USING (SELECT * FROM INSERTED) S
+   USING (SELECT i.CODE FROM INSERTED i) S
    ON (T.CODE = S.CODE)
    WHEN MATCHED THEN
       UPDATE 
