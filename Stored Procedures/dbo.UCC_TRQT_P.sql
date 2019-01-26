@@ -20,7 +20,10 @@ BEGIN
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
 	           @RegnCode VARCHAR(3),
-	           @PrvnCode VARCHAR(3);
+	           @PrvnCode VARCHAR(3),
+   	           @MdulName VARCHAR(11),
+	           @SctnName VARCHAR(11);
+
       
       DECLARE @FileNo BIGINT
              ,@MtodCode BIGINT
@@ -34,6 +37,8 @@ BEGIN
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
+	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
+	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');
 	   
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
@@ -56,9 +61,12 @@ BEGIN
             NULL,
             NULL,
             NULL,
-            @Rqid OUT;      
+            @Rqid OUT;     
+             
          UPDATE Request
             SET RQST_RQID = @RqstRqid
+               ,MDUL_NAME = @MdulName
+               ,SECT_NAME = @SctnName
           WHERE RQID =  @Rqid;
       END
       ELSE

@@ -54,13 +54,17 @@ BEGIN
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
 	           @RegnCode VARCHAR(3),
-	           @PrvnCode VARCHAR(3);
+	           @PrvnCode VARCHAR(3),
+	           @MdulName VARCHAR(11),
+	           @SctnName VARCHAR(11);
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
-	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)');
+	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
+	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
+	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)');
       
       IF @RqttCode IS NULL OR @RqttCode = ''
          SET @RqttCode = '001';
@@ -133,7 +137,12 @@ BEGIN
             NULL,
             NULL,
             NULL,
-            @Rqid OUT;      
+            @Rqid OUT; 
+         
+         UPDATE dbo.Request
+            SET MDUL_NAME = @MdulName
+               ,SECT_NAME = @SctnName
+          WHERE RQID = @Rqid;
       END
       ELSE
       BEGIN

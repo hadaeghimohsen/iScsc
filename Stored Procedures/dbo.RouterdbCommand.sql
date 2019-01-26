@@ -11,7 +11,7 @@ CREATE PROCEDURE [dbo].[RouterdbCommand]
 	-- Add the parameters for the stored procedure here
 	/*
 	   <Router_Command subsys="5" cmndcode="1" cmnddesc="خواندن اطلاعات مشتریان با شماره کدملی و موبایل">
-	      <Service fileno="13971010125456564" cellphon="09033927103"/>	      
+	      <Fighter fileno="13971010125456564" cellphon="09033927103"/>	      
 	   </Router_Command>
 	*/
 	@X XML
@@ -30,6 +30,9 @@ BEGIN
           ,@CellPhon VARCHAR(11)
           ,@Password VARCHAR(250)
           ,@Rqid BIGINT
+          ,@CashCode BIGINT
+          ,@PymtAmnt BIGINT
+          ,@AmntType VARCHAR(3)
           ,@FngrPrnt VARCHAR(20)
           ,@FrstName NVARCHAR(250)
           ,@LastName NVARCHAR(250)
@@ -37,15 +40,19 @@ BEGIN
           ,@SexType VARCHAR(3)
           ,@CbmtCode BIGINT
           ,@MtodCode BIGINT
-          ,@CtgyCode BIGINT;
+          ,@CtgyCode BIGINT          
+          ,@StrtDate DATE
+          ,@EndDate  DATE
+          ,@NumAttnMont INT;
    
    -- Temp Variable
-   DECLARE @Cont BIGINT;
+   DECLARE @Cont BIGINT,
+           @Xemp XML;
    
    IF @CmndCode = '1'
    BEGIN
-      SELECT @NatlCode = @X.query('//Service').value('(Service/@natlcode)[1]', 'VARCHAR(10)')
-            ,@CellPhon = @X.query('//Service').value('(Service/@cellphon)[1]', 'VARCHAR(11)');
+      SELECT @NatlCode = @X.query('//Fighter').value('(Fighter/@natlcode)[1]', 'VARCHAR(10)')
+            ,@CellPhon = @X.query('//Fighter').value('(Fighter/@cellphon)[1]', 'VARCHAR(11)');
       
       -- خواندن اطلاعات مروبط به مشترکین با کدملی و شماره موبایل
       SELECT FILE_NO, NAME_DNRM, BRTH_DATE_DNRM, CELL_PHON_DNRM, NATL_CODE, FRST_NAME, LAST_NAME, SEX_TYPE,FIGH_STAT, SUNT_CODE, SUNT_DESC 
@@ -79,11 +86,17 @@ BEGIN
       -- خواندن اطلاعات زیر گروه
       SELECT @MtodCode = @X.query('//Club_Method').value('(Club_Method/@mtodcode)[1]', 'BIGINT');
       
+      SELECT @AmntType = AMNT_TYPE
+        FROM dbo.Regulation
+       WHERE TYPE = '001'
+         AND REGL_STAT = '002';
+      
       SELECT CODE
             ,CTGY_DESC
             ,NUMB_OF_ATTN_MONT
             ,NUMB_CYCL_DAY
             ,PRIC
+            ,@AmntType AS AMNT_TYPE
         FROM dbo.Category_Belt
        WHERE MTOD_CODE = @MtodCode
          AND CTGY_STAT = '002';
@@ -91,8 +104,8 @@ BEGIN
    ELSE IF @CmndCode = '4'  
    BEGIN
       -- بررسی اینکه شماره کد ملی و رمز در سیستم مشترکین ثبت شده است یا خیر
-      SELECT @NatlCode = @X.query('//Service').value('(Service/@natlcode)[1]', 'VARCHAR(10)')
-            ,@Password = @X.query('//Service').value('(Service/@password)[1]', 'VARCHAR(250)');
+      SELECT @NatlCode = @X.query('//Fighter').value('(Fighter/@natlcode)[1]', 'VARCHAR(10)')
+            ,@Password = @X.query('//Fighter').value('(Fighter/@password)[1]', 'VARCHAR(250)');
       
       
       SELECT @Cont = COUNT(*)
@@ -107,17 +120,17 @@ BEGIN
       
       IF @Cont = 1
       BEGIN
-         SELECT 1;
+         SELECT 1 AS CODE, 'ok' AS MESG;
       END
       ELSE
       BEGIN
-         SELECT 0;
+         SELECT 0 AS CODE, 'password' AS MESG;
       END
    END
    ELSE IF @CmndCode = '5'
    BEGIN
       -- بازیابی اطلاعات دوره های مشتری
-      SELECT @NatlCode = @X.query('//Service').value('(Service/@natlcode)[1]', 'VARCHAR(10)');
+      SELECT @NatlCode = @X.query('//Fighter').value('(Fighter/@natlcode)[1]', 'VARCHAR(10)');
       
       SELECT ms.RWNO, ms.STRT_DATE, ms.END_DATE, ms.NUMB_OF_ATTN_MONT, ms.SUM_ATTN_MONT_DNRM, m.MTOD_DESC, cb.CTGY_DESC, c.NAME_DNRM
         FROM dbo.Fighter f, dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Method m, dbo.Category_Belt cb, dbo.Fighter c
@@ -135,31 +148,167 @@ BEGIN
          AND f.CONF_STAT = '002'
        ORDER BY ms.RWNO DESC;
    END    
-   ELSE IF @CmndCode = ''
-   BEGIN
-      -- برای ثبت هزینه درخواست به عنوان وصولی
-      -- ابتدا مشخص شود که چه گزینه هایی برای پرداخت نیاز هست که بتوان انها را خواند و در جدول وصلی ثبت نمود
-      SELECT 1;
+   ELSE IF @CmndCode = '6'
+   BEGIN      
+      -- اعتبار سنجی اطلاعات شماره ملی و موبایل تکراری
+      SELECT @NatlCode = @X.query('//Fighter').value('(Fighter/@natlcode)[1]', 'VARCHAR(10)')
+            ,@CellPhon = @X.query('//Fighter').value('(Fighter/@cellphon)[1]', 'VARCHAR(11)')
+      
+      -- IF Exists NatlCode Raise Error
+      IF EXISTS(SELECT * FROM dbo.Fighter WHERE NATL_CODE_DNRM = @NatlCode AND CONF_STAT = '002')
+		SELECT 0 AS CODE, N'nationalcode' AS MESG;  
+	  ELSE IF EXISTS(SELECT * FROM fighter WHERE CELL_PHON_DNRM = @CellPhon AND CONF_STAT = '002')
+		SELECT 0 AS CODE, N'mobile' AS MESG;
+	  ELSE      
+		SELECT 1 AS CODE, 'ok' AS MESG;
    END 
-   ELSE IF @CmndCode = ''
+   ELSE IF @CmndCode = '7'
    BEGIN
-      -- ثبت موقت اطلاعات برای ثبت نام
-      SELECT 1;
+      --  ثبت موقت اطلاعات ثبت نام
+      SELECT @NatlCode = @X.query('//Natl_Code').value('.', 'VARCHAR(10)')
+            ,@CellPhon = @X.query('//Cell_Phon').value('.', 'VARCHAR(11)')
+	  
+	  SELECT @FngrPrnt = MAX(FNGR_PRNT_DNRM) + 1
+	    FROM dbo.Fighter
+	   WHERE CONF_STAT = '002'
+	     AND FNGR_PRNT_DNRM IS NOT NULL
+	     AND LEN(FNGR_PRNT_DNRM) > 0
+	     AND FNGR_PRNT_DNRM NOT LIKE '%[^0-9]%';
+	  
+      SELECT @Xemp = @X.query('//Process');
+      
+      SET @Xemp.modify('replace value of (//Fngr_Prnt[1]/text())[1] with sql:variable("@FngrPrnt")');
+      
+      EXEC dbo.ADM_TRQT_F @X = @Xemp; -- xml      
+      
+      SELECT @Rqid = r.RQID, @PymtAmnt = (p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT), @AmntType = p.AMNT_UNIT_TYPE_DNRM
+	    FROM dbo.Request r,
+		     dbo.Request_Row rr,
+		     dbo.Fighter_Public fp,
+		     dbo.Payment p
+	   WHERE r.RQID = rr.RQST_RQID
+	     AND rr.RQST_RQID = fp.RQRO_RQST_RQID
+	     AND rr.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	     AND rr.RWNO = fp.RQRO_RWNO
+	     AND r.RQID = p.RQST_RQID
+	     AND fp.RECT_CODE = '001'
+	     AND r.RQTP_CODE = '001'
+	     AND r.RQTT_CODE = '001'
+	     AND r.RQST_STAT = '001'
+	     AND r.MDUL_NAME = 'ADM_WEB_F'
+	     AND r.SECT_NAME = 'ADM_WEB_F'
+	     AND fp.NATL_CODE = @NatlCode
+	     AND fp.CELL_PHON = @CellPhon;
+       
+      SELECT 1 AS CODE, 'ok' AS MESG, @Rqid AS RQID, @PymtAmnt AS PYMT_AMNT, @AmntType AS AMNT_TYPE
    END 
-   ELSE IF @CmndCode = ''
+   ELSE IF @CmndCode = '8'
    BEGIN
       --  ذخیره نهایی اطلاعات ثبت نام
-      SELECT 1;
+        SELECT @Xemp = @X.query('//Payment');
+        
+        SELECT @Rqid = @Xemp.query('//Payment_Method').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')
+        
+        SELECT @CashCode = CASH_CODE
+          FROM dbo.Payment
+         WHERE RQST_RQID = @Rqid;
+		
+		SET @Xemp.modify('replace value of (//Payment_Method/@cashcode)[1] with sql:variable("@cashcode")')
+		
+		EXEC dbo.PAY_MSAV_P @X = @Xemp -- xml
+		
+		SELECT @Xemp = (
+			SELECT rr.RQST_RQID AS '@rqid'
+			      ,rr.REGN_PRVN_CODE AS '@prvncode'
+			      ,rr.REGN_CODE AS '@regncode'
+			      ,rr.FIGH_FILE_NO AS 'Fighter/@fileno'
+			      ,'false' AS 'Payment/@setondebt'
+			      ,pd.CODE AS 'Payment_Detail/@code'
+			      ,'010' AS 'Payment_Detail/@rcptmtod'
+			  FROM dbo.Request_Row rr,
+			       dbo.Payment p,
+			       dbo.Payment_Detail pd
+			 WHERE rr.RQST_RQID = p.RQST_RQID
+			   AND p.RQST_RQID = pd.PYMT_RQST_RQID
+			   AND rr.RQST_RQID = @Rqid
+			   FOR XML PATH('Request'), ROOT('Process')
+		);	
+		
+		EXEC dbo.ADM_TSAV_F @X = @Xemp -- xml		 
+		
+		SELECT 1 AS CODE, 'ok' AS MESG;
    END 
-   ELSE IF @CmndCode = ''
+   ELSE IF @CmndCode = '9'
+   BEGIN
+      -- بررسی کد ملی عضو
+      SELECT @NatlCode = @X.query('//Fighter').value('(Fighter/@natlcode)[1]', 'VARCHAR(10)');
+      
+      SELECT @Cont = COUNT(*) 
+        FROM dbo.Fighter
+       WHERE NATL_CODE_DNRM = @NatlCode
+         AND CONF_STAT = '002';
+      
+      IF @Cont != 1
+		SELECT 0 AS CODE, 'more record found' AS MESG;
+	  ELSE
+	  BEGIN
+		SELECT 1 AS CODE, 'ok' AS MESG;
+		
+		-- خواندن اطلاعات مروبط به مشترکین با کدملی و شماره موبایل
+        SELECT FILE_NO, NAME_DNRM, BRTH_DATE_DNRM, CELL_PHON_DNRM, NATL_CODE, FRST_NAME, LAST_NAME, SEX_TYPE,FIGH_STAT, SUNT_CODE, SUNT_DESC 
+          FROM dbo.[VF$Last_Info_Fighter](NULL, NULL, NULL,@NatlCode, NULL, NULL ,NULL, NULL, NULL,NULL, NULL, NULL,NULL, NULL, null);      
+	  END
+   END 
+   ELSE IF @CmndCode = '10'
    BEGIN
       -- ثبت موقت اطلاعات برای تمدید دوره
-      SELECT 1;
+      SELECT @FileNo = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');
+      
+      SELECT @Xemp = @X.query('//Process');
+      
+      EXEC dbo.UCC_TRQT_P @X = @Xemp; -- xml      
+      
+      SELECT @Rqid = r.RQID, @PymtAmnt = (p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT), @AmntType = p.AMNT_UNIT_TYPE_DNRM
+	    FROM dbo.Request r,
+		     dbo.Request_Row rr,
+		     dbo.Payment p
+	   WHERE r.RQID = rr.RQST_RQID
+	     AND r.RQID = p.RQST_RQID
+	     AND r.RQTP_CODE = '009'
+	     AND r.RQTT_CODE = '001'
+	     AND r.RQST_STAT = '001'
+	     AND r.MDUL_NAME = 'UCC_WEB_F'
+	     AND r.SECT_NAME = 'UCC_WEB_F'
+	     AND rr.FIGH_FILE_NO = @FileNo;
+       
+      SELECT 1 AS CODE, 'ok' AS MESG, @Rqid AS RQID, @PymtAmnt AS PYMT_AMNT, @AmntType AS AMNT_TYPE
    END 
-   ELSE IF @CmndCode = ''
+   ELSE IF @CmndCode = '11'
    BEGIN
       -- ذخیره نهایی اطلاعات تمدید دوره
-      SELECT 1;
+      SELECT @Xemp = @X.query('//Payment');
+        
+      SELECT @Rqid = @Xemp.query('//Payment_Method').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')
+        
+      SELECT @CashCode = CASH_CODE
+	    FROM dbo.Payment
+	   WHERE RQST_RQID = @Rqid;
+		
+	  SET @Xemp.modify('replace value of (//Payment_Method/@cashcode)[1] with sql:variable("@cashcode")')
+		
+	  EXEC dbo.PAY_MSAV_P @X = @Xemp -- xml
+		
+	  SELECT @Xemp = (
+		SELECT r.RQID AS '@rqid'
+		      ,'false' AS 'Payment/@setondebt'
+		  FROM dbo.Request r
+		 WHERE r.RQID = @Rqid
+		   FOR XML PATH('Request'), ROOT('Process')
+		);	
+		
+      EXEC dbo.UCC_TSAV_P @X = @Xemp -- xml		 
+		
+	  SELECT 1 AS CODE, 'ok' AS MESG;
    END 
   
    COMMIT TRAN ROTR_DBCM_T;
@@ -168,10 +317,11 @@ BEGIN
    BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SET @ErrorMessage = ERROR_MESSAGE();
-      RAISERROR ( @ErrorMessage, -- Message text.
-               16, -- Severity.
-               1 -- State.
-               );
+      --RAISERROR ( @ErrorMessage, -- Message text.
+      --         16, -- Severity.
+      --         1 -- State.
+      --         );
+      SELECT 0 AS CODE, @ErrorMessage AS MESG;
       ROLLBACK TRAN ROTR_DBCM_T;
    END CATCH
 END
