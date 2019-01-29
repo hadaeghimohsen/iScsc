@@ -128,7 +128,7 @@ BEGIN
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
       -- 1396/05/09 * برای اینکه آخرین اطلاعات ورود و خروج هنرجو را داشته باشیم نیاز هست که در زمان بلاک تعداد کل جلسات و جلسات اومده رو ذخیره کنیم      
-      SELECT @NumbMontOfer = m.NUMB_MONT_OFER
+      SELECT @NumbMontOfer = /*m.NUMB_MONT_OFER*/0
             ,@NumbOfAttnMont = m.NUMB_OF_ATTN_MONT
             ,@NumbOfAttnWeek = m.NUMB_OF_ATTN_WEEK
             ,@SumAttnMontDnrm = m.SUM_ATTN_MONT_DNRM

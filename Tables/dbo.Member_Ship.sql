@@ -345,7 +345,7 @@ BEGIN
          DECLARE @XMsg XML;
          SELECT @XMsg = (
             SELECT 5 AS '@subsys',
-                   '002' AS '@linetype',
+                   '001' AS '@linetype',
                    (
                      SELECT @CellPhon AS '@phonnumb',
                             (

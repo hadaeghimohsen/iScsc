@@ -70,6 +70,7 @@ BEGIN
             ,@EndDate002 = END_DATE
             ,@NumbOfAttnMont002 = NUMB_OF_ATTN_MONT
             ,@SumNumbAttnMont002 = SUM_ATTN_MONT_DNRM
+            ,@NumbMontOfer002 = NUMB_MONT_OFER
         FROM dbo.Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002'
@@ -79,6 +80,7 @@ BEGIN
             ,@EndDate004 = END_DATE
             ,@NumbOfAttnMont004 = NUMB_OF_ATTN_MONT
             ,@SumNumbAttnMont004 = SUM_ATTN_MONT_DNRM
+            ,@NumbMontOfer004 = NUMB_MONT_OFER
         FROM dbo.Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004'
@@ -89,6 +91,7 @@ BEGIN
             ,END_DATE = @EndDate004
             ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont004
             ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont004
+            ,NUMB_MONT_OFER = @NumbMontOfer004
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002';
       
@@ -97,6 +100,7 @@ BEGIN
             ,END_DATE = @EndDate002
             ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont002
             ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont002
+            ,NUMB_MONT_OFER = @NumbMontOfer002
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004';
       

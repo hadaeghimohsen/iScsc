@@ -168,7 +168,7 @@ BEGIN
       SELECT @NatlCode = @X.query('//Natl_Code').value('.', 'VARCHAR(10)')
             ,@CellPhon = @X.query('//Cell_Phon').value('.', 'VARCHAR(11)')
 	  
-	  SELECT @FngrPrnt = MAX(FNGR_PRNT_DNRM) + 1
+	  SELECT @FngrPrnt = MAX(CONVERT(BIGINT, FNGR_PRNT_DNRM)) + 1
 	    FROM dbo.Fighter
 	   WHERE CONF_STAT = '002'
 	     AND FNGR_PRNT_DNRM IS NOT NULL
@@ -182,23 +182,23 @@ BEGIN
       EXEC dbo.ADM_TRQT_F @X = @Xemp; -- xml      
       
       SELECT @Rqid = r.RQID, @PymtAmnt = (p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT), @AmntType = p.AMNT_UNIT_TYPE_DNRM
-	    FROM dbo.Request r,
-		     dbo.Request_Row rr,
-		     dbo.Fighter_Public fp,
-		     dbo.Payment p
-	   WHERE r.RQID = rr.RQST_RQID
-	     AND rr.RQST_RQID = fp.RQRO_RQST_RQID
-	     AND rr.FIGH_FILE_NO = fp.FIGH_FILE_NO
-	     AND rr.RWNO = fp.RQRO_RWNO
-	     AND r.RQID = p.RQST_RQID
-	     AND fp.RECT_CODE = '001'
-	     AND r.RQTP_CODE = '001'
-	     AND r.RQTT_CODE = '001'
-	     AND r.RQST_STAT = '001'
-	     AND r.MDUL_NAME = 'ADM_WEB_F'
-	     AND r.SECT_NAME = 'ADM_WEB_F'
-	     AND fp.NATL_CODE = @NatlCode
-	     AND fp.CELL_PHON = @CellPhon;
+	     FROM dbo.Request r,
+ 		      dbo.Request_Row rr,
+		      dbo.Fighter_Public fp,
+		      dbo.Payment p
+	     WHERE r.RQID = rr.RQST_RQID
+	       AND rr.RQST_RQID = fp.RQRO_RQST_RQID
+	       AND rr.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	       AND rr.RWNO = fp.RQRO_RWNO
+	       AND r.RQID = p.RQST_RQID
+	       AND fp.RECT_CODE = '001'
+	       AND r.RQTP_CODE = '001'
+	       AND r.RQTT_CODE = '001'
+	       AND r.RQST_STAT = '001'
+	       AND r.MDUL_NAME = 'ADM_WEB_F'
+	       AND r.SECT_NAME = 'ADM_WEB_F'
+	       AND fp.NATL_CODE = @NatlCode
+	       AND fp.CELL_PHON = @CellPhon;
        
       SELECT 1 AS CODE, 'ok' AS MESG, @Rqid AS RQID, @PymtAmnt AS PYMT_AMNT, @AmntType AS AMNT_TYPE
    END 
@@ -249,15 +249,15 @@ BEGIN
          AND CONF_STAT = '002';
       
       IF @Cont != 1
-		SELECT 0 AS CODE, 'more record found' AS MESG;
-	  ELSE
-	  BEGIN
-		SELECT 1 AS CODE, 'ok' AS MESG;
+		   SELECT 0 AS CODE, 'more record found' AS MESG;
+	   ELSE
+	   BEGIN
+	 	   SELECT 1 AS CODE, 'ok' AS MESG;
 		
-		-- خواندن اطلاعات مروبط به مشترکین با کدملی و شماره موبایل
-        SELECT FILE_NO, NAME_DNRM, BRTH_DATE_DNRM, CELL_PHON_DNRM, NATL_CODE, FRST_NAME, LAST_NAME, SEX_TYPE,FIGH_STAT, SUNT_CODE, SUNT_DESC 
-          FROM dbo.[VF$Last_Info_Fighter](NULL, NULL, NULL,@NatlCode, NULL, NULL ,NULL, NULL, NULL,NULL, NULL, NULL,NULL, NULL, null);      
-	  END
+		   -- خواندن اطلاعات مروبط به مشترکین با کدملی و شماره موبایل
+         SELECT FILE_NO, NAME_DNRM, BRTH_DATE_DNRM, CELL_PHON_DNRM, NATL_CODE, FRST_NAME, LAST_NAME, SEX_TYPE,FIGH_STAT, SUNT_CODE, SUNT_DESC 
+           FROM dbo.[VF$Last_Info_Fighter](NULL, NULL, NULL,@NatlCode, NULL, NULL ,NULL, NULL, NULL,NULL, NULL, NULL,NULL, NULL, null);      
+	   END
    END 
    ELSE IF @CmndCode = '10'
    BEGIN
@@ -266,20 +266,38 @@ BEGIN
       
       SELECT @Xemp = @X.query('//Process');
       
+      -- 1397/11/07 * آیا قبلا برای مشتری درخواستی ثبت شده است یا خیر
+      SELECT @Rqid = f.RQST_RQID
+        FROM dbo.Fighter f
+       WHERE f.FILE_NO = @FileNo;
+      
+      IF @Rqid IS NOT NULL AND EXISTS ( 
+         SELECT *
+           FROM dbo.Request
+          WHERE RQID = @Rqid
+            AND RQTP_CODE = '009'
+            AND RQTT_CODE = '001'
+            AND RQST_STAT = '001'
+            AND MDUL_NAME = 'UCC_WEB_F'
+      )
+      BEGIN
+         SET @Xemp.modify('replace value of (//Request/@rqid)[1] with sql:variable("@Rqid")');
+      END 
+      
       EXEC dbo.UCC_TRQT_P @X = @Xemp; -- xml      
       
       SELECT @Rqid = r.RQID, @PymtAmnt = (p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT), @AmntType = p.AMNT_UNIT_TYPE_DNRM
-	    FROM dbo.Request r,
-		     dbo.Request_Row rr,
-		     dbo.Payment p
-	   WHERE r.RQID = rr.RQST_RQID
-	     AND r.RQID = p.RQST_RQID
-	     AND r.RQTP_CODE = '009'
-	     AND r.RQTT_CODE = '001'
-	     AND r.RQST_STAT = '001'
-	     AND r.MDUL_NAME = 'UCC_WEB_F'
-	     AND r.SECT_NAME = 'UCC_WEB_F'
-	     AND rr.FIGH_FILE_NO = @FileNo;
+	     FROM dbo.Request r,
+		       dbo.Request_Row rr,
+		       dbo.Payment p
+	     WHERE r.RQID = rr.RQST_RQID
+  	       AND r.RQID = p.RQST_RQID
+	       AND r.RQTP_CODE = '009'
+	       AND r.RQTT_CODE = '001'
+	       AND r.RQST_STAT = '001'
+	       AND r.MDUL_NAME = 'UCC_WEB_F'
+	       AND r.SECT_NAME = 'UCC_WEB_F'
+	       AND rr.FIGH_FILE_NO = @FileNo;
        
       SELECT 1 AS CODE, 'ok' AS MESG, @Rqid AS RQID, @PymtAmnt AS PYMT_AMNT, @AmntType AS AMNT_TYPE
    END 
