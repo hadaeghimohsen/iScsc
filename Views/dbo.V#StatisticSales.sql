@@ -1,0 +1,16 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+
+CREATE VIEW [dbo].[V#StatisticSales] AS
+SELECT  [YEAR] ,
+        [CYCL] ,
+        RQTP_CODE ,
+        COUNT(RQID) AS CONT,
+        SUM(CONVERT(BIGINT, EXPN_PRIC) + CONVERT(BIGINT, EXPN_EXTR_PRCT) * QNTY) AS AMNT
+FROM    dbo.V#Sales
+GROUP BY [YEAR] ,
+        [CYCL] ,
+        RQTP_CODE;
+GO

@@ -2,31 +2,56 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+
+
+
 CREATE VIEW [dbo].[V#Sales]
 AS
-SELECT     dbo.Request.RQID, dbo.GET_MTOS_U(dbo.Request.RQST_DATE) AS RQST_DATE, dbo.Request.YEAR, dbo.D$CYCL.DOMN_DESC AS CYCL, dbo.V#Users.USER_NAME AS CRET_BY, 
-                  dbo.Request_Type.RQTP_DESC, dbo.Requester_Type.RQTT_DESC, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC, dbo.D$SXTP.DOMN_DESC AS SXTP, dbo.D$RQST.DOMN_DESC AS RQST, 
-                  dbo.Payment_Detail.EXPN_PRIC * dbo.Payment_Detail.QNTY AS EXPN_PRIC, dbo.Payment_Detail.EXPN_EXTR_PRCT * dbo.Payment_Detail.QNTY AS EXPN_EXTR_PRCT, dbo.Payment_Detail.QNTY, 
-                  dbo.GET_MTOS_U(dbo.Payment_Detail.ISSU_DATE) AS ISSU_DATE, dbo.Expense.EXPN_DESC, dbo.Club.NAME, dbo.Club_Method.STRT_TIME, dbo.Club_Method.END_TIME, 
-                  dbo.D$DYTP.DOMN_DESC AS DYTP
-FROM        dbo.Request_Type INNER JOIN
-                  dbo.Request_Row INNER JOIN
-                  dbo.Request ON dbo.Request_Row.RQST_RQID = dbo.Request.RQID INNER JOIN
-                  dbo.Requester_Type ON dbo.Request.RQTT_CODE = dbo.Requester_Type.CODE ON dbo.Request_Type.CODE = dbo.Request.RQTP_CODE INNER JOIN
-                  dbo.Fighter ON dbo.Request_Row.FIGH_FILE_NO = dbo.Fighter.FILE_NO INNER JOIN
-                  dbo.Category_Belt ON dbo.Fighter.CTGY_CODE_DNRM = dbo.Category_Belt.CODE INNER JOIN
-                  dbo.Method ON dbo.Category_Belt.MTOD_CODE = dbo.Method.CODE INNER JOIN
-                  dbo.D$SXTP ON dbo.Fighter.SEX_TYPE_DNRM = dbo.D$SXTP.VALU INNER JOIN
-                  dbo.D$RQST ON dbo.Request.RQST_STAT = dbo.D$RQST.VALU INNER JOIN
-                  dbo.Payment_Detail ON dbo.Request_Row.RQST_RQID = dbo.Payment_Detail.PYMT_RQST_RQID AND dbo.Request_Row.RWNO = dbo.Payment_Detail.RQRO_RWNO INNER JOIN
-                  dbo.Expense ON dbo.Payment_Detail.EXPN_CODE = dbo.Expense.CODE INNER JOIN
-                  dbo.D$CYCL ON dbo.Request.CYCL = dbo.D$CYCL.VALU INNER JOIN
-                  dbo.V#Users ON dbo.Request.CRET_BY = dbo.V#Users.USER_DB INNER JOIN
-                  dbo.Club_Method ON dbo.Fighter.CBMT_CODE_DNRM = dbo.Club_Method.CODE INNER JOIN
-                  dbo.Club ON dbo.Club_Method.CLUB_CODE = dbo.Club.CODE INNER JOIN
-                  dbo.D$DYTP ON dbo.Club_Method.DAY_TYPE = dbo.D$DYTP.VALU
-WHERE     (dbo.Request.RQST_STAT = '001') OR
-                  (dbo.Request.RQST_STAT = '002')
+SELECT  dbo.Request.RQID ,
+        dbo.GET_MTOS_U(dbo.Request.RQST_DATE) AS RQST_DATE ,
+        dbo.Request.YEAR ,
+        SUBSTRING(dbo.Request.CYCL, 2, 2) CYCL ,
+        dbo.D$CYCL.DOMN_DESC AS CYCL_DESC ,
+        dbo.V#Users.USER_NAME AS CRET_BY ,
+        dbo.Request_Type.RQTP_DESC ,
+        dbo.Requester_Type.RQTT_DESC ,
+        dbo.Method.MTOD_DESC ,
+        dbo.Category_Belt.CTGY_DESC ,
+        dbo.D$SXTP.DOMN_DESC AS SXTP ,
+        dbo.D$RQST.DOMN_DESC AS RQST ,
+        dbo.Payment_Detail.EXPN_PRIC * dbo.Payment_Detail.QNTY AS EXPN_PRIC ,
+        dbo.Payment_Detail.EXPN_EXTR_PRCT * dbo.Payment_Detail.QNTY AS EXPN_EXTR_PRCT ,
+        dbo.Payment_Detail.QNTY ,
+        dbo.GET_MTOS_U(dbo.Payment_Detail.ISSU_DATE) AS ISSU_DATE ,
+        dbo.Expense.EXPN_DESC ,
+        dbo.Club.NAME ,
+        dbo.Club_Method.STRT_TIME ,
+        dbo.Club_Method.END_TIME ,
+        dbo.D$DYTP.DOMN_DESC AS DYTP ,
+        dbo.Request_Type.CODE AS RQTP_CODE ,
+        dbo.Requester_Type.CODE AS RQTT_CODE
+FROM    dbo.Request_Type
+        INNER JOIN dbo.Request_Row
+        INNER JOIN dbo.Request ON dbo.Request_Row.RQST_RQID = dbo.Request.RQID
+        INNER JOIN dbo.Requester_Type ON dbo.Request.RQTT_CODE = dbo.Requester_Type.CODE ON dbo.Request_Type.CODE = dbo.Request.RQTP_CODE
+        INNER JOIN dbo.Fighter ON dbo.Request_Row.FIGH_FILE_NO = dbo.Fighter.FILE_NO
+        INNER JOIN dbo.Category_Belt ON dbo.Fighter.CTGY_CODE_DNRM = dbo.Category_Belt.CODE
+        INNER JOIN dbo.Method ON dbo.Category_Belt.MTOD_CODE = dbo.Method.CODE
+        INNER JOIN dbo.D$SXTP ON dbo.Fighter.SEX_TYPE_DNRM = dbo.D$SXTP.VALU
+        INNER JOIN dbo.D$RQST ON dbo.Request.RQST_STAT = dbo.D$RQST.VALU
+        INNER JOIN dbo.Payment_Detail ON dbo.Request_Row.RQST_RQID = dbo.Payment_Detail.PYMT_RQST_RQID
+                                         AND dbo.Request_Row.RWNO = dbo.Payment_Detail.RQRO_RWNO
+        INNER JOIN dbo.Expense ON dbo.Payment_Detail.EXPN_CODE = dbo.Expense.CODE
+        INNER JOIN dbo.D$CYCL ON dbo.Request.CYCL = dbo.D$CYCL.VALU
+        INNER JOIN dbo.V#Users ON dbo.Request.CRET_BY = dbo.V#Users.USER_DB
+        INNER JOIN dbo.Club_Method ON dbo.Fighter.CBMT_CODE_DNRM = dbo.Club_Method.CODE
+        INNER JOIN dbo.Club ON dbo.Club_Method.CLUB_CODE = dbo.Club.CODE
+        INNER JOIN dbo.D$DYTP ON dbo.Club_Method.DAY_TYPE = dbo.D$DYTP.VALU
+WHERE   ( dbo.Request.RQST_STAT = '001' )
+        OR ( dbo.Request.RQST_STAT = '002' );
+
+
+
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 
@@ -300,7 +325,7 @@ EXEC sp_addextendedproperty N'MS_DiagramPane2', N'   DisplayFlags = 344
       Begin ColumnWidths = 11
          Column = 6855
          Alias = 900
-         Table = 1170
+         Table = 1455
          Output = 720
          Append = 1400
          NewValue = 1170
