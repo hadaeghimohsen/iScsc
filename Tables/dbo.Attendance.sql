@@ -39,6 +39,7 @@ CREATE TABLE [dbo].[Attendance]
 [RCPT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PMEX_CODE] [bigint] NULL,
 [ATTN_SYS_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SEX_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -88,7 +89,8 @@ AS
                         i.ATTN_DESC ,
                         fp.CBMT_CODE ,
                         fp.GLOB_CODE ,
-                        fp.FMLY_NUMB
+                        fp.FMLY_NUMB ,
+                        f.SEX_TYPE_DNRM
               FROM      INSERTED i ,
                         dbo.Fighter f ,
                         dbo.Fighter_Public fp
@@ -129,10 +131,10 @@ AS
                     T.DEBT_DNRM = S.DEBT_DNRM ,
                     T.BUFE_DEBT_DNRM = S.BUFE_DEBT_DNTM ,
                     T.MBSP_STRT_DATE_DNRM = S.MBSP_STRT_DATE ,
-           T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
+                    T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
                     T.BRTH_DATE_DNRM = S.BRTH_DATE_DNRM ,
                     T.NUMB_OF_ATTN_MONT = S.NUMB_OF_ATTN_MONT ,
-      T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
+                    T.SUM_ATTN_MONT_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN (
                                                      '002', '003' )
                                                      AND S.ATTN_TYPE != '008'
                                                 THEN ISNULL(S.SUM_ATTN_MONT_DNRM,
@@ -148,6 +150,7 @@ AS
                     T.CBMT_CODE_DNRM = S.CBMT_CODE ,
                     T.GLOB_CODE_DNRM = S.GLOB_CODE ,
                     T.FMLY_NUMB_DNRM = S.FMLY_NUMB ,
+                    T.SEX_TYPE_DNRM = S.SEX_TYPE_DNRM ,
                     T.ATTN_DESC = CASE WHEN S.ATTN_TYPE = '007'
                                        THEN N'ثبت جلسه حضوری با همراه با کسر جلسه از اعضا'
                                        WHEN S.ATTN_TYPE = '008'
@@ -196,7 +199,7 @@ AS
                                 AND RECT_CODE = '004'
                                 AND EXISTS ( SELECT *
                                              FROM   INSERTED I ,
-                           Attendance A ,
+                                                    Attendance A ,
                                                     dbo.Method m
                                              WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
                                                     AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
@@ -223,26 +226,25 @@ AS
 					-- اگر گزینه ثبت نام مشارکتی در میان باشد آن دسته از افرادی که شماره پرسنلی یکسانی دارند باید یک جلسه از آنها هم کم شود
                     IF EXISTS(SELECT * FROM dbo.Settings s, Inserted i, dbo.Attendance a, dbo.Club_Method cm, dbo.Method m WHERE a.CODE = i.CODE AND a.CLUB_CODE = s.CLUB_CODE AND cm.CLUB_CODE = s.CLUB_CODE AND a.CBMT_CODE_DNRM = cm.CODE AND m.CODE = cm.MTOD_CODE AND s.SHAR_MBSP_STAT = '002' AND ISNULL(a.GLOB_CODE_DNRM, '') != '' AND m.CHCK_ATTN_ALRM = '002')
                     BEGIN
-						UPDATE  ms
+						   UPDATE  ms
 					   	   SET  ms.SUM_ATTN_MONT_DNRM = ISNULL(ms.SUM_ATTN_MONT_DNRM, 0) + 1
-						  FROM  dbo.Member_Ship ms, dbo.Fighter_Public fp, Attendance A , INSERTED I , dbo.Method m
-					     WHERE A.FIGH_FILE_NO = I.FIGH_FILE_NO
-					       AND a.CODE = i.CODE
-						   AND I.ATTN_STAT = '002' -- حضوری فعال
-						   AND ms.RECT_CODE = '004' -- رکورد نهایی شده
-						   
-						   AND ms.FIGH_FILE_NO != a.FIGH_FILE_NO -- کاری به فرد جاری نداریم و دنبال مابقی افراد با کد مالی یکسان هستیم
-						   AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
-						   AND ms.FGPB_RWNO_DNRM = fp.RWNO
-						   AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
-						   AND fp.GLOB_CODE = a.GLOB_CODE_DNRM -- افرادی که داری کد پرسنلی یکسان هستند
-						   AND fp.MTOD_CODE = a.MTOD_CODE_DNRM -- به دنبال ورزش مشارکتی
-						   AND ms.VALD_TYPE = '002' 
-						   AND a.MTOD_CODE_DNRM = m.CODE
-						   AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی 
-						   AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
-						   AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) > ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) /*- 1*/
-						   AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(STRT_DATE AS DATE) AND CAST(END_DATE AS DATE);
+						     FROM  dbo.Member_Ship ms, dbo.Fighter_Public fp, Attendance A , INSERTED I , dbo.Method m
+					       WHERE A.FIGH_FILE_NO = I.FIGH_FILE_NO
+					         AND a.CODE = i.CODE
+						      AND I.ATTN_STAT = '002' -- حضوری فعال
+						      AND ms.RECT_CODE = '004' -- رکورد نهایی شده						   
+						      AND ms.FIGH_FILE_NO != a.FIGH_FILE_NO -- کاری به فرد جاری نداریم و دنبال مابقی افراد با کد مالی یکسان هستیم
+						      AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+						      AND ms.FGPB_RWNO_DNRM = fp.RWNO
+						      AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+						      AND fp.GLOB_CODE = a.GLOB_CODE_DNRM -- افرادی که داری کد پرسنلی یکسان هستند
+						      AND fp.MTOD_CODE = a.MTOD_CODE_DNRM -- به دنبال ورزش مشارکتی
+						      AND ms.VALD_TYPE = '002' 
+						      AND a.MTOD_CODE_DNRM = m.CODE
+						      AND m.CHCK_ATTN_ALRM = '002' -- ورزش مشارکتی 
+						      AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
+						      AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) > ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) /*- 1*/
+						      AND CAST(a.ATTN_DATE AS DATE) BETWEEN CAST(STRT_DATE AS DATE) AND CAST(END_DATE AS DATE);
                     END;						                                    
                     END;
                 ELSE

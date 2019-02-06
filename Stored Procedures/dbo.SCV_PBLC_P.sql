@@ -47,6 +47,7 @@ BEGIN
        WHERE r.RQID = rr.RQST_RQID
          AND rr.FIGH_FILE_NO = f.FILE_NO
          AND r.RQID = f.RQST_RQID
+         AND f.FILE_NO = @FileNo
          AND r.RQST_STAT = '001'
          AND r.RQTP_CODE = '002'
          AND r.RQTT_CODE = '004';
@@ -54,6 +55,12 @@ BEGIN
       IF @ColumnName = 'FNGR_PRNT'    
          UPDATE dbo.Fighter_Public
             SET FNGR_PRNT = @X.query('//Fighter').value('(Fighter/@newvalue)[1]', 'VARCHAR(20)')
+          WHERE FIGH_FILE_NO = @FileNo
+            AND RQRO_RQST_RQID = @Rqid
+            AND RECT_CODE = '001';
+      ELSE IF @ColumnName = 'PASS_WORD'    
+         UPDATE dbo.Fighter_Public
+            SET PASS_WORD = @X.query('//Fighter').value('(Fighter/@newvalue)[1]', 'VARCHAR(250)')
           WHERE FIGH_FILE_NO = @FileNo
             AND RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '001';

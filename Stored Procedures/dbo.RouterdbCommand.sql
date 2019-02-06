@@ -328,6 +328,73 @@ BEGIN
 		
 	  SELECT 1 AS CODE, 'ok' AS MESG;
    END 
+   ELSE IF @CmndCode = '12'
+   BEGIN
+      -- تغییر رمز کاربری
+      SELECT @Xemp = @X.query('//Process');
+      
+      EXEC dbo.SCV_PBLC_P @X = @Xemp -- xml
+      
+      SELECT 1 AS CODE, 'ok' AS MESG;
+   END
+   ELSE IF @CmndCode = '13'
+   BEGIN
+      -- ثبت موقت تغییر مشخصات عمومی
+      SELECT @FileNo = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');
+      
+      SELECT @Xemp = @X.query('//Process');
+      
+      -- 1397/11/16 * آیا قبلا برای مشتری درخواستی ثبت شده است یا خیر
+      SELECT @Rqid = f.RQST_RQID
+        FROM dbo.Fighter f
+       WHERE f.FILE_NO = @FileNo;
+      
+      IF @Rqid IS NOT NULL AND EXISTS ( 
+         SELECT *
+           FROM dbo.Request
+          WHERE RQID = @Rqid
+            AND RQTP_CODE = '002'
+            AND RQTT_CODE = '004'
+            AND RQST_STAT = '001'
+            AND MDUL_NAME = 'PBLC_WEB_F'
+      )
+      BEGIN
+         SET @Xemp.modify('replace value of (//Request/@rqid)[1] with sql:variable("@Rqid")');
+      END 
+      
+      EXEC dbo.PBL_RQST_F @X = @Xemp -- xml
+      
+      SELECT @Rqid = r.RQID
+	     FROM dbo.Request r,
+		       dbo.Request_Row rr
+	     WHERE r.RQID = rr.RQST_RQID
+	       AND r.RQTP_CODE = '002'
+	       AND r.RQTT_CODE = '004'
+	       AND r.RQST_STAT = '001'
+	       AND r.MDUL_NAME = 'PBLC_WEB_F'
+	       AND r.SECT_NAME = 'PBLC_WEB_F'
+	       AND rr.FIGH_FILE_NO = @FileNo;
+      
+      SELECT 1 AS CODE, 'ok' AS MESG, @Rqid AS RQID;
+   END
+   ELSE IF @CmndCode = '14'
+   BEGIN
+      -- ذخیره نهایی تغییر مشخصات عمومی
+      SELECT @Rqid = @X.query('//Request').value('(Request/@rqid)[1]', 'BIGINT');
+      
+      SELECT @Xemp = @X.query('//Process');
+      
+      -- 1397/11/16 * آیا قبلا برای مشتری درخواستی ثبت شده است یا خیر
+      SELECT @FileNo = f.FILE_NO
+        FROM dbo.Fighter f
+       WHERE f.RQST_RQID = @Rqid;
+      
+      SET @Xemp.modify('replace value of (//Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      
+      EXEC dbo.PBL_SAVE_F @X = @Xemp -- xml      
+         
+      SELECT 1 AS CODE, 'ok' AS MESG;
+   END
   
    COMMIT TRAN ROTR_DBCM_T;
    RETURN 1;
