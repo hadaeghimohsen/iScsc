@@ -414,7 +414,7 @@ BEGIN
                   AND a.EXIT_TIME IS NULL
             )
             AND ( 
-                  (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
+                  -- 1397/11/24 * به این گزینه نیازی نیست فقط ساعت کلاسی چک شود کافیه * (CAST(cmw.WEEK_DAY AS SMALLINT) = DATEPART(DW, /*GETDATE()*/@Attn_Date) AND cmw.STAT = '001' /* مجاز نباشد */) OR 
                   (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND (CAST(GETDATE() AS TIME(0)) < CAST(cm.STRT_TIME AS TIME(0)) OR CAST(GETDATE() AS TIME(0)) > CAST(cm.END_TIME AS TIME(0))) /* NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)) */)               
                 )
             
