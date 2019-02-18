@@ -357,6 +357,13 @@ BEGIN
                AND F.FGPB_TYPE_DNRM IN ('001', '005', '006')
                AND S.MORE_ATTN_SESN = '002' -- تک جلسه در روز
          ) AND
+         NOT EXISTS(
+             SELECT *
+               FROM dbo.Exception_Operation
+              WHERE FIGH_FILE_NO = @Figh_File_No
+                AND EXCP_TYPE = '001' -- Attendance
+                AND STAT = '002'
+         ) AND         
          EXISTS ( 
             SELECT *
               FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Attendance A

@@ -290,8 +290,8 @@ BEGIN
       ELSE IF @ConfigType = '005' -- CLUB_METHOD
       BEGIN
 		   DECLARE C$Del_Cbmt CURSOR FOR
-			   SELECT rx.query('Club_Method').value('(Club_Method/@code)[1]', 'BIGINT')
-		        FROM @X.nodes('//Delete') Dcb(rx);
+			   SELECT rx.query('.').value('(Club_Method/@code)[1]', 'BIGINT')
+		        FROM @X.nodes('//Delete/Club_Method') Dcb(rx);
 		   
 		   DECLARE @Cbmt_Code BIGINT;
 		   DECLARE @VisitPrivilege BIT;
@@ -320,7 +320,7 @@ BEGIN
             END
             SET @VisitPrivilege = 1;
          END
-		   IF EXISTS(SELECT * FROM Fighter WHERE CBMT_CODE_DNRM = @Cbmt_Code) BEGIN RAISERROR(N'ساعت کلاسی دارای هنرجو می باشد', 16, 1)  END
+		   --IF EXISTS(SELECT * FROM Fighter WHERE CBMT_CODE_DNRM = @Cbmt_Code) BEGIN RAISERROR(N'ساعت کلاسی دارای هنرجو می باشد', 16, 1)  END
 		   IF EXISTS(SELECT * FROM Fighter_Public WHERE CBMT_CODE = @Cbmt_Code AND RECT_CODE = '004') BEGIN RAISERROR(N'ساعت کلاسی در اختیار سوابق هنرجویان می باشد', 16, 1)  END
 
 		   DELETE Club_Method WHERE CODE = @Cbmt_Code;

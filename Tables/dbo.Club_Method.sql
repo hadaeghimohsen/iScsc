@@ -41,9 +41,10 @@ BEGIN
    -- Insert statements for trigger here
    IF EXISTS(
       SELECT *
-        FROM Fighter F, DELETED D
-       WHERE F.CBMT_CODE_DNRM = D.CODE          
-   ) OR 
+        FROM dbo.Fighter_Public F, DELETED D
+       WHERE F.CBMT_CODE = D.CODE          
+         AND f.RECT_CODE = '004'
+   ) /*OR 
       EXISTS(
       SELECT *
         FROM Fighter F, Member_Ship M, Session S, Deleted D
@@ -53,7 +54,7 @@ BEGIN
          AND M.RECT_CODE = S.MBSP_RECT_CODE
          AND M.RWNO = S.MBSP_RWNO
          AND S.CBMT_CODE = D.CODE   
-   )
+   )*/
    BEGIN
       RAISERROR(N'شما اجازه حذف کلاس را ندارید. این کلاس قبلا در سابقه هنرجویان ثبت شده و قادر به حذف آن نیستید. اگر می خواهید آن را غیرفعال کنید', 16, 1);
       RETURN;
