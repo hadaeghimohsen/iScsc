@@ -81,7 +81,9 @@ BEGIN
                 ,@SharMbspStat VARCHAR(3)
                 ,@RunRbot VARCHAR(3)
                 ,@ClerZero VARCHAR(3)
-                ,@HldyCont INT;
+                ,@HldyCont INT
+                ,@DuplNatlCode VARCHAR(3)
+                ,@DuplCellPhon VARCHAR(3);
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -140,7 +142,9 @@ BEGIN
 	             ,@RunRbot = @X.query('//Settings').value('(Settings/@runrbot)[1]', 'VARCHAR(3)')
 	             
 	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
-	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT');
+	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT')
+	             ,@DuplNatlCode = @X.query('//Settings').value('(Settings/@duplnatlcode)[1]', 'VARCHAR(3)')
+	             ,@DuplCellPhon = @X.query('//Settings').value('(Settings/@duplcellphon)[1]', 'VARCHAR(3)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -213,6 +217,8 @@ BEGIN
                   
                   ,HLDY_CONT = @HldyCont
                   ,CLER_ZERO = @ClerZero
+                  ,DUPL_NATL_CODE = @DuplNatlCode
+                  ,DUPL_CELL_PHON = @DuplCellPhon
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

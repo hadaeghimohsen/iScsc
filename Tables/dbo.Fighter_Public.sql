@@ -374,14 +374,35 @@ BEGIN
    IF @GLOB_CODE = '' SET @GLOB_CODE = NULL;*/
    IF @CHAT_ID = 0 SET @CHAT_ID = NULL;
    
+   -- 1397/12/4 * 
+   DECLARE @DuplNatlCode VARCHAR(3)
+          ,@DuplCellPhon VARCHAR(3);
+          
+   SELECT @DuplNatlCode = s.DUPL_NATL_CODE
+         ,@DuplCellPhon = s.DUPL_CELL_PHON
+     FROM dbo.Settings s 
+    WHERE s.CLUB_CODE = @CLUB_CODE;
    
+   IF(ISNULL(@DuplNatlCode, '002') = '001' OR ISNULL(@DuplCellPhon, '002') = '001')
+   BEGIN
+      IF EXISTS(
+         SELECT *
+           FROM dbo.Fighter f, Inserted i
+          WHERE f.FILE_NO <> i.FIGH_FILE_NO
+            AND (f.NATL_CODE_DNRM = @NATL_CODE OR f.CELL_PHON_DNRM = @CELL_PHON)
+      )
+      BEGIN
+         RAISERROR(N'شماره کد ملی یا شماره تلفن تکراری می باشد', 16, 1);
+         ROLLBACK --TRAN TCG$AUPD_FGPB;
+      END
+   END
    
    IF @TYPE IN ( '001', '004', '005', '006' ) AND 
       NOT EXISTS(SELECT * FROM Request WHERE RQID = @RQRO_RQST_RQID AND RQTP_CODE IN ('013', '014', '022', '023', '025')) -- درخواست استخدامی نباشد
    BEGIN
       IF NOT EXISTS (SELECT * FROM Club_Method WHERE CODE = @CBMT_CODE) 
       BEGIN
-         RAISERROR(N'ساعت کلاسی برای باشگاه مشخص نشده', 16, 1);
+         RAISERROR(N'برنامه گروه مشخص نشده', 16, 1);
          ROLLBACK --TRAN TCG$AUPD_FGPB;
       END  
       BEGIN    
@@ -400,7 +421,7 @@ BEGIN
                 ,ATTN_TIME    = @ATTN_TIME
                 ,DAY_TYPE     = @DAY_TYPE
            WHERE EXISTS(
-SELECT *
+            SELECT *
               FROM INSERTED S
              WHERE dbo.Fighter_Public.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND
                    dbo.Fighter_Public.FIGH_FILE_NO   = S.FIGH_FILE_NO   AND
@@ -415,7 +436,7 @@ SELECT *
                AND ORDR = 0;
          IF @CTGY_CODE IS NULL
          BEGIN
-            RAISERROR(N'رسته برای سبک مشخص نشده', 16, 1);
+            RAISERROR(N'زیر گروه مشخص نشده', 16, 1);
             ROLLBACK --TRAN TCG$AUPD_FGPB;
          END
    END
@@ -472,7 +493,7 @@ SELECT *
             ,CELL_PHON           = CASE S.CELL_PHON           WHEN NULL THEN @CELL_PHON           ELSE S.CELL_PHON           END
             ,TELL_PHON           = CASE S.TELL_PHON           WHEN NULL THEN @TELL_PHON           ELSE S.TELL_PHON           END
             ,COCH_DEG            = CASE S.COCH_DEG            WHEN NULL THEN @COCH_DEG            ELSE S.COCH_DEG       END
-,GUDG_DEG            = CASE S.GUDG_DEG            WHEN NULL THEN @GUDG_DEG            ELSE S.GUDG_DEG            END
+            ,GUDG_DEG            = CASE S.GUDG_DEG            WHEN NULL THEN @GUDG_DEG            ELSE S.GUDG_DEG            END
             ,GLOB_CODE           = CASE S.GLOB_CODE           WHEN NULL THEN @GLOB_CODE           ELSE S.GLOB_CODE           END
             ,[TYPE]              = CASE S.[TYPE]              WHEN NULL THEN @TYPE                ELSE S.[TYPE]              END
             ,POST_ADRS           = CASE S.POST_ADRS           WHEN NULL THEN @POST_ADRS           ELSE S.POST_ADRS           END

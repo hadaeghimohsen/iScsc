@@ -20,7 +20,8 @@ CREATE PROCEDURE [dbo].[UPD_CTGY_P]
 	@Prvt_Coch_Expn VARCHAR(3),
 	@Pric INT,
 	@Dflt_Stat VARCHAR(3),
-	@Ctgy_Stat VARCHAR(3)
+	@Ctgy_Stat VARCHAR(3),
+	@Gust_Numb INT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -50,6 +51,7 @@ BEGIN
          ,PRIC = @Pric
          ,DFLT_STAT = ISNULL(@Dflt_Stat, '001')
          ,CTGY_STAT = @Ctgy_Stat
+         ,GUST_NUMB = @Gust_Numb
     WHERE CODE = @Code;
 END
 GO

@@ -160,6 +160,7 @@ BEGIN
    IF @Risk_Code = '' SET @Risk_Code = NULL
    IF @Job_Titl_Code = 0 SET @Job_Titl_Code = NULL   	
 	IF @Pass_Word = '' SET @Pass_Word = NULL
+	IF @Sex_Type = '003' SET @Sex_Type = '001';
 	
 	UPDATE [dbo].[Fighter_Public]
 	   SET [REGN_PRVN_CODE] = @Prvn_Code

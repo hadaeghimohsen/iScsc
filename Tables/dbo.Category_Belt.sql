@@ -20,7 +20,8 @@ CREATE TABLE [dbo].[Category_Belt]
 [NUMB_MONT_OFER] [int] NULL,
 [PRIC] [int] NULL,
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CTGY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[CTGY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[GUST_NUMB] [int] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -176,6 +177,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'رسته پیش فرض', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'DFLT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'متناسب با کدام گزینه آیتم درآمدی و هزینه فرآیندی می باشد', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'EPIT_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'حداقل تعداد عضو مهمان', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'GUST_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد بین المللی', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'NATL_CODE'
 GO

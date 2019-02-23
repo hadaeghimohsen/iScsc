@@ -20,7 +20,8 @@ CREATE PROCEDURE [dbo].[INS_CTGY_P]
 	@Prvt_Coch_Expn VARCHAR(3),
 	@Pric INT,
 	@Dflt_Stat VARCHAR(3),
-	@Ctgy_Stat VARCHAR(3)
+	@Ctgy_Stat VARCHAR(3),
+	@Gust_Numb INT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -38,7 +39,7 @@ BEGIN
    END
    -- پایان دسترسی
    
-   INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT)
-   VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat);
+   INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB)
+   VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb);
 END
 GO

@@ -658,6 +658,34 @@ BEGIN
    -- 1396/07/16 * اگر عضو باشگاه به همراه خود بخواهد همراهی به باشگاه بیاورد
    IF @AttnCode IS NULL OR @Attn_TYPE IN ( '007' , '008' )
    BEGIN
+      -- 1397/12/04 * میزان محدودیت
+      IF @Attn_TYPE IN ( '007' , '008' ) AND (
+         SELECT COUNT(*)
+           FROM dbo.Attendance a
+          WHERE a.FIGH_FILE_NO = @Figh_File_No
+            AND a.MBSP_RECT_CODE_DNRM = '004'
+            AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno
+            AND a.ATTN_TYPE IN ('007', '008')
+            AND a.ATTN_STAT = '002'
+      ) >= (
+         SELECT ISNULL(cb.GUST_NUMB, 0)
+           FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Category_Belt cb
+          WHERE ms.FIGH_FILE_NO = @Figh_File_No
+            AND ms.RWNO = @Mbsp_Rwno
+            AND ms.RECT_CODE = '004'
+            AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+            AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
+            AND ms.FGPB_RWNO_DNRM = fp.RWNO
+            AND fp.CTGY_CODE = cb.CODE
+            AND fp.MTOD_CODE = cb.MTOD_CODE
+      )
+      BEGIN
+         RAISERROR ( N'تعداد ورود اعضا مهمان شما به اتمام رسیده است', 
+                     16, -- Severity.
+                     1 -- State.
+                   );
+         RETURN;
+      END
       -- 1396/10/26 * گزینه مشخص شود که چه ورزشی می باشد      
       DECLARE @ChckAttnAlrm VARCHAR(3);
                    
