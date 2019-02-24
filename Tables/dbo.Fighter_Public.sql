@@ -383,7 +383,7 @@ BEGIN
      FROM dbo.Settings s 
     WHERE s.CLUB_CODE = @CLUB_CODE;
    
-   IF(ISNULL(@DuplNatlCode, '002') = '001' OR ISNULL(@DuplCellPhon, '002') = '001')
+   IF(ISNULL(@DuplNatlCode, '001') = '002' OR ISNULL(@DuplCellPhon, '001') = '002')
    BEGIN
       IF EXISTS(
          SELECT *
