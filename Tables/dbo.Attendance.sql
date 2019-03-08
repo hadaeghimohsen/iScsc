@@ -69,7 +69,7 @@ AS
                         f.MBCO_RWNO_DNRM ,
                         m.NUMB_OF_ATTN_MONT ,
                         m.SUM_ATTN_MONT_DNRM ,
-                        fp.BRTH_DATE AS BRTH_DATE_DNRM ,
+                        f.BRTH_DATE_DNRM ,
                         m.RWNO AS MBSP_RWNO_DNRM ,
                         f.NAME_DNRM ,
                         f.CELL_PHON_DNRM ,
