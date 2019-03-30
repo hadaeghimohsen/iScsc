@@ -20,6 +20,8 @@ BEGIN
       DELETE dbo.Account_Detail;
       DELETE dbo.Aggregation_Operation;
       DELETE dbo.Aggregation_Operation_Detail;
+      DELETE dbo.Dresser_Attendance;
+      DELETE dbo.Dresser;
       DELETE dbo.Attendance;
       DELETE dbo.Buffet;
       DELETE dbo.Payment_Expense;

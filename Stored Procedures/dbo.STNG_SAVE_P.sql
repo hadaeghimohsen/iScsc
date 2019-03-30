@@ -1534,7 +1534,7 @@ BEGIN
 		   DEALLOCATE C$Ins_Fga_URqrq; 
 		   ------------------------ End Insert
       END
-      ELSE IF @ConfigType = '014'
+      /*ELSE IF @ConfigType = '014'
       BEGIN
 		   DECLARE C$Del_Dresser CURSOR FOR
 			   SELECT rx.query('Dresser').value('(Dresser/@code)[1]', 'BIGINT')
@@ -1655,7 +1655,7 @@ BEGIN
 		   CLOSE C$Upd_Dresser;
 		   DEALLOCATE C$Upd_Dresser; 
 		   ------------------------ End Insert
-      END
+      END*/
       
       COMMIT TRAN STNG_SAVE_P_TRAN;
    END TRY
