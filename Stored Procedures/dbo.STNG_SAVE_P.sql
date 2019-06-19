@@ -83,7 +83,11 @@ BEGIN
                 ,@ClerZero VARCHAR(3)
                 ,@HldyCont INT
                 ,@DuplNatlCode VARCHAR(3)
-                ,@DuplCellPhon VARCHAR(3);
+                ,@DuplCellPhon VARCHAR(3)
+                ,@IPAdr3 VARCHAR(15)
+                ,@PortNum3 INT
+	             ,@AttnCompCnc3 VARCHAR(30)
+	             ,@Atn4EvntActnType VARCHAR(3);
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -144,7 +148,12 @@ BEGIN
 	             ,@ClerZero = @X.query('//Settings').value('(Settings/@clerzero)[1]', 'VARCHAR(3)')
 	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT')
 	             ,@DuplNatlCode = @X.query('//Settings').value('(Settings/@duplnatlcode)[1]', 'VARCHAR(3)')
-	             ,@DuplCellPhon = @X.query('//Settings').value('(Settings/@duplcellphon)[1]', 'VARCHAR(3)');
+	             ,@DuplCellPhon = @X.query('//Settings').value('(Settings/@duplcellphon)[1]', 'VARCHAR(3)')
+	             
+	             ,@IPAdr3 = @X.query('//Settings').value('(Settings/@ipadr3)[1]', 'VARCHAR(15)')
+	             ,@PortNum3 = @X.query('//Settings').value('(Settings/@portnum3)[1]', 'INT')
+	             ,@AttnCompCnc3 = @X.query('//Settings').value('(Settings/@attncompcnc3)[1]', 'VARCHAR(30)')
+	             ,@Atn4EvntActnType = @X.query('//Settings').value('(Settings/@atn4evntactntype)[1]', 'VARCHAR(3)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -219,6 +228,11 @@ BEGIN
                   ,CLER_ZERO = @ClerZero
                   ,DUPL_NATL_CODE = @DuplNatlCode
                   ,DUPL_CELL_PHON = @DuplCellPhon
+                  
+                  ,IP_ADR3 = @IPAdr3
+                  ,PORT_NUM3 = @PortNum3
+                  ,ATTN_COMP_CNC3 = @AttnCompCnc3
+                  ,ATN4_EVNT_ACTN_TYPE = @Atn4EvntActnType
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

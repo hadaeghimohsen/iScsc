@@ -35,7 +35,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,DSID      = DBO.GNRT_NVID_U();
+            ,DSID      = CASE s.DSID WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.DSID END;
 END
 GO
 SET QUOTED_IDENTIFIER ON

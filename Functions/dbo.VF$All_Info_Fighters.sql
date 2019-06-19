@@ -8,7 +8,7 @@ CREATE FUNCTION [dbo].[VF$All_Info_Fighters] (
 AS
 RETURN
 (
-SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter_Public.RQRO_RQST_RQID, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, dbo.Fighter_Public.FMLY_NUMB, dbo.Fighter_Public.POST_ADRS, 
+SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Fighter_Public.RWNO, dbo.Fighter.REGN_PRVN_CODE, dbo.Fighter.REGN_CODE, dbo.Fighter_Public.RQRO_RQST_RQID, dbo.Fighter_Public.NATL_CODE, dbo.Fighter_Public.GLOB_CODE, /*dbo.Fighter_Public.FMLY_NUMB,*/ dbo.Fighter_Public.POST_ADRS, 
        dbo.Fighter_Public.EMAL_ADRS, dbo.Fighter_Public.BRTH_DATE, dbo.Fighter_Public.CELL_PHON, dbo.Fighter_Public.TELL_PHON, dbo.Fighter_Public.COCH_DEG, dbo.Fighter_Public.GUDG_DEG,        
        dbo.Fighter_Public.TYPE, dbo.Fighter_Public.INSR_NUMB, dbo.Fighter_Public.INSR_DATE, dbo.Fighter_Public.FATH_NAME, dbo.Fighter_Public.LAST_NAME, dbo.Fighter_Public.FRST_NAME, dbo.Fighter_Public.COCH_FILE_NO,
        dbo.Diseases_Type.DISE_DESC, dbo.Method.MTOD_DESC, dbo.Category_Belt.CTGY_DESC, dbo.Club.NAME AS CLUB_NAME, dbo.D$FGTP.DOMN_DESC AS TYPE_DESC, 

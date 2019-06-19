@@ -72,8 +72,8 @@ BEGIN
              ,@IssuPlac NVARCHAR(100)
              ,@FathWork NVARCHAR(150)
              ,@HistDesc NVARCHAR(500)
-             ,@IntrFileNo BIGINT
-             ,@CntrCode BIGINT
+             --,@IntrFileNo BIGINT
+             --,@CntrCode BIGINT
              ,@ChatId BIGINT
              ,@MomCellPhon VARCHAR(11)
              ,@MomTellPhon VARCHAR(11)
@@ -124,8 +124,8 @@ BEGIN
             ,@IssuPlac = P.ISSU_PLAC
             ,@FathWork = P.FATH_WORK
             ,@HistDesc = P.HIST_DESC
-            ,@IntrFileNo = P.INTR_FILE_NO
-            ,@CntrCode = P.CNTR_CODE
+            --,@IntrFileNo = P.INTR_FILE_NO
+            --,@CntrCode = P.CNTR_CODE
             ,@ChatId = P.CHAT_ID
         FROM Fighter_Public P
        WHERE P.FIGH_FILE_NO = @FileNo
@@ -192,8 +192,8 @@ BEGIN
            ,@Issu_Plac = @IssuPlac
            ,@Fath_Work = @FathWork
            ,@Hist_Desc = @HistDesc
-           ,@Intr_File_No = NULL
-           ,@Cntr_Code = NULL
+           --,@Intr_File_No = NULL
+           --,@Cntr_Code = NULL
            ,@Dpst_Acnt_Slry_Bank = NULL
            ,@Dpst_Acnt_Slry = NULL
            ,@Chat_Id = @ChatId
@@ -204,44 +204,44 @@ BEGIN
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
            ,@IDTY_NUMB = NULL
-           ,@WATR_FABR_NUMB = NULL
-           ,@GAS_FABR_NUMB = NULL
-           ,@POWR_FABR_NUMB = NULL
-           ,@BULD_AREA = NULL
-           ,@CHLD_FMLY_NUMB = NULL
-           ,@DPEN_FMLY_NUMB = NULL
-           ,@FMLY_NUMB = NULL
-           ,@HIRE_DATE = NULL
-           ,@HIRE_TYPE = NULL
-           ,@HIRE_PLAC_CODE = NULL
-           ,@HOME_TYPE = NULL
-           ,@HIRE_CELL_PHON = NULL
-           ,@HIRE_TELL_PHON = NULL
-           ,@SALR_PLAC_CODE = NULL
-           ,@UNIT_BLOK_CNDO_CODE = NULL
-           ,@UNIT_BLOK_CODE = NULL
-           ,@UNIT_CODE = NULL
-           ,@PUNT_BLOK_CNDO_CODE = NULL
-           ,@PUNT_BLOK_CODE = NULL
-           ,@PUNT_CODE = NULL
-           ,@PHAS_NUMB = NULL
-           ,@HIRE_DEGR = NULL
-           ,@HIRE_PLAC_DEGR = NULL
-           ,@SCOR_NUMB = NULL
-           ,@HOME_REGN_PRVN_CNTY_CODE = NULL
-           ,@HOME_REGN_PRVN_CODE = NULL
-           ,@HOME_REGN_CODE = NULL
-           ,@HOME_POST_ADRS = NULL
-           ,@HOME_CORD_X = NULL
-           ,@HOME_CORD_Y = NULL
-           ,@HOME_ZIP_CODE = NULL
+           --,@WATR_FABR_NUMB = NULL
+           --,@GAS_FABR_NUMB = NULL
+           --,@POWR_FABR_NUMB = NULL
+           --,@BULD_AREA = NULL
+           --,@CHLD_FMLY_NUMB = NULL
+           --,@DPEN_FMLY_NUMB = NULL
+           --,@FMLY_NUMB = NULL
+           --,@HIRE_DATE = NULL
+           --,@HIRE_TYPE = NULL
+           --,@HIRE_PLAC_CODE = NULL
+           --,@HOME_TYPE = NULL
+           --,@HIRE_CELL_PHON = NULL
+           --,@HIRE_TELL_PHON = NULL
+           --,@SALR_PLAC_CODE = NULL
+           --,@UNIT_BLOK_CNDO_CODE = NULL
+           --,@UNIT_BLOK_CODE = NULL
+           --,@UNIT_CODE = NULL
+           --,@PUNT_BLOK_CNDO_CODE = NULL
+           --,@PUNT_BLOK_CODE = NULL
+           --,@PUNT_CODE = NULL
+           --,@PHAS_NUMB = NULL
+           --,@HIRE_DEGR = NULL
+           --,@HIRE_PLAC_DEGR = NULL
+           --,@SCOR_NUMB = NULL
+           --,@HOME_REGN_PRVN_CNTY_CODE = NULL
+           --,@HOME_REGN_PRVN_CODE = NULL
+           --,@HOME_REGN_CODE = NULL
+           --,@HOME_POST_ADRS = NULL
+           --,@HOME_CORD_X = NULL
+           --,@HOME_CORD_Y = NULL
+           --,@HOME_ZIP_CODE = NULL
            ,@ZIP_CODE = NULL
-           ,@RISK_CODE = NULL
-           ,@RISK_NUMB = NULL
-           ,@WAR_DAY_NUMB = NULL
-           ,@CPTV_DAY_NUMB = NULL
-           ,@MRID_TYPE = NULL
-           ,@JOB_TITL_CODE = NULL
+           --,@RISK_CODE = NULL
+           --,@RISK_NUMB = NULL
+           --,@WAR_DAY_NUMB = NULL
+           --,@CPTV_DAY_NUMB = NULL
+           --,@MRID_TYPE = NULL
+           --,@JOB_TITL_CODE = NULL
            ,@CMNT = NULL
            ,@Pass_Word = NULL;
       END

@@ -7,6 +7,8 @@ CREATE TABLE [dbo].[Dresser]
 [REC_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Dresser_REC_STAT] DEFAULT ('002'),
 [ORDR] [int] NULL,
 [CMND_SEND] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[COMM_PORT] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[BAND_RATE] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -60,7 +62,7 @@ BEGIN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,[DESC] = CASE WHEN LEN(S.[DESC]) = 0 THEN N'کمد شماره ' + CAST(S.DRES_NUMB AS VARCHAR(10)) ELSE S.[DESC] END;
+            ,[DESC] = CASE WHEN LEN(S.[DESC]) = 0 THEN N'No ' + CAST(S.DRES_NUMB AS VARCHAR(10)) ELSE S.[DESC] END;
 END
 ;
 GO

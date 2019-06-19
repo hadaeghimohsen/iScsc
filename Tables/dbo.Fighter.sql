@@ -66,7 +66,6 @@ CREATE TABLE [dbo].[Fighter]
 [NATL_CODE_DNRM] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GLOB_CODE_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHAT_ID_DNRM] [bigint] NULL,
-[FMLY_NUMB_DNRM] [int] NULL,
 [MOM_CELL_PHON_DNRM] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MOM_TELL_PHON_DNRM] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MOM_CHAT_ID_DNRM] [bigint] NULL,

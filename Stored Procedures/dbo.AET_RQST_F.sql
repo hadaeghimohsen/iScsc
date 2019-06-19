@@ -203,8 +203,8 @@ BEGIN
              ,@IssuPlac NVARCHAR(100)
              ,@FathWork NVARCHAR(150)
              ,@HistDesc NVARCHAR(500)
-             ,@IntrFileNo BIGINT
-             ,@CntrCode BIGINT
+             --,@IntrFileNo BIGINT
+             --,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
              ,@DpstAcntSlry VARCHAR(50)
              ,@ChatId BIGINT
@@ -215,44 +215,44 @@ BEGIN
              ,@DadTellPhon VARCHAR(11)
              ,@DadChatId BIGINT
              ,@IdtyNumb VARCHAR(20)
-             ,@WatrFabrNumb NVARCHAR(30)
-             ,@GasFabrNumb NVARCHAR(30)
-             ,@PowrFabrNumb NVARCHAR(30)
-             ,@BuldArea INT
-             ,@ChldFmlyNumb SMALLINT
-             ,@DpenFmlyNumb SMALLINT
-             ,@FmlyNumb SMALLINT
-             ,@HireDate DATETIME
-             ,@HireType VARCHAR(3)
-             ,@HirePlacCode BIGINT
-             ,@HomeType VARCHAR(3)
-             ,@HireCellPhon VARCHAR(11)
-             ,@HireTellPhon VARCHAR(11)
-             ,@SalrPlacCode BIGINT
-             ,@UnitBlokCndoCode VARCHAR(3)
-             ,@UnitBlokCode VARCHAR(3)
-             ,@UnitCode VARCHAR(3)
-             ,@PuntBlokCndoCode VARCHAR(3)
-             ,@PuntBlokCode VARCHAR(3)
-             ,@PuntCode VARCHAR(3)
-             ,@PhasNumb SMALLINT
-             ,@HireDegr VARCHAR(3)
-             ,@HirePlacDegr VARCHAR(3)
-             ,@ScorNumb SMALLINT
-             ,@HomeRegnPrvnCntyCode VARCHAR(3)
-             ,@HomeRegnPrvnCode VARCHAR(3)
-             ,@HomeRegnCode VARCHAR(3)
-             ,@HomePostAdrs NVARCHAR(1000)
-             ,@HomeCordX FLOAT
-             ,@HomeCordY FLOAT
-             ,@HomeZipCode VARCHAR(10)
+             --,@WatrFabrNumb NVARCHAR(30)
+             --,@GasFabrNumb NVARCHAR(30)
+             --,@PowrFabrNumb NVARCHAR(30)
+             --,@BuldArea INT
+             --,@ChldFmlyNumb SMALLINT
+             --,@DpenFmlyNumb SMALLINT
+             --,@FmlyNumb SMALLINT
+             --,@HireDate DATETIME
+             --,@HireType VARCHAR(3)
+             --,@HirePlacCode BIGINT
+             --,@HomeType VARCHAR(3)
+             --,@HireCellPhon VARCHAR(11)
+             --,@HireTellPhon VARCHAR(11)
+             --,@SalrPlacCode BIGINT
+             --,@UnitBlokCndoCode VARCHAR(3)
+             --,@UnitBlokCode VARCHAR(3)
+             --,@UnitCode VARCHAR(3)
+             --,@PuntBlokCndoCode VARCHAR(3)
+             --,@PuntBlokCode VARCHAR(3)
+             --,@PuntCode VARCHAR(3)
+             --,@PhasNumb SMALLINT
+             --,@HireDegr VARCHAR(3)
+             --,@HirePlacDegr VARCHAR(3)
+             --,@ScorNumb SMALLINT
+             --,@HomeRegnPrvnCntyCode VARCHAR(3)
+             --,@HomeRegnPrvnCode VARCHAR(3)
+             --,@HomeRegnCode VARCHAR(3)
+             --,@HomePostAdrs NVARCHAR(1000)
+             --,@HomeCordX FLOAT
+             --,@HomeCordY FLOAT
+             --,@HomeZipCode VARCHAR(10)
              ,@ZipCode VARCHAR(10)
-             ,@RiskCode VARCHAR(20)
-             ,@RiskNumb SMALLINT
-             ,@WarDayNumb SMALLINT
-             ,@CptvDayNumb SMALLINT
-             ,@MridType VARCHAR(3)
-             ,@JobTitlCode BIGINT
+             --,@RiskCode VARCHAR(20)
+             --,@RiskNumb SMALLINT
+             --,@WarDayNumb SMALLINT
+             --,@CptvDayNumb SMALLINT
+             --,@MridType VARCHAR(3)
+             --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
              ,@Password VARCHAR(250);
       
@@ -309,8 +309,8 @@ BEGIN
               ,@IssuPlac = P.ISSU_PLAC
               ,@FathWork = P.FATH_WORK
               ,@HistDesc = P.HIST_DESC
-              ,@IntrFileNo = P.INTR_FILE_NO
-              ,@CntrCode = P.CNTR_CODE
+              --,@IntrFileNo = P.INTR_FILE_NO
+              --,@CntrCode = P.CNTR_CODE
               ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
               ,@DpstAcntSlry = P.DPST_ACNT_SLRY
               ,@ChatId = P.CHAT_ID
@@ -321,44 +321,44 @@ BEGIN
               ,@DadTellPhon = P.DAD_TELL_PHON
               ,@DadChatId = P.DAD_CHAT_ID
               ,@IDTYNUMB = P.IDTY_NUMB
-              ,@WATRFABRNUMB = p.WATR_FABR_NUMB
-              ,@GASFABRNUMB = P.GAS_FABR_NUMB
-              ,@POWRFABRNUMB = P.POWR_FABR_NUMB
-              ,@BULDAREA = P.BULD_AREA
-              ,@CHLDFMLYNUMB = P.CHLD_FMLY_NUMB
-              ,@DPENFMLYNUMB = P.DPEN_FMLY_NUMB
-              ,@FMLYNUMB = P.FMLY_NUMB
-              ,@HIREDATE = P.HIRE_DATE
-              ,@HIRETYPE = P.HIRE_TYPE
-              ,@HIREPLACCODE = P.HIRE_PLAC_CODE
-              ,@HOMETYPE = P.HOME_TYPE
-              ,@HIRECELLPHON = P.HIRE_CELL_PHON
-              ,@HIRETELLPHON = P.HIRE_TELL_PHON
-              ,@SALRPLACCODE = P.SALR_PLAC_CODE
-              ,@UNITBLOKCNDOCODE = P.UNIT_BLOK_CNDO_CODE
-              ,@UNITBLOKCODE = P.UNIT_BLOK_CODE
-              ,@UNITCODE = P.UNIT_CODE
-              ,@PUNTBLOKCNDOCODE = P.PUNT_BLOK_CNDO_CODE
-              ,@PUNTBLOKCODE = P.PUNT_BLOK_CODE
-              ,@PUNTCODE = P.PUNT_CODE
-              ,@PHASNUMB = P.PHAS_NUMB
-              ,@HIREDEGR = P.HIRE_DEGR
-              ,@HIREPLACDEGR = P.HIRE_PLAC_DEGR
-              ,@SCORNUMB = P.SCOR_NUMB
-              ,@HOMEREGNPRVNCNTYCODE = P.HOME_REGN_PRVN_CNTY_CODE
-              ,@HOMEREGNPRVNCODE = P.HOME_REGN_PRVN_CODE
-              ,@HOMEREGNCODE = P.HOME_REGN_CODE
-              ,@HOMEPOSTADRS = P.HOME_POST_ADRS
-              ,@HOMECORDX = P.HOME_CORD_X
-              ,@HOMECORDY = P.HOME_CORD_Y
-              ,@HOMEZIPCODE = P.HOME_ZIP_CODE
+              --,@WATRFABRNUMB = p.WATR_FABR_NUMB
+              --,@GASFABRNUMB = P.GAS_FABR_NUMB
+              --,@POWRFABRNUMB = P.POWR_FABR_NUMB
+              --,@BULDAREA = P.BULD_AREA
+              --,@CHLDFMLYNUMB = P.CHLD_FMLY_NUMB
+              --,@DPENFMLYNUMB = P.DPEN_FMLY_NUMB
+              --,@FMLYNUMB = P.FMLY_NUMB
+              --,@HIREDATE = P.HIRE_DATE
+              --,@HIRETYPE = P.HIRE_TYPE
+              --,@HIREPLACCODE = P.HIRE_PLAC_CODE
+              --,@HOMETYPE = P.HOME_TYPE
+              --,@HIRECELLPHON = P.HIRE_CELL_PHON
+              --,@HIRETELLPHON = P.HIRE_TELL_PHON
+              --,@SALRPLACCODE = P.SALR_PLAC_CODE
+              --,@UNITBLOKCNDOCODE = P.UNIT_BLOK_CNDO_CODE
+              --,@UNITBLOKCODE = P.UNIT_BLOK_CODE
+              --,@UNITCODE = P.UNIT_CODE
+              --,@PUNTBLOKCNDOCODE = P.PUNT_BLOK_CNDO_CODE
+              --,@PUNTBLOKCODE = P.PUNT_BLOK_CODE
+              --,@PUNTCODE = P.PUNT_CODE
+              --,@PHASNUMB = P.PHAS_NUMB
+              --,@HIREDEGR = P.HIRE_DEGR
+              --,@HIREPLACDEGR = P.HIRE_PLAC_DEGR
+              --,@SCORNUMB = P.SCOR_NUMB
+              --,@HOMEREGNPRVNCNTYCODE = P.HOME_REGN_PRVN_CNTY_CODE
+              --,@HOMEREGNPRVNCODE = P.HOME_REGN_PRVN_CODE
+              --,@HOMEREGNCODE = P.HOME_REGN_CODE
+              --,@HOMEPOSTADRS = P.HOME_POST_ADRS
+              --,@HOMECORDX = P.HOME_CORD_X
+              --,@HOMECORDY = P.HOME_CORD_Y
+              --,@HOMEZIPCODE = P.HOME_ZIP_CODE
               ,@ZIPCODE = P.ZIP_CODE
-              ,@RISKCODE = P.RISK_CODE
-              ,@RISKNUMB = P.RISK_NUMB
-              ,@WARDAYNUMB = P.WAR_DAY_NUMB
-              ,@CPTVDAYNUMB = P.CPTV_DAY_NUMB
-              ,@MRIDTYPE = P.MRID_TYPE
-              ,@JOBTITLCODE = P.JOB_TITL_CODE
+              --,@RISKCODE = P.RISK_CODE
+              --,@RISKNUMB = P.RISK_NUMB
+              --,@WARDAYNUMB = P.WAR_DAY_NUMB
+              --,@CPTVDAYNUMB = P.CPTV_DAY_NUMB
+              --,@MRIDTYPE = P.MRID_TYPE
+              --,@JOBTITLCODE = P.JOB_TITL_CODE
               ,@CMNT = P.CMNT
               ,@Password = P.PASS_WORD
           FROM Fighter_Public P
@@ -413,8 +413,8 @@ BEGIN
              ,@IssuPlac = P.ISSU_PLAC
              ,@FathWork = P.FATH_WORK
              ,@HistDesc = P.HIST_DESC
-             ,@IntrFileNo = P.INTR_FILE_NO
-             ,@CntrCode = P.CNTR_CODE
+             --,@IntrFileNo = P.INTR_FILE_NO
+             --,@CntrCode = P.CNTR_CODE
              ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
              ,@DpstAcntSlry = P.DPST_ACNT_SLRY
              ,@ChatId = P.CHAT_ID
@@ -425,44 +425,44 @@ BEGIN
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID             
              ,@IDTYNUMB = P.IDTY_NUMB
-             ,@WATRFABRNUMB = p.WATR_FABR_NUMB
-             ,@GASFABRNUMB = P.GAS_FABR_NUMB
-             ,@POWRFABRNUMB = P.POWR_FABR_NUMB
-             ,@BULDAREA = P.BULD_AREA
-             ,@CHLDFMLYNUMB = P.CHLD_FMLY_NUMB
-             ,@DPENFMLYNUMB = P.DPEN_FMLY_NUMB
-             ,@FMLYNUMB = P.FMLY_NUMB
-             ,@HIREDATE = P.HIRE_DATE
-             ,@HIRETYPE = P.HIRE_TYPE
-             ,@HIREPLACCODE = P.HIRE_PLAC_CODE
-             ,@HOMETYPE = P.HOME_TYPE
-             ,@HIRECELLPHON = P.HIRE_CELL_PHON
-             ,@HIRETELLPHON = P.HIRE_TELL_PHON
-             ,@SALRPLACCODE = P.SALR_PLAC_CODE
-             ,@UNITBLOKCNDOCODE = P.UNIT_BLOK_CNDO_CODE
-             ,@UNITBLOKCODE = P.UNIT_BLOK_CODE
-             ,@UNITCODE = P.UNIT_CODE
-             ,@PUNTBLOKCNDOCODE = P.PUNT_BLOK_CNDO_CODE
-             ,@PUNTBLOKCODE = P.PUNT_BLOK_CODE
-             ,@PUNTCODE = P.PUNT_CODE
-             ,@PHASNUMB = P.PHAS_NUMB
-             ,@HIREDEGR = P.HIRE_DEGR
-             ,@HIREPLACDEGR = P.HIRE_PLAC_DEGR
-             ,@SCORNUMB = P.SCOR_NUMB
-             ,@HOMEREGNPRVNCNTYCODE = P.HOME_REGN_PRVN_CNTY_CODE
-             ,@HOMEREGNPRVNCODE = P.HOME_REGN_PRVN_CODE
-             ,@HOMEREGNCODE = P.HOME_REGN_CODE
-             ,@HOMEPOSTADRS = P.HOME_POST_ADRS
-             ,@HOMECORDX = P.HOME_CORD_X
-             ,@HOMECORDY = P.HOME_CORD_Y
-             ,@HOMEZIPCODE = P.HOME_ZIP_CODE
+             --,@WATRFABRNUMB = p.WATR_FABR_NUMB
+             --,@GASFABRNUMB = P.GAS_FABR_NUMB
+             --,@POWRFABRNUMB = P.POWR_FABR_NUMB
+             --,@BULDAREA = P.BULD_AREA
+             --,@CHLDFMLYNUMB = P.CHLD_FMLY_NUMB
+             --,@DPENFMLYNUMB = P.DPEN_FMLY_NUMB
+             --,@FMLYNUMB = P.FMLY_NUMB
+             --,@HIREDATE = P.HIRE_DATE
+             --,@HIRETYPE = P.HIRE_TYPE
+             --,@HIREPLACCODE = P.HIRE_PLAC_CODE
+             --,@HOMETYPE = P.HOME_TYPE
+             --,@HIRECELLPHON = P.HIRE_CELL_PHON
+             --,@HIRETELLPHON = P.HIRE_TELL_PHON
+             --,@SALRPLACCODE = P.SALR_PLAC_CODE
+             --,@UNITBLOKCNDOCODE = P.UNIT_BLOK_CNDO_CODE
+             --,@UNITBLOKCODE = P.UNIT_BLOK_CODE
+             --,@UNITCODE = P.UNIT_CODE
+             --,@PUNTBLOKCNDOCODE = P.PUNT_BLOK_CNDO_CODE
+             --,@PUNTBLOKCODE = P.PUNT_BLOK_CODE
+             --,@PUNTCODE = P.PUNT_CODE
+             --,@PHASNUMB = P.PHAS_NUMB
+             --,@HIREDEGR = P.HIRE_DEGR
+             --,@HIREPLACDEGR = P.HIRE_PLAC_DEGR
+             --,@SCORNUMB = P.SCOR_NUMB
+             --,@HOMEREGNPRVNCNTYCODE = P.HOME_REGN_PRVN_CNTY_CODE
+             --,@HOMEREGNPRVNCODE = P.HOME_REGN_PRVN_CODE
+             --,@HOMEREGNCODE = P.HOME_REGN_CODE
+             --,@HOMEPOSTADRS = P.HOME_POST_ADRS
+             --,@HOMECORDX = P.HOME_CORD_X
+             --,@HOMECORDY = P.HOME_CORD_Y
+             --,@HOMEZIPCODE = P.HOME_ZIP_CODE
              ,@ZIPCODE = P.ZIP_CODE
-             ,@RISKCODE = P.RISK_CODE
-             ,@RISKNUMB = P.RISK_NUMB
-             ,@WARDAYNUMB = P.WAR_DAY_NUMB
-             ,@CPTVDAYNUMB = P.CPTV_DAY_NUMB
-             ,@MRIDTYPE = P.MRID_TYPE
-             ,@JOBTITLCODE = P.JOB_TITL_CODE
+             --,@RISKCODE = P.RISK_CODE
+             --,@RISKNUMB = P.RISK_NUMB
+             --,@WARDAYNUMB = P.WAR_DAY_NUMB
+             --,@CPTVDAYNUMB = P.CPTV_DAY_NUMB
+             --,@MRIDTYPE = P.MRID_TYPE
+             --,@JOBTITLCODE = P.JOB_TITL_CODE
              ,@CMNT = P.CMNT
              ,@Password = P.PASS_WORD
          FROM Fighter F, Fighter_Public P
@@ -541,8 +541,8 @@ BEGIN
            ,@Issu_Plac = @IssuPlac
            ,@Fath_Work = @FathWork
            ,@Hist_Desc = @HistDesc
-           ,@Intr_File_No = @IntrFileNo
-           ,@Cntr_Code = @CntrCode
+           --,@Intr_File_No = @IntrFileNo
+           --,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
            ,@Chat_Id = @ChatId
@@ -553,44 +553,44 @@ BEGIN
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
            ,@IDTY_NUMB = @IDTYNUMB
-           ,@WATR_FABR_NUMB = @WATRFABRNUMB
-           ,@GAS_FABR_NUMB = @GASFABRNUMB
-           ,@POWR_FABR_NUMB = @POWRFABRNUMB
-           ,@BULD_AREA = @BULDAREA
-           ,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
-           ,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
-           ,@FMLY_NUMB = @FMLYNUMB
-           ,@HIRE_DATE = @HIREDATE
-           ,@HIRE_TYPE = @HIRETYPE
-           ,@HIRE_PLAC_CODE = @HIREPLACCODE
-           ,@HOME_TYPE = @HOMETYPE
-           ,@HIRE_CELL_PHON = @HIRECELLPHON
-           ,@HIRE_TELL_PHON = @HIRETELLPHON
-           ,@SALR_PLAC_CODE = @SALRPLACCODE
-           ,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
-           ,@UNIT_BLOK_CODE = @UNITBLOKCODE
-           ,@UNIT_CODE = @UNITCODE
-           ,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
-           ,@PUNT_BLOK_CODE = @PUNTBLOKCODE
-           ,@PUNT_CODE = @PUNTCODE
-           ,@PHAS_NUMB = @PHASNUMB
-           ,@HIRE_DEGR = @HIREDEGR
-           ,@HIRE_PLAC_DEGR = @HIREPLACDEGR
-           ,@SCOR_NUMB = @SCORNUMB
-           ,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
-           ,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
-           ,@HOME_REGN_CODE = @HOMEREGNCODE
-           ,@HOME_POST_ADRS = @HOMEPOSTADRS
-           ,@HOME_CORD_X = @HOMECORDX
-           ,@HOME_CORD_Y = @HOMECORDY
-           ,@HOME_ZIP_CODE = @HOMEZIPCODE
+           --,@WATR_FABR_NUMB = @WATRFABRNUMB
+           --,@GAS_FABR_NUMB = @GASFABRNUMB
+           --,@POWR_FABR_NUMB = @POWRFABRNUMB
+           --,@BULD_AREA = @BULDAREA
+           --,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
+           --,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
+           --,@FMLY_NUMB = @FMLYNUMB
+           --,@HIRE_DATE = @HIREDATE
+           --,@HIRE_TYPE = @HIRETYPE
+           --,@HIRE_PLAC_CODE = @HIREPLACCODE
+           --,@HOME_TYPE = @HOMETYPE
+           --,@HIRE_CELL_PHON = @HIRECELLPHON
+           --,@HIRE_TELL_PHON = @HIRETELLPHON
+           --,@SALR_PLAC_CODE = @SALRPLACCODE
+           --,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
+           --,@UNIT_BLOK_CODE = @UNITBLOKCODE
+           --,@UNIT_CODE = @UNITCODE
+           --,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
+           --,@PUNT_BLOK_CODE = @PUNTBLOKCODE
+           --,@PUNT_CODE = @PUNTCODE
+           --,@PHAS_NUMB = @PHASNUMB
+           --,@HIRE_DEGR = @HIREDEGR
+           --,@HIRE_PLAC_DEGR = @HIREPLACDEGR
+           --,@SCOR_NUMB = @SCORNUMB
+           --,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
+           --,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
+           --,@HOME_REGN_CODE = @HOMEREGNCODE
+           --,@HOME_POST_ADRS = @HOMEPOSTADRS
+           --,@HOME_CORD_X = @HOMECORDX
+           --,@HOME_CORD_Y = @HOMECORDY
+           --,@HOME_ZIP_CODE = @HOMEZIPCODE
            ,@ZIP_CODE = @ZIPCODE
-           ,@RISK_CODE = @RISKCODE
-           ,@RISK_NUMB = @RISKNUMB
-           ,@WAR_DAY_NUMB = @WARDAYNUMB
-           ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
-           ,@MRID_TYPE = @MRIDTYPE
-           ,@JOB_TITL_CODE = @JOBTITLCODE
+           --,@RISK_CODE = @RISKCODE
+           --,@RISK_NUMB = @RISKNUMB
+           --,@WAR_DAY_NUMB = @WARDAYNUMB
+           --,@CPTV_DAY_NUMB = @CPTVDAYNUMB
+           --,@MRID_TYPE = @MRIDTYPE
+           --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
            ,@Pass_Word = @Password;
       END
@@ -645,8 +645,8 @@ BEGIN
            ,@Issu_Plac = @IssuPlac
            ,@Fath_Work = @FathWork
            ,@Hist_Desc = @HistDesc
-           ,@Intr_File_No = @IntrFileNo
-           ,@Cntr_Code = @CntrCode
+           --,@Intr_File_No = @IntrFileNo
+           --,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
            ,@Chat_Id = @ChatId
@@ -657,44 +657,44 @@ BEGIN
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
            ,@IDTY_NUMB = @IDTYNUMB
-           ,@WATR_FABR_NUMB = @WATRFABRNUMB
-           ,@GAS_FABR_NUMB = @GASFABRNUMB
-           ,@POWR_FABR_NUMB = @POWRFABRNUMB
-           ,@BULD_AREA = @BULDAREA
-           ,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
-           ,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
-           ,@FMLY_NUMB = @FMLYNUMB
-           ,@HIRE_DATE = @HIREDATE
-           ,@HIRE_TYPE = @HIRETYPE
-           ,@HIRE_PLAC_CODE = @HIREPLACCODE
-           ,@HOME_TYPE = @HOMETYPE
-           ,@HIRE_CELL_PHON = @HIRECELLPHON
-           ,@HIRE_TELL_PHON = @HIRETELLPHON
-           ,@SALR_PLAC_CODE = @SALRPLACCODE
-           ,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
-           ,@UNIT_BLOK_CODE = @UNITBLOKCODE
-           ,@UNIT_CODE = @UNITCODE
-           ,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
-           ,@PUNT_BLOK_CODE = @PUNTBLOKCODE
-           ,@PUNT_CODE = @PUNTCODE
-           ,@PHAS_NUMB = @PHASNUMB
-           ,@HIRE_DEGR = @HIREDEGR
-           ,@HIRE_PLAC_DEGR = @HIREPLACDEGR
-           ,@SCOR_NUMB = @SCORNUMB
-           ,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
-           ,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
-           ,@HOME_REGN_CODE = @HOMEREGNCODE
-           ,@HOME_POST_ADRS = @HOMEPOSTADRS
-           ,@HOME_CORD_X = @HOMECORDX
-           ,@HOME_CORD_Y = @HOMECORDY
-           ,@HOME_ZIP_CODE = @HOMEZIPCODE
+           --,@WATR_FABR_NUMB = @WATRFABRNUMB
+           --,@GAS_FABR_NUMB = @GASFABRNUMB
+           --,@POWR_FABR_NUMB = @POWRFABRNUMB
+           --,@BULD_AREA = @BULDAREA
+           --,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
+           --,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
+           --,@FMLY_NUMB = @FMLYNUMB
+           --,@HIRE_DATE = @HIREDATE
+           --,@HIRE_TYPE = @HIRETYPE
+           --,@HIRE_PLAC_CODE = @HIREPLACCODE
+           --,@HOME_TYPE = @HOMETYPE
+           --,@HIRE_CELL_PHON = @HIRECELLPHON
+           --,@HIRE_TELL_PHON = @HIRETELLPHON
+           --,@SALR_PLAC_CODE = @SALRPLACCODE
+           --,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
+           --,@UNIT_BLOK_CODE = @UNITBLOKCODE
+           --,@UNIT_CODE = @UNITCODE
+           --,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
+           --,@PUNT_BLOK_CODE = @PUNTBLOKCODE
+           --,@PUNT_CODE = @PUNTCODE
+           --,@PHAS_NUMB = @PHASNUMB
+           --,@HIRE_DEGR = @HIREDEGR
+           --,@HIRE_PLAC_DEGR = @HIREPLACDEGR
+           --,@SCOR_NUMB = @SCORNUMB
+           --,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
+           --,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
+           --,@HOME_REGN_CODE = @HOMEREGNCODE
+           --,@HOME_POST_ADRS = @HOMEPOSTADRS
+           --,@HOME_CORD_X = @HOMECORDX
+           --,@HOME_CORD_Y = @HOMECORDY
+           --,@HOME_ZIP_CODE = @HOMEZIPCODE
            ,@ZIP_CODE = @ZIPCODE
-           ,@RISK_CODE = @RISKCODE
-           ,@RISK_NUMB = @RISKNUMB
-           ,@WAR_DAY_NUMB = @WARDAYNUMB
-           ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
-           ,@MRID_TYPE = @MRIDTYPE
-           ,@JOB_TITL_CODE = @JOBTITLCODE
+           --,@RISK_CODE = @RISKCODE
+           --,@RISK_NUMB = @RISKNUMB
+           --,@WAR_DAY_NUMB = @WARDAYNUMB
+           --,@CPTV_DAY_NUMB = @CPTVDAYNUMB
+           --,@MRID_TYPE = @MRIDTYPE
+           --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
            ,@Pass_Word = @Password;
       END

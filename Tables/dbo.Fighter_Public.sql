@@ -50,8 +50,6 @@ CREATE TABLE [dbo].[Fighter_Public]
 [ISSU_PLAC] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FATH_WORK] [nvarchar] (150) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [HIST_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[INTR_FILE_NO] [bigint] NULL,
-[CNTR_CODE] [bigint] NULL,
 [DPST_ACNT_SLRY_BANK] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DPST_ACNT_SLRY] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHAT_ID] [bigint] NULL,
@@ -62,44 +60,7 @@ CREATE TABLE [dbo].[Fighter_Public]
 [MOM_CHAT_ID] [bigint] NULL,
 [DAD_CHAT_ID] [bigint] NULL,
 [IDTY_NUMB] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[WATR_FABR_NUMB] [nvarchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[GAS_FABR_NUMB] [nvarchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[POWR_FABR_NUMB] [nvarchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[BULD_AREA] [int] NULL,
-[CHLD_FMLY_NUMB] [smallint] NULL,
-[DPEN_FMLY_NUMB] [smallint] NULL,
-[FMLY_NUMB] [int] NULL,
-[HIRE_DATE] [datetime] NULL,
-[HIRE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HIRE_PLAC_CODE] [bigint] NULL,
-[HOME_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HIRE_CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HIRE_TELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SALR_PLAC_CODE] [bigint] NULL,
-[UNIT_BLOK_CNDO_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[UNIT_BLOK_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[UNIT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[PUNT_BLOK_CNDO_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[PUNT_BLOK_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[PUNT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[PHAS_NUMB] [smallint] NULL,
-[HIRE_DEGR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HIRE_PLAC_DEGR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SCOR_NUMB] [smallint] NULL,
-[HOME_REGN_PRVN_CNTY_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HOME_REGN_PRVN_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HOME_REGN_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HOME_POST_ADRS] [nvarchar] (1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HOME_CORD_X] [float] NULL,
-[HOME_CORD_Y] [float] NULL,
-[HOME_ZIP_CODE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ZIP_CODE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[RISK_CODE] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[RISK_NUMB] [smallint] NULL,
-[WAR_DAY_NUMB] [int] NULL,
-[CPTV_DAY_NUMB] [int] NULL,
-[MRID_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[JOB_TITL_CODE] [bigint] NULL,
 [CMNT] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PASS_WORD] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -181,7 +142,7 @@ BEGIN
             ,NATL_CODE_DNRM = s.NATL_CODE
             ,GLOB_CODE_DNRM = s.GLOB_CODE
             ,CHAT_ID_DNRM = s.CHAT_ID
-            ,FMLY_NUMB_DNRM = s.FMLY_NUMB
+            --,FMLY_NUMB_DNRM = s.FMLY_NUMB
             ,MOM_CELL_PHON_DNRM = s.MOM_CELL_PHON
             ,MOM_TELL_PHON_DNRM = s.MOM_TELL_PHON
             ,MOM_CHAT_ID_DNRM = s.MOM_CHAT_ID
@@ -231,7 +192,7 @@ BEGIN
             ,NATL_CODE_DNRM = NULL
             ,GLOB_CODE_DNRM = NULL
             ,CHAT_ID_DNRM = NULL
-            ,FMLY_NUMB_DNRM = NULL
+            --,FMLY_NUMB_DNRM = NULL
             ,MOM_CELL_PHON_DNRM = NULL
             ,MOM_TELL_PHON_DNRM = NULL
             ,MOM_CHAT_ID_DNRM = NULL
@@ -348,9 +309,9 @@ BEGIN
          ,@MOST_DEBT_CLNG      = T.MOST_DEBT_CLNG                 , @SERV_NO        = T.SERV_NO
          ,@BRTH_PLAC           = T.BRTH_PLAC                      , @ISSU_PLAC      = T.ISSU_PLAC
          ,@FATH_WORK           = T.FATH_WORK                      , @HIST_DESC      = T.HIST_DESC
-         ,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
+         --,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
          ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY                 , @CHAT_ID        = T.CHAT_ID
-         ,@FMLY_NUMB           = T.FMLY_NUMB                      , @MOM_CELL_PHON  = T.MOM_CELL_PHON
+         /*,@FMLY_NUMB           = T.FMLY_NUMB                    */  , @MOM_CELL_PHON  = T.MOM_CELL_PHON
          ,@MOM_TELL_PHON       = T.MOM_TELL_PHON                  , @MOM_CHAT_ID    = T.MOM_CHAT_ID
          ,@DAD_CELL_PHON       = T.DAD_CELL_PHON                  , @DAD_TELL_PHON  = T.DAD_TELL_PHON
          ,@DAD_CHAT_ID         = T.DAD_CHAT_ID
@@ -522,11 +483,11 @@ BEGIN
             ,ISSU_PLAC           = CASE S.ISSU_PLAC           WHEN NULL THEN @ISSU_PLAC           ELSE S.ISSU_PLAC           END
             ,FATH_WORK           = CASE S.FATH_WORK           WHEN NULL THEN @FATH_WORK           ELSE S.FATH_WORK           END
             ,HIST_DESC           = CASE S.HIST_DESC           WHEN NULL THEN @HIST_DESC           ELSE S.HIST_DESC           END
-            ,INTR_FILE_NO        = CASE S.INTR_FILE_NO        WHEN NULL THEN @INTR_FILE_NO        ELSE S.INTR_FILE_NO        END
+            --,INTR_FILE_NO        = CASE S.INTR_FILE_NO        WHEN NULL THEN @INTR_FILE_NO        ELSE S.INTR_FILE_NO        END
             ,DPST_ACNT_SLRY_BANK = CASE S.DPST_ACNT_SLRY_BANK WHEN NULL THEN @DPST_ACNT_SLRY_BANK ELSE S.DPST_ACNT_SLRY_BANK END
             ,DPST_ACNT_SLRY      = CASE S.DPST_ACNT_SLRY      WHEN NULL THEN @DPST_ACNT_SLRY      ELSE S.DPST_ACNT_SLRY      END
             ,CHAT_ID             = CASE S.CHAT_ID             WHEN NULL THEN @CHAT_ID             ELSE S.CHAT_ID             END
-            ,FMLY_NUMB           = CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END
+            --,FMLY_NUMB           = CASE S.FMLY_NUMB           WHEN NULL THEN @FMLY_NUMB           ELSE S.FMLY_NUMB           END
             ,MOM_CELL_PHON       = CASE S.MOM_CELL_PHON       WHEN NULL THEN @MOM_CELL_PHON       ELSE S.MOM_CELL_PHON       END
             ,MOM_TELL_PHON       = CASE S.MOM_TELL_PHON       WHEN NULL THEN @MOM_TELL_PHON       ELSE S.MOM_TELL_PHON       END
             ,MOM_CHAT_ID         = CASE S.MOM_CHAT_ID         WHEN NULL THEN @MOM_CHAT_ID         ELSE S.MOM_CHAT_ID         END
@@ -599,49 +560,25 @@ ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_CBMT] FOREIGN KEY ([C
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE]) ON DELETE SET NULL
 GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_CNTR] FOREIGN KEY ([CNTR_CODE]) REFERENCES [dbo].[Request] ([RQID])
-GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_DSTP] FOREIGN KEY ([DISE_CODE]) REFERENCES [dbo].[Diseases_Type] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_FIGH] FOREIGN KEY ([FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO]) ON DELETE CASCADE
 GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_HPLC] FOREIGN KEY ([HIRE_PLAC_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
-GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_INTF] FOREIGN KEY ([INTR_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
-GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_JOBT] FOREIGN KEY ([JOB_TITL_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
-GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE SET NULL
-GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_PBLK] FOREIGN KEY ([PUNT_BLOK_CNDO_CODE], [PUNT_BLOK_CODE]) REFERENCES [dbo].[Cando_Block] ([CNDO_CODE], [CODE])
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_REGN] FOREIGN KEY ([REGN_PRVN_CNTY_CODE], [REGN_PRVN_CODE], [REGN_CODE]) REFERENCES [dbo].[Region] ([PRVN_CNTY_CODE], [PRVN_CODE], [CODE]) ON UPDATE CASCADE
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_RQRO] FOREIGN KEY ([RQRO_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO]) ON DELETE CASCADE
 GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_SPLC] FOREIGN KEY ([SALR_PLAC_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
-GO
 ALTER TABLE [dbo].[Fighter_Public] WITH NOCHECK ADD CONSTRAINT [FK_FGPB_SUNT] FOREIGN KEY ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]) REFERENCES [dbo].[Sub_Unit] ([BUNT_DEPT_ORGN_CODE], [BUNT_DEPT_CODE], [BUNT_CODE], [CODE]) ON UPDATE CASCADE
-GO
-ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_UNIT] FOREIGN KEY ([UNIT_BLOK_CNDO_CODE], [UNIT_BLOK_CODE], [UNIT_CODE]) REFERENCES [dbo].[Cando_Block_Unit] ([BLOK_CNDO_CODE], [BLOK_CODE], [CODE])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'محل تولد', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'BRTH_PLAC'
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'متراژ', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'BULD_AREA'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد چت تلگرام', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CHAT_ID'
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'تعداد فرزندان', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CHLD_FMLY_NUMB'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'توضیحات', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CMNT'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'شماره قرارداد پرسنل', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CNTR_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'مدت روز اسارت', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'CPTV_DAY_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'تعداد اعضای تحت تکفل', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'DPEN_FMLY_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره حساب واریز حقوق و دستمزد', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'DPST_ACNT_SLRY'
 GO
@@ -649,75 +586,15 @@ EXEC sp_addextendedproperty N'MS_Description', N'بانک حساب واریز ح
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شغل پدر', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'FATH_WORK'
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'تعداد خانوار', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'FMLY_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'شماره فابریک کنتور گاز', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'GAS_FABR_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'همراه محل کار', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_CELL_PHON'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'تاریخ عضویت * استخدام', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_DATE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'درجه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_DEGR'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'محل خدمت', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_PLAC_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'درجه جایگاه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_PLAC_DEGR'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'تلفن محل کار', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_TELL_PHON'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'نوع عضویت * استخدام', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIRE_TYPE'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'سابقه ورزشی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HIST_DESC'
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'آدرس سکونت فعلی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_POST_ADRS'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'ناحیه سکونت فعلی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_REGN_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'کشور سکونت فعلی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_REGN_PRVN_CNTY_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'استان سکونت فعلی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_REGN_PRVN_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'وضعیت سکونت', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_TYPE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'کد پستی سکونت فعلی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'HOME_ZIP_CODE'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره شناسنامه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'IDTY_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'معرف', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'INTR_FILE_NO'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'محل صدور', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'ISSU_PLAC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'رمز اینترنتی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PASS_WORD'
 GO
-EXEC sp_addextendedproperty N'MS_Description', N'شماره فاز پروژه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PHAS_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'شماره فابریک کنتور برق', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'POWR_FABR_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'پروژه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PUNT_BLOK_CNDO_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'بلوک پروژه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PUNT_BLOK_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'واحد پروژه', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PUNT_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'کد جانبازی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'RISK_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'درصد جانبازی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'RISK_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'محل لیست کسر حقوق', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'SALR_PLAC_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'میزان امتیاز', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'SCOR_NUMB'
-GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد سازمانی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'SERV_NO'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'مجتمع', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'UNIT_BLOK_CNDO_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'بلوک', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'UNIT_BLOK_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'واحد', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'UNIT_CODE'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'مدت روز حضور در جنگ', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'WAR_DAY_NUMB'
-GO
-EXEC sp_addextendedproperty N'MS_Description', N'شماره فابریک کنتور آب', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'WATR_FABR_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد پستی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'ZIP_CODE'
 GO

@@ -33,7 +33,6 @@ CREATE TABLE [dbo].[Attendance]
 [SESN_SNID_DNRM] [bigint] NULL,
 [ATTN_DESC] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GLOB_CODE_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[FMLY_NUMB_DNRM] [int] NULL,
 [PRNT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_PRNT_STAT] DEFAULT ('001'),
 [PRNT_CONT] [int] NULL CONSTRAINT [DF_Attendance_PRNT_CONT] DEFAULT ((0)),
 [RCPT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -89,7 +88,7 @@ AS
                         i.ATTN_DESC ,
                         fp.CBMT_CODE ,
                         fp.GLOB_CODE ,
-                        fp.FMLY_NUMB ,
+                        --fp.FMLY_NUMB ,
                         f.SEX_TYPE_DNRM
               FROM      INSERTED i ,
                         dbo.Fighter f ,
@@ -149,7 +148,7 @@ AS
                     T.MBCO_RWNO_DNRM = S.MBCO_RWNO_DNRM ,
                     T.CBMT_CODE_DNRM = S.CBMT_CODE ,
                     T.GLOB_CODE_DNRM = S.GLOB_CODE ,
-                    T.FMLY_NUMB_DNRM = S.FMLY_NUMB ,
+                    --T.FMLY_NUMB_DNRM = S.FMLY_NUMB ,
                     T.SEX_TYPE_DNRM = S.SEX_TYPE_DNRM ,
                     T.ATTN_DESC = CASE WHEN S.ATTN_TYPE = '007'
                                        THEN N'ثبت جلسه حضوری با همراه با کسر جلسه از اعضا'

@@ -31,6 +31,12 @@ BEGIN
            FROM Dresser_Attendance 
           WHERE ATTN_CODE = @AttnCode;
          
+         -- اگر سیستم کامپیوتری مشخص نباشد
+         IF @ComaCode IS NULL
+            SELECT @ComaCode = COMA_CODE
+              FROM dbo.Dresser
+             WHERE CODE = @DresCode;
+         
          -- کمدی به این حضوری اختصاص داده نشده است
          IF @DresCode IS NULL
             SELECT TOP 1 

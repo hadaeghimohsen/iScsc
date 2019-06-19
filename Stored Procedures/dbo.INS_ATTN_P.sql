@@ -33,6 +33,9 @@ BEGIN
       RETURN;
    END*/
    
+   DECLARE @HostName NVARCHAR(128)
+          ,@ComaCode BIGINT;   
+   
    IF ISNULL(@Mbsp_Rwno, 0) = 0
    BEGIN
       IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @Figh_File_No AND FGPB_TYPE_DNRM = '003' AND CONF_STAT = '002')
@@ -709,7 +712,50 @@ BEGIN
          
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE)
       VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type);
-
+      
+      -- 1398/03/14 * اختصاص شماره کمد به مشتری
+      -- البته اگر این گزینه کمد انلاین فعال باشه 
+      -- 1396/01/09 * بدست آوردن کلاینت متصل به سرور
+	   
+	   IF EXISTS(SELECT * FROM dbo.Settings WHERE CLUB_CODE = @Club_Code AND DRES_AUTO = '002')
+	   BEGIN
+	      -- ابتدا بررسی میکنیم که چه کامیپوتری به کمد ها میخواد فرمان دهد
+	      SELECT   
+	          @HostName = s.host_name
+           FROM sys.dm_exec_connections AS c  
+           JOIN sys.dm_exec_sessions AS s  
+             ON c.session_id = s.session_id  
+          WHERE c.session_id = @@SPID; 
+         
+         SELECT @ComaCode = CODE
+           FROM dbo.Computer_Action
+          WHERE UPPER(COMP_NAME) LIKE UPPER(@HostName) + N'%';
+         
+         -- بررسی میکنیم که ایا سیستم مدیریت کمدی رو را انجام میدهد یا خیر
+         IF EXISTS(SELECT * FROM dbo.Dresser WHERE COMA_CODE = @ComaCode AND REC_STAT = '002')
+         BEGIN
+            SELECT @AttnCode = MAX(CODE)
+              FROM Attendance
+             WHERE FIGH_FILE_NO = @Figh_File_No
+               AND CLUB_CODE = @Club_Code
+               AND MBSP_RWNO_DNRM = @Mbsp_Rwno
+               AND ENTR_TIME IS NOT NULL
+               AND EXIT_TIME IS NULL;
+            
+            -- اولین درخواست ثبت قفل کمدی
+            EXEC dbo.INS_DART_P @AttnCode, @ComaCode;
+            
+            -- اگر درخواست قفل کمدی با موفقیت انجام شود
+            IF EXISTS(SELECT * FROM dbo.Dresser_Attendance WHERE ATTN_CODE = @AttnCode)
+            BEGIN                  
+               -- ثبت شماره قفل کمدی
+               UPDATE dbo.Attendance 
+                  SET DERS_NUMB = (SELECT d.DRES_NUMB FROM dbo.Dresser_Attendance da, dbo.Dresser d WHERE da.ATTN_CODE = @AttnCode AND da.DRES_CODE = d.CODE)
+                WHERE Code = @AttnCode;
+            END
+         END                
+      END 
+      
       -- 1396/11/15 * ثبت پیامک تلگرام
       DECLARE @ChatId BIGINT
              ,@SexType VARCHAR(3)
@@ -882,6 +928,9 @@ BEGIN
       IF ISNULL(@CbmtTimeStat, '001') = '002' AND @ClasTime < ( SELECT DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) FROM dbo.Attendance WHERE Code = @AttnCode)
       BEGIN
          DECLARE @TempAttnCode BIGINT = dbo.GNRT_NVID_U();
+         
+         -- 1398/03/17 * بررسی اینکه ایا جریمه دیر کرد از مشتری گرفته شود یا خیر
+         -- ********************** Not Implement
          
          INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC, ATTN_SYS_TYPE)
          VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه ' + ( SELECT CAST(DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) AS VARCHAR(10)) FROM dbo.Attendance WHERE Code = @AttnCode), @Attn_Sys_Type );

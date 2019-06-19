@@ -164,9 +164,9 @@ BEGIN
                            AND (ao.CTGY_CODE IS NULL OR fp.CTGY_CODE = ao.CTGY_CODE)
                            AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
                            AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE)
-                           AND (ao.UNIT_BLOK_CNDO_CODE IS NULL OR fp.UNIT_BLOK_CNDO_CODE = ao.UNIT_BLOK_CNDO_CODE)
-                           AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
-                           AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)
+                           --AND (ao.UNIT_BLOK_CNDO_CODE IS NULL OR fp.UNIT_BLOK_CNDO_CODE = ao.UNIT_BLOK_CNDO_CODE)
+                           --AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
+                           --AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)
                      )                         
                   THEN 1                                           
                   WHEN   Ao.OPRT_TYPE IN ( '004' )
@@ -205,9 +205,9 @@ BEGIN
                             AND (ao.CTGY_CODE IS NULL OR fp.CTGY_CODE = ao.CTGY_CODE)
                             AND (ao.COCH_FILE_NO IS NULL OR fp.COCH_FILE_NO = ao.COCH_FILE_NO)
                             AND (ao.CBMT_CODE is NULL OR fp.CBMT_CODE = ao.CBMT_CODE) 
-                            AND (ao.UNIT_BLOK_CNDO_CODE IS NULL OR fp.UNIT_BLOK_CNDO_CODE = ao.UNIT_BLOK_CNDO_CODE)
-                            AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
-                            AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)                            
+                            --AND (ao.UNIT_BLOK_CNDO_CODE IS NULL OR fp.UNIT_BLOK_CNDO_CODE = ao.UNIT_BLOK_CNDO_CODE)
+                            --AND (ao.UNIT_BLOK_CODE IS NULL OR fp.UNIT_BLOK_CODE = ao.UNIT_BLOK_CODE)
+                            --AND (ao.UNIT_CODE IS NULL OR fp.UNIT_CODE = ao.UNIT_CODE)                            
                      )
                   THEN 1
                   ELSE 0

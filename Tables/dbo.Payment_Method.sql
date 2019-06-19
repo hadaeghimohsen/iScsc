@@ -82,10 +82,33 @@ CREATE TRIGGER [dbo].[CG$AINS_PMTD]
    ON [dbo].[Payment_Method]
    AFTER INSERT
 AS 
-BEGIN
+BEGIN   
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
+   
+   -- 1398/02/23 * بررسی اینکه کاربر اجازه ثبت وصولی نقدی را دارد یا خیر
+   IF EXISTS(
+      SELECT * 
+        FROM Inserted i
+       WHERE i.RCPT_MTOD = '001' -- نقدی
+   )
+   BEGIN
+      -- چک کردن دسترسی کاربر
+      DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>237</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 237 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+   
+   END   
    
    DECLARE @TotlRcptAmnt BIGINT;
    DECLARE @TotlDebtAmnt BIGINT;
@@ -164,6 +187,31 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
+	
+	-- اگر کاربری بخواهد مبلغ وصولی غیر نقدی را تبدیل به مبلغ وصولی نقدی کند باید چک کنیم که ایا اجازه این کار وجود دارد یا خیر
+	IF EXISTS(
+	   SELECT *
+	     FROM Inserted i, Deleted d
+	    WHERE i.PYMT_CASH_CODE = d.PYMT_CASH_CODE
+	      AND i.PYMT_RQST_RQID = d.PYMT_RQST_RQID
+	      AND i.RWNO = d.RWNO
+	      AND d.RCPT_MTOD != '001' -- غیر نقدی
+	      AND i.RCPT_MTOD = '001' -- نقدی
+	)
+	BEGIN
+	   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>237</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 237 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+	END 
    
    DECLARE @TotlRcptAmnt BIGINT;
    DECLARE @TotlDebtAmnt BIGINT;

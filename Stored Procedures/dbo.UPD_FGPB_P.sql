@@ -57,8 +57,8 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Issu_Plac NVARCHAR(100),
 	@Fath_Work NVARCHAR(150),
 	@Hist_Desc NVARCHAR(500),
-	@Intr_File_No BIGINT,
-	@Cntr_Code BIGINT,
+	--@Intr_File_No BIGINT,
+	--@Cntr_Code BIGINT,
 	@Dpst_Acnt_Slry_Bank NVARCHAR(50),
 	@Dpst_Acnt_Slry VARCHAR(50),
 	@Chat_Id BIGINT,
@@ -69,7 +69,7 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Dad_Tell_Phon VARCHAR(11),
 	@Dad_Chat_Id BIGINT,
    @Idty_Numb VARCHAR(20),
-	@Watr_Fabr_Numb NVARCHAR(30),
+	/*@Watr_Fabr_Numb NVARCHAR(30),
 	@Gas_Fabr_Numb NVARCHAR(30),
 	@Powr_Fabr_Numb NVARCHAR(30),
 	@Buld_Area INT,
@@ -99,20 +99,20 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Home_Post_Adrs NVARCHAR(1000),
 	@Home_Cord_X FLOAT,
 	@Home_Cord_Y FLOAT,
-	@Home_Zip_Code VARCHAR(10),
+	@Home_Zip_Code VARCHAR(10),*/
 	@Zip_Code VARCHAR(10),
-	@Risk_Code VARCHAR(20),
+	/*@Risk_Code VARCHAR(20),
 	@Risk_Numb SMALLINT,
 	@War_Day_Numb SMALLINT,
 	@Cptv_Day_Numb SMALLINT,
 	@Mrid_Type VARCHAR(3),
-	@Job_Titl_Code BIGINT,
+	@Job_Titl_Code BIGINT,*/
 	@Cmnt NVARCHAR(4000),
 	@Pass_Word VARCHAR(250)	
 AS
 BEGIN
-   IF @Intr_File_No = 0 SET @Intr_File_No = NULL
-   IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
+   --IF @Intr_File_No = 0 SET @Intr_File_No = NULL
+   --IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
    IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;
    IF @Serv_No = '' SET @Serv_No = NULL;
    IF @Glob_Code = '' OR @Glob_Code = '0' SET @Glob_Code = NULL;
@@ -136,29 +136,29 @@ BEGIN
    IF @Dad_Tell_Phon = '' SET @Dad_Tell_Phon = NULL
    IF @Dad_Chat_Id = '' SET @Mom_Chat_Id = NULL
    IF @Idty_Numb = '' SET @Idty_Numb = NULL
-   IF @Watr_Fabr_Numb = '' SET @Watr_Fabr_Numb = NULL
-   IF @Gas_Fabr_Numb = '' SET @Gas_Fabr_Numb = NULL
-   IF @Powr_Fabr_Numb = '' SET @Powr_Fabr_Numb = NULL
-   IF @Hire_Date = '1900-01-01' SET @Hire_Date = NULL
-   IF @Hire_Type = '' SET @Hire_Type = NULL
-   IF @Hire_Plac_Code = 0 SET @Hire_Plac_Code = NULL
-   IF @Salr_Plac_Code = 0 SET @Salr_Plac_Code = NULL
-   IF @Hire_Cell_Phon = '' SET @Hire_Cell_Phon = NULL
-   IF @Hire_Tell_Phon = '' SET @Hire_Tell_Phon = NULL
-   IF @Unit_Blok_Cndo_Code = '' SET @Unit_Blok_Cndo_Code = NULL
-   IF @Unit_Blok_Code = '' SET @Unit_Blok_Code = NULL
-   IF @Unit_Code = '' SET @Unit_Code = NULL
-   IF @Punt_Blok_Cndo_Code = '' SET @Punt_Blok_Cndo_Code = NULL
-   IF @Punt_Blok_Code = '' SET @Punt_Blok_Code = NULL
-   IF @Punt_Code = '' SET @Punt_Code = NULL
-   IF @Home_Regn_Prvn_Cnty_Code = '' SET @Home_Regn_Prvn_Cnty_Code = NULL
-   IF @Home_Regn_Prvn_Code = '' SET @Home_Regn_Prvn_Code = NULL
-   IF @Home_Regn_Code = '' SET @Home_Regn_Code = NULL
-   IF @Home_Post_Adrs = '' SET @Home_Post_Adrs = NULL
-   IF @Home_Zip_Code = '' SET @Home_Zip_Code = NULL
+   --IF @Watr_Fabr_Numb = '' SET @Watr_Fabr_Numb = NULL
+   --IF @Gas_Fabr_Numb = '' SET @Gas_Fabr_Numb = NULL
+   --IF @Powr_Fabr_Numb = '' SET @Powr_Fabr_Numb = NULL
+   --IF @Hire_Date = '1900-01-01' SET @Hire_Date = NULL
+   --IF @Hire_Type = '' SET @Hire_Type = NULL
+   --IF @Hire_Plac_Code = 0 SET @Hire_Plac_Code = NULL
+   --IF @Salr_Plac_Code = 0 SET @Salr_Plac_Code = NULL
+   --IF @Hire_Cell_Phon = '' SET @Hire_Cell_Phon = NULL
+   --IF @Hire_Tell_Phon = '' SET @Hire_Tell_Phon = NULL
+   --IF @Unit_Blok_Cndo_Code = '' SET @Unit_Blok_Cndo_Code = NULL
+   --IF @Unit_Blok_Code = '' SET @Unit_Blok_Code = NULL
+   --IF @Unit_Code = '' SET @Unit_Code = NULL
+   --IF @Punt_Blok_Cndo_Code = '' SET @Punt_Blok_Cndo_Code = NULL
+   --IF @Punt_Blok_Code = '' SET @Punt_Blok_Code = NULL
+   --IF @Punt_Code = '' SET @Punt_Code = NULL
+   --IF @Home_Regn_Prvn_Cnty_Code = '' SET @Home_Regn_Prvn_Cnty_Code = NULL
+   --IF @Home_Regn_Prvn_Code = '' SET @Home_Regn_Prvn_Code = NULL
+   --IF @Home_Regn_Code = '' SET @Home_Regn_Code = NULL
+   --IF @Home_Post_Adrs = '' SET @Home_Post_Adrs = NULL
+   --IF @Home_Zip_Code = '' SET @Home_Zip_Code = NULL
    IF @Zip_Code = '' SET @Zip_Code = NULL
-   IF @Risk_Code = '' SET @Risk_Code = NULL
-   IF @Job_Titl_Code = 0 SET @Job_Titl_Code = NULL   	
+   --IF @Risk_Code = '' SET @Risk_Code = NULL
+   --IF @Job_Titl_Code = 0 SET @Job_Titl_Code = NULL   	
 	IF @Pass_Word = '' SET @Pass_Word = NULL
 	IF @Sex_Type = '003' SET @Sex_Type = '001';
 	
@@ -208,8 +208,8 @@ BEGIN
          ,ISSU_PLAC = @Issu_Plac
          ,FATH_WORK = @Fath_Work
          ,HIST_DESC = @Hist_Desc
-         ,INTR_FILE_NO = @Intr_File_No
-         ,CNTR_CODE = @Cntr_Code
+         --,INTR_FILE_NO = @Intr_File_No
+         --,CNTR_CODE = @Cntr_Code
          ,DPST_ACNT_SLRY_BANK = @Dpst_Acnt_Slry_Bank
          ,DPST_ACNT_SLRY = @Dpst_Acnt_Slry
          ,CHAT_ID = @Chat_Id
@@ -220,44 +220,44 @@ BEGIN
          ,DAD_TELL_PHON = @Dad_Tell_Phon
          ,DAD_CHAT_ID = @Dad_Chat_Id
          ,IDTY_NUMB = @IDTY_NUMB
-         ,WATR_FABR_NUMB = @WATR_FABR_NUMB
-         ,GAS_FABR_NUMB = @GAS_FABR_NUMB
-         ,POWR_FABR_NUMB = @POWR_FABR_NUMB
-         ,BULD_AREA = @BULD_AREA
-         ,CHLD_FMLY_NUMB = @CHLD_FMLY_NUMB
-         ,DPEN_FMLY_NUMB = @DPEN_FMLY_NUMB
-         ,FMLY_NUMB = @FMLY_NUMB
-         ,HIRE_DATE = @HIRE_DATE
-         ,HIRE_TYPE = @HIRE_TYPE
-         ,HIRE_PLAC_CODE = @HIRE_PLAC_CODE
-         ,HOME_TYPE = @HOME_TYPE
-         ,HIRE_CELL_PHON = HIRE_CELL_PHON
-         ,HIRE_TELL_PHON = @HIRE_TELL_PHON
-         ,SALR_PLAC_CODE = @SALR_PLAC_CODE
-         ,UNIT_BLOK_CNDO_CODE = @UNIT_BLOK_CNDO_CODE
-         ,UNIT_BLOK_CODE = @UNIT_BLOK_CODE
-         ,UNIT_CODE = @UNIT_CODE
-         ,PUNT_BLOK_CNDO_CODE = @PUNT_BLOK_CNDO_CODE
-         ,PUNT_BLOK_CODE = @PUNT_BLOK_CODE
-         ,PUNT_CODE = @PUNT_CODE
-         ,PHAS_NUMB = @PHAS_NUMB
-         ,HIRE_DEGR = @HIRE_DEGR
-         ,HIRE_PLAC_DEGR = @HIRE_PLAC_DEGR
-         ,SCOR_NUMB = @SCOR_NUMB
-         ,HOME_REGN_PRVN_CNTY_CODE = @HOME_REGN_PRVN_CNTY_CODE
-         ,HOME_REGN_PRVN_CODE = @HOME_REGN_PRVN_CODE
-         ,HOME_REGN_CODE = @HOME_REGN_CODE
-         ,HOME_POST_ADRS = @HOME_POST_ADRS
-         ,HOME_CORD_X = @HOME_CORD_X
-         ,HOME_CORD_Y = @HOME_CORD_Y
-         ,HOME_ZIP_CODE = @HOME_ZIP_CODE
+         --,WATR_FABR_NUMB = @WATR_FABR_NUMB
+         --,GAS_FABR_NUMB = @GAS_FABR_NUMB
+         --,POWR_FABR_NUMB = @POWR_FABR_NUMB
+         --,BULD_AREA = @BULD_AREA
+         --,CHLD_FMLY_NUMB = @CHLD_FMLY_NUMB
+         --,DPEN_FMLY_NUMB = @DPEN_FMLY_NUMB
+         --,FMLY_NUMB = @FMLY_NUMB
+         --,HIRE_DATE = @HIRE_DATE
+         --,HIRE_TYPE = @HIRE_TYPE
+         --,HIRE_PLAC_CODE = @HIRE_PLAC_CODE
+         --,HOME_TYPE = @HOME_TYPE
+         --,HIRE_CELL_PHON = HIRE_CELL_PHON
+         --,HIRE_TELL_PHON = @HIRE_TELL_PHON
+         --,SALR_PLAC_CODE = @SALR_PLAC_CODE
+         --,UNIT_BLOK_CNDO_CODE = @UNIT_BLOK_CNDO_CODE
+         --,UNIT_BLOK_CODE = @UNIT_BLOK_CODE
+         --,UNIT_CODE = @UNIT_CODE
+         --,PUNT_BLOK_CNDO_CODE = @PUNT_BLOK_CNDO_CODE
+         --,PUNT_BLOK_CODE = @PUNT_BLOK_CODE
+         --,PUNT_CODE = @PUNT_CODE
+         --,PHAS_NUMB = @PHAS_NUMB
+         --,HIRE_DEGR = @HIRE_DEGR
+         --,HIRE_PLAC_DEGR = @HIRE_PLAC_DEGR
+         --,SCOR_NUMB = @SCOR_NUMB
+         --,HOME_REGN_PRVN_CNTY_CODE = @HOME_REGN_PRVN_CNTY_CODE
+         --,HOME_REGN_PRVN_CODE = @HOME_REGN_PRVN_CODE
+         --,HOME_REGN_CODE = @HOME_REGN_CODE
+         --,HOME_POST_ADRS = @HOME_POST_ADRS
+         --,HOME_CORD_X = @HOME_CORD_X
+         --,HOME_CORD_Y = @HOME_CORD_Y
+         --,HOME_ZIP_CODE = @HOME_ZIP_CODE
          ,ZIP_CODE = @ZIP_CODE
-         ,RISK_CODE = @RISK_CODE
-         ,RISK_NUMB = @RISK_NUMB
-         ,WAR_DAY_NUMB = @WAR_DAY_NUMB
-         ,CPTV_DAY_NUMB = @CPTV_DAY_NUMB
-         ,MRID_TYPE = @MRID_TYPE
-         ,JOB_TITL_CODE = @JOB_TITL_CODE
+         --,RISK_CODE = @RISK_CODE
+         --,RISK_NUMB = @RISK_NUMB
+         --,WAR_DAY_NUMB = @WAR_DAY_NUMB
+         --,CPTV_DAY_NUMB = @CPTV_DAY_NUMB
+         --,MRID_TYPE = @MRID_TYPE
+         --,JOB_TITL_CODE = @JOB_TITL_CODE
          ,CMNT = @CMNT
          ,PASS_WORD = @Pass_Word
      WHERE Figh_File_No = @File_No

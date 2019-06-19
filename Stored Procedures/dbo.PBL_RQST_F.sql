@@ -212,8 +212,8 @@ BEGIN
              ,@IssuPlac NVARCHAR(100)
              ,@FathWork NVARCHAR(150)
              ,@HistDesc NVARCHAR(500)
-             ,@IntrFileNo BIGINT
-             ,@CntrCode BIGINT
+             --,@IntrFileNo BIGINT
+             --,@CntrCode BIGINT
              ,@DpstAcntSlryBank NVARCHAR(50)
              ,@DpstAcntSlry VARCHAR(50)
              ,@ChatId BIGINT
@@ -224,44 +224,44 @@ BEGIN
              ,@DadTellPhon VARCHAR(11)
              ,@DadChatId BIGINT
              ,@IdtyNumb VARCHAR(20)
-             ,@WatrFabrNumb NVARCHAR(30)
-             ,@GasFabrNumb NVARCHAR(30)
-             ,@PowrFabrNumb NVARCHAR(30)
-             ,@BuldArea INT
-             ,@ChldFmlyNumb SMALLINT
-             ,@DpenFmlyNumb SMALLINT
-             ,@FmlyNumb SMALLINT
-             ,@HireDate DATETIME
-             ,@HireType VARCHAR(3)
-             ,@HirePlacCode BIGINT
-             ,@HomeType VARCHAR(3)
-             ,@HireCellPhon VARCHAR(11)
-             ,@HireTellPhon VARCHAR(11)
-             ,@SalrPlacCode BIGINT
-             ,@UnitBlokCndoCode VARCHAR(3)
-             ,@UnitBlokCode VARCHAR(3)
-             ,@UnitCode VARCHAR(3)
-             ,@PuntBlokCndoCode VARCHAR(3)
-             ,@PuntBlokCode VARCHAR(3)
-             ,@PuntCode VARCHAR(3)
-             ,@PhasNumb SMALLINT
-             ,@HireDegr VARCHAR(3)
-             ,@HirePlacDegr VARCHAR(3)
-             ,@ScorNumb SMALLINT
-             ,@HomeRegnPrvnCntyCode VARCHAR(3)
-             ,@HomeRegnPrvnCode VARCHAR(3)
-             ,@HomeRegnCode VARCHAR(3)
-             ,@HomePostAdrs NVARCHAR(1000)
-             ,@HomeCordX FLOAT
-             ,@HomeCordY FLOAT
-             ,@HomeZipCode VARCHAR(10)
+             --,@WatrFabrNumb NVARCHAR(30)
+             --,@GasFabrNumb NVARCHAR(30)
+             --,@PowrFabrNumb NVARCHAR(30)
+             --,@BuldArea INT
+             --,@ChldFmlyNumb SMALLINT
+             --,@DpenFmlyNumb SMALLINT
+             --,@FmlyNumb SMALLINT
+             --,@HireDate DATETIME
+             --,@HireType VARCHAR(3)
+             --,@HirePlacCode BIGINT
+             --,@HomeType VARCHAR(3)
+             --,@HireCellPhon VARCHAR(11)
+             --,@HireTellPhon VARCHAR(11)
+             --,@SalrPlacCode BIGINT
+             --,@UnitBlokCndoCode VARCHAR(3)
+             --,@UnitBlokCode VARCHAR(3)
+             --,@UnitCode VARCHAR(3)
+             --,@PuntBlokCndoCode VARCHAR(3)
+             --,@PuntBlokCode VARCHAR(3)
+             --,@PuntCode VARCHAR(3)
+             --,@PhasNumb SMALLINT
+             --,@HireDegr VARCHAR(3)
+             --,@HirePlacDegr VARCHAR(3)
+             --,@ScorNumb SMALLINT
+             --,@HomeRegnPrvnCntyCode VARCHAR(3)
+             --,@HomeRegnPrvnCode VARCHAR(3)
+             --,@HomeRegnCode VARCHAR(3)
+             --,@HomePostAdrs NVARCHAR(1000)
+             --,@HomeCordX FLOAT
+             --,@HomeCordY FLOAT
+             --,@HomeZipCode VARCHAR(10)
              ,@ZipCode VARCHAR(10)
-             ,@RiskCode VARCHAR(20)
-             ,@RiskNumb SMALLINT
-             ,@WarDayNumb SMALLINT
-             ,@CptvDayNumb SMALLINT
-             ,@MridType VARCHAR(3)
-             ,@JobTitlCode BIGINT
+             --,@RiskCode VARCHAR(20)
+             --,@RiskNumb SMALLINT
+             --,@WarDayNumb SMALLINT
+             --,@CptvDayNumb SMALLINT
+             --,@MridType VARCHAR(3)
+             --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
              ,@Password VARCHAR(250);
       
@@ -311,8 +311,8 @@ BEGIN
              ,@IssuPlac = r.query('Fighter_Public/Issu_Plac').value('.', 'NVARCHAR(100)')
              ,@FathWork = r.query('Fighter_Public/Fath_Work').value('.', 'NVARCHAR(150)')
              ,@HistDesc = r.query('Fighter_Public/Hist_Desc').value('.', 'NVARCHAR(500)')
-             ,@IntrFileNo = r.query('Fighter_Public/Intr_File_No').value('.', 'BIGINT')             
-             ,@CntrCode = r.query('Fighter_Public/Cntr_Code').value('.', 'BIGINT')             
+             --,@IntrFileNo = r.query('Fighter_Public/Intr_File_No').value('.', 'BIGINT')             
+             --,@CntrCode = r.query('Fighter_Public/Cntr_Code').value('.', 'BIGINT')             
              ,@DpstAcntSlryBank = r.query('Fighter_Public/Dpst_Acnt_Slry_Bank').value('.', 'NVARCHAR(50)')             
              ,@DpstAcntSlry = r.query('Fighter_Public/Dpst_Acnt_Slry').value('.', 'VARCHAR(50)')             
              ,@ChatId = r.query('Fighter_Public/Chat_Id').value('.', 'BIGINT')             
@@ -323,44 +323,44 @@ BEGIN
              ,@DadTellPhon = r.query('Fighter_Public/Dad_Tell_Phon').value('.', 'VARCHAR(11)')             
              ,@DadChatId = r.query('Fighter_Public/Dad_Chat_Id').value('.', 'BIGINT')
              ,@IDTYNUMB = r.query('Fighter_Public/Idty_Numb').value('.', 'VARCHAR(20)')
-             ,@WATRFABRNUMB = r.query('Fighter_Public/Watr_Fabr_Numb').value('.', 'NVARCHAR(30)')
-             ,@GASFABRNUMB = r.query('Fighter_Public/Gas_Fabr_Numb').value('.', 'NVARCHAR(30)')
-             ,@POWRFABRNUMB = r.query('Fighter_Public/Powr_Fabr_Numb').value('.', 'NVARCHAR(30)')
-             ,@BULDAREA = r.query('Fighter_Public/Buld_Area').value('.', 'INT')
-             ,@CHLDFMLYNUMB = r.query('Fighter_Public/Chld_Fmly_Numb').value('.', 'SMALLINT')
-             ,@DPENFMLYNUMB = r.query('Fighter_Public/Dpen_Fmly_Numb').value('.', 'SMALLINT')
-             ,@FMLYNUMB = r.query('Fighter_Public/Fmly_Numb').value('.', 'SMALLINT')
-             ,@HIREDATE = r.query('Fighter_Public/Hire_Date').value('.', 'DATETIME')
-             ,@HIRETYPE = r.query('Fighter_Public/Hire_Type').value('.', 'VARCHAR(3)')
-             ,@HIREPLACCODE = r.query('Fighter_Public/Hire_Plac_Code').value('.', 'BIGINT')
-             ,@HOMETYPE = r.query('Fighter_Public/Home_Type').value('.', 'VARCHAR(3)')
-             ,@HIRECELLPHON = r.query('Fighter_Public/Hire_Cell_Phon').value('.', 'VARCHAR(11)')
-             ,@HIRETELLPHON = r.query('Fighter_Public/Hire_Tell_Phon').value('.', 'VARCHAR(11)')
-             ,@SALRPLACCODE = r.query('Fighter_Public/Salr_Plac_Code').value('.', 'BIGINT')
-             ,@UNITBLOKCNDOCODE = r.query('Fighter_Public/Unit_Blok_Cndo_Code').value('.', 'VARCHAR(3)')
-             ,@UNITBLOKCODE = r.query('Fighter_Public/Unit_Blok_Code').value('.', 'VARCHAR(3)')
-             ,@UNITCODE = r.query('Fighter_Public/Unit_Code').value('.', 'VARCHAR(3)')
-             ,@PUNTBLOKCNDOCODE = r.query('Fighter_Public/Punt_Blok_Cndo_Code').value('.', 'VARCHAR(3)')
-             ,@PUNTBLOKCODE = r.query('Fighter_Public/Punt_Blok_Code').value('.', 'VARCHAR(3)')
-             ,@PUNTCODE = r.query('Fighter_Public/Punt_Code').value('.', 'VARCHAR(3)')
-             ,@PHASNUMB = r.query('Fighter_Public/Phas_Numb').value('.', 'SMALLINT')
-             ,@HIREDEGR = r.query('Fighter_Public/Hire_Degr').value('.', 'VARCHAR(3)')
-             ,@HIREPLACDEGR = r.query('Fighter_Public/Hire_Plac_Degr').value('.', 'VARCHAR(3)')
-             ,@SCORNUMB = r.query('Fighter_Public/Scor_Numb').value('.', 'SMALLINT')
-             ,@HOMEREGNPRVNCNTYCODE = r.query('Fighter_Public/Home_Regn_Prvn_Cnty_Code').value('.', 'VARCHAR(3)')
-             ,@HOMEREGNPRVNCODE = r.query('Fighter_Public/Home_Regn_Prvn_Code').value('.', 'VARCHAR(3)')
-             ,@HOMEREGNCODE = r.query('Fighter_Public/Home_Regn_Code').value('.', 'VARCHAR(3)')
-             ,@HOMEPOSTADRS = r.query('Fighter_Public/Home_Post_Adrs').value('.', 'NVARCHAR(1000)')
-             ,@HOMECORDX = r.query('Fighter_Public/Home_Cord_X').value('.', 'FLOAT')
-             ,@HOMECORDY = r.query('Fighter_Public/Home_Cord_Y').value('.', 'FLOAT')
-             ,@HOMEZIPCODE = r.query('Fighter_Public/Home_Zip_Code').value('.', 'VARCHAR(10)')
+             --,@WATRFABRNUMB = r.query('Fighter_Public/Watr_Fabr_Numb').value('.', 'NVARCHAR(30)')
+             --,@GASFABRNUMB = r.query('Fighter_Public/Gas_Fabr_Numb').value('.', 'NVARCHAR(30)')
+             --,@POWRFABRNUMB = r.query('Fighter_Public/Powr_Fabr_Numb').value('.', 'NVARCHAR(30)')
+             --,@BULDAREA = r.query('Fighter_Public/Buld_Area').value('.', 'INT')
+             --,@CHLDFMLYNUMB = r.query('Fighter_Public/Chld_Fmly_Numb').value('.', 'SMALLINT')
+             --,@DPENFMLYNUMB = r.query('Fighter_Public/Dpen_Fmly_Numb').value('.', 'SMALLINT')
+             --,@FMLYNUMB = r.query('Fighter_Public/Fmly_Numb').value('.', 'SMALLINT')
+             --,@HIREDATE = r.query('Fighter_Public/Hire_Date').value('.', 'DATETIME')
+             --,@HIRETYPE = r.query('Fighter_Public/Hire_Type').value('.', 'VARCHAR(3)')
+             --,@HIREPLACCODE = r.query('Fighter_Public/Hire_Plac_Code').value('.', 'BIGINT')
+             --,@HOMETYPE = r.query('Fighter_Public/Home_Type').value('.', 'VARCHAR(3)')
+             --,@HIRECELLPHON = r.query('Fighter_Public/Hire_Cell_Phon').value('.', 'VARCHAR(11)')
+             --,@HIRETELLPHON = r.query('Fighter_Public/Hire_Tell_Phon').value('.', 'VARCHAR(11)')
+             --,@SALRPLACCODE = r.query('Fighter_Public/Salr_Plac_Code').value('.', 'BIGINT')
+             --,@UNITBLOKCNDOCODE = r.query('Fighter_Public/Unit_Blok_Cndo_Code').value('.', 'VARCHAR(3)')
+             --,@UNITBLOKCODE = r.query('Fighter_Public/Unit_Blok_Code').value('.', 'VARCHAR(3)')
+             --,@UNITCODE = r.query('Fighter_Public/Unit_Code').value('.', 'VARCHAR(3)')
+             --,@PUNTBLOKCNDOCODE = r.query('Fighter_Public/Punt_Blok_Cndo_Code').value('.', 'VARCHAR(3)')
+             --,@PUNTBLOKCODE = r.query('Fighter_Public/Punt_Blok_Code').value('.', 'VARCHAR(3)')
+             --,@PUNTCODE = r.query('Fighter_Public/Punt_Code').value('.', 'VARCHAR(3)')
+             --,@PHASNUMB = r.query('Fighter_Public/Phas_Numb').value('.', 'SMALLINT')
+             --,@HIREDEGR = r.query('Fighter_Public/Hire_Degr').value('.', 'VARCHAR(3)')
+             --,@HIREPLACDEGR = r.query('Fighter_Public/Hire_Plac_Degr').value('.', 'VARCHAR(3)')
+             --,@SCORNUMB = r.query('Fighter_Public/Scor_Numb').value('.', 'SMALLINT')
+             --,@HOMEREGNPRVNCNTYCODE = r.query('Fighter_Public/Home_Regn_Prvn_Cnty_Code').value('.', 'VARCHAR(3)')
+             --,@HOMEREGNPRVNCODE = r.query('Fighter_Public/Home_Regn_Prvn_Code').value('.', 'VARCHAR(3)')
+             --,@HOMEREGNCODE = r.query('Fighter_Public/Home_Regn_Code').value('.', 'VARCHAR(3)')
+             --,@HOMEPOSTADRS = r.query('Fighter_Public/Home_Post_Adrs').value('.', 'NVARCHAR(1000)')
+             --,@HOMECORDX = r.query('Fighter_Public/Home_Cord_X').value('.', 'FLOAT')
+             --,@HOMECORDY = r.query('Fighter_Public/Home_Cord_Y').value('.', 'FLOAT')
+             --,@HOMEZIPCODE = r.query('Fighter_Public/Home_Zip_Code').value('.', 'VARCHAR(10)')
              ,@ZIPCODE = r.query('Fighter_Public/Zip_Code').value('.', 'VARCHAR(10)')
-             ,@RISKCODE = r.query('Fighter_Public/Risk_Code').value('.', 'VARCHAR(20)')
-             ,@RISKNUMB = r.query('Fighter_Public/Risk_Numb').value('.', 'SMALLINT')
-             ,@WARDAYNUMB = r.query('Fighter_Public/War_Day_Numb').value('.', 'INT')
-             ,@CPTVDAYNUMB = r.query('Fighter_Public/Cptv_Day_Numb').value('.', 'INT')
-             ,@MRIDTYPE = r.query('Fighter_Public/Mrid_Type').value('.', 'VARCHAR(3)')
-             ,@JOBTITLCODE = r.query('Fighter_Public/Job_Titl_Code').value('.', 'BIGINT')
+             --,@RISKCODE = r.query('Fighter_Public/Risk_Code').value('.', 'VARCHAR(20)')
+             --,@RISKNUMB = r.query('Fighter_Public/Risk_Numb').value('.', 'SMALLINT')
+             --,@WARDAYNUMB = r.query('Fighter_Public/War_Day_Numb').value('.', 'INT')
+             --,@CPTVDAYNUMB = r.query('Fighter_Public/Cptv_Day_Numb').value('.', 'INT')
+             --,@MRIDTYPE = r.query('Fighter_Public/Mrid_Type').value('.', 'VARCHAR(3)')
+             --,@JOBTITLCODE = r.query('Fighter_Public/Job_Titl_Code').value('.', 'BIGINT')
              ,@CMNT = r.query('Fighter_Public/Cmnt').value('.', 'NVARCHAR(4000)')
              ,@Password = r.query('Fighter_Public/Pass_Word').value('.', 'VARCHAR(250)')
          FROM @X.nodes('//Request_Row')Rr(r)
@@ -512,8 +512,8 @@ BEGIN
              ,@IssuPlac = P.ISSU_PLAC
              ,@FathWork = P.FATH_WORK
              ,@HistDesc = P.HIST_DESC
-             ,@IntrFileNo = P.INTR_FILE_NO             
-             ,@CntrCode = P.CNTR_CODE
+             --,@IntrFileNo = P.INTR_FILE_NO             
+             --,@CntrCode = P.CNTR_CODE
              ,@DpstAcntSlryBank = P.DPST_ACNT_SLRY_BANK
              ,@DpstAcntSlry = P.DPST_ACNT_SLRY
              ,@ChatId = P.CHAT_ID
@@ -523,9 +523,9 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
-             ,@UnitBlokCndoCode = P.UNIT_BLOK_CNDO_CODE
-             ,@UnitBlokCode = P.UNIT_BLOK_CODE
-             ,@UnitCode = P.UNIT_CODE
+             --,@UnitBlokCndoCode = P.UNIT_BLOK_CNDO_CODE
+             --,@UnitBlokCode = P.UNIT_BLOK_CODE
+             --,@UnitCode = P.UNIT_CODE
              ,@Password = P.PASS_WORD
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
@@ -597,8 +597,8 @@ BEGIN
            ,@Issu_Plac = @IssuPlac
            ,@Fath_Work = @FathWork
            ,@Hist_Desc = @HistDesc
-           ,@Intr_File_No = @IntrFileNo
-           ,@Cntr_Code = @CntrCode
+           --,@Intr_File_No = @IntrFileNo
+           --,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
            ,@Chat_Id = @ChatId
@@ -609,44 +609,44 @@ BEGIN
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
            ,@IDTY_NUMB = @IDTYNUMB
-           ,@WATR_FABR_NUMB = @WATRFABRNUMB
-           ,@GAS_FABR_NUMB = @GASFABRNUMB
-           ,@POWR_FABR_NUMB = @POWRFABRNUMB
-           ,@BULD_AREA = @BULDAREA
-           ,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
-           ,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
-           ,@FMLY_NUMB = @FMLYNUMB
-           ,@HIRE_DATE = @HIREDATE
-           ,@HIRE_TYPE = @HIRETYPE
-           ,@HIRE_PLAC_CODE = @HIREPLACCODE
-           ,@HOME_TYPE = @HOMETYPE
-           ,@HIRE_CELL_PHON = @HIRECELLPHON
-           ,@HIRE_TELL_PHON = @HIRETELLPHON
-           ,@SALR_PLAC_CODE = @SALRPLACCODE
-           ,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
-           ,@UNIT_BLOK_CODE = @UNITBLOKCODE
-           ,@UNIT_CODE = @UNITCODE
-           ,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
-           ,@PUNT_BLOK_CODE = @PUNTBLOKCODE
-           ,@PUNT_CODE = @PUNTCODE
-           ,@PHAS_NUMB = @PHASNUMB
-           ,@HIRE_DEGR = @HIREDEGR
-           ,@HIRE_PLAC_DEGR = @HIREPLACDEGR
-           ,@SCOR_NUMB = @SCORNUMB
-           ,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
-           ,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
-           ,@HOME_REGN_CODE = @HOMEREGNCODE
-           ,@HOME_POST_ADRS = @HOMEPOSTADRS
-           ,@HOME_CORD_X = @HOMECORDX
-           ,@HOME_CORD_Y = @HOMECORDY
-           ,@HOME_ZIP_CODE = @HOMEZIPCODE
+           --,@WATR_FABR_NUMB = @WATRFABRNUMB
+           --,@GAS_FABR_NUMB = @GASFABRNUMB
+           --,@POWR_FABR_NUMB = @POWRFABRNUMB
+           --,@BULD_AREA = @BULDAREA
+           --,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
+           --,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
+           --,@FMLY_NUMB = @FMLYNUMB
+           --,@HIRE_DATE = @HIREDATE
+           --,@HIRE_TYPE = @HIRETYPE
+           --,@HIRE_PLAC_CODE = @HIREPLACCODE
+           --,@HOME_TYPE = @HOMETYPE
+           --,@HIRE_CELL_PHON = @HIRECELLPHON
+           --,@HIRE_TELL_PHON = @HIRETELLPHON
+           --,@SALR_PLAC_CODE = @SALRPLACCODE
+           --,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
+           --,@UNIT_BLOK_CODE = @UNITBLOKCODE
+           --,@UNIT_CODE = @UNITCODE
+           --,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
+           --,@PUNT_BLOK_CODE = @PUNTBLOKCODE
+           --,@PUNT_CODE = @PUNTCODE
+           --,@PHAS_NUMB = @PHASNUMB
+           --,@HIRE_DEGR = @HIREDEGR
+           --,@HIRE_PLAC_DEGR = @HIREPLACDEGR
+           --,@SCOR_NUMB = @SCORNUMB
+           --,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
+           --,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
+           --,@HOME_REGN_CODE = @HOMEREGNCODE
+           --,@HOME_POST_ADRS = @HOMEPOSTADRS
+           --,@HOME_CORD_X = @HOMECORDX
+           --,@HOME_CORD_Y = @HOMECORDY
+           --,@HOME_ZIP_CODE = @HOMEZIPCODE
            ,@ZIP_CODE = @ZIPCODE
-           ,@RISK_CODE = @RISKCODE
-           ,@RISK_NUMB = @RISKNUMB
-           ,@WAR_DAY_NUMB = @WARDAYNUMB
-           ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
-           ,@MRID_TYPE = @MRIDTYPE
-           ,@JOB_TITL_CODE = @JOBTITLCODE
+           --,@RISK_CODE = @RISKCODE
+           --,@RISK_NUMB = @RISKNUMB
+           --,@WAR_DAY_NUMB = @WARDAYNUMB
+           --,@CPTV_DAY_NUMB = @CPTVDAYNUMB
+           --,@MRID_TYPE = @MRIDTYPE
+           --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
            ,@Pass_Word = @Password;
       END
@@ -701,8 +701,8 @@ BEGIN
            ,@Issu_Plac = @IssuPlac
            ,@Fath_Work = @FathWork
            ,@Hist_Desc = @HistDesc
-           ,@Intr_File_No = @IntrFileNo
-           ,@Cntr_Code = @CntrCode
+           --,@Intr_File_No = @IntrFileNo
+           --,@Cntr_Code = @CntrCode
            ,@Dpst_Acnt_Slry_Bank = @DpstAcntSlryBank
            ,@Dpst_Acnt_Slry = @DpstAcntSlry
            ,@Chat_Id = @ChatId
@@ -713,44 +713,44 @@ BEGIN
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
            ,@IDTY_NUMB = @IDTYNUMB
-           ,@WATR_FABR_NUMB = @WATRFABRNUMB
-           ,@GAS_FABR_NUMB = @GASFABRNUMB
-           ,@POWR_FABR_NUMB = @POWRFABRNUMB
-           ,@BULD_AREA = @BULDAREA
-           ,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
-           ,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
-           ,@FMLY_NUMB = @FMLYNUMB
-           ,@HIRE_DATE = @HIREDATE
-           ,@HIRE_TYPE = @HIRETYPE
-           ,@HIRE_PLAC_CODE = @HIREPLACCODE
-           ,@HOME_TYPE = @HOMETYPE
-           ,@HIRE_CELL_PHON = @HIRECELLPHON
-           ,@HIRE_TELL_PHON = @HIRETELLPHON
-           ,@SALR_PLAC_CODE = @SALRPLACCODE
-           ,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
-           ,@UNIT_BLOK_CODE = @UNITBLOKCODE
-           ,@UNIT_CODE = @UNITCODE
-           ,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
-           ,@PUNT_BLOK_CODE = @PUNTBLOKCODE
-           ,@PUNT_CODE = @PUNTCODE
-           ,@PHAS_NUMB = @PHASNUMB
-           ,@HIRE_DEGR = @HIREDEGR
-           ,@HIRE_PLAC_DEGR = @HIREPLACDEGR
-           ,@SCOR_NUMB = @SCORNUMB
-           ,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
-           ,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
-           ,@HOME_REGN_CODE = @HOMEREGNCODE
-           ,@HOME_POST_ADRS = @HOMEPOSTADRS
-           ,@HOME_CORD_X = @HOMECORDX
-           ,@HOME_CORD_Y = @HOMECORDY
-           ,@HOME_ZIP_CODE = @HOMEZIPCODE
+           --,@WATR_FABR_NUMB = @WATRFABRNUMB
+           --,@GAS_FABR_NUMB = @GASFABRNUMB
+           --,@POWR_FABR_NUMB = @POWRFABRNUMB
+           --,@BULD_AREA = @BULDAREA
+           --,@CHLD_FMLY_NUMB = @CHLDFMLYNUMB
+           --,@DPEN_FMLY_NUMB = @DPENFMLYNUMB
+           --,@FMLY_NUMB = @FMLYNUMB
+           --,@HIRE_DATE = @HIREDATE
+           --,@HIRE_TYPE = @HIRETYPE
+           --,@HIRE_PLAC_CODE = @HIREPLACCODE
+           --,@HOME_TYPE = @HOMETYPE
+           --,@HIRE_CELL_PHON = @HIRECELLPHON
+           --,@HIRE_TELL_PHON = @HIRETELLPHON
+           --,@SALR_PLAC_CODE = @SALRPLACCODE
+           --,@UNIT_BLOK_CNDO_CODE = @UNITBLOKCNDOCODE
+           --,@UNIT_BLOK_CODE = @UNITBLOKCODE
+           --,@UNIT_CODE = @UNITCODE
+           --,@PUNT_BLOK_CNDO_CODE = @PUNTBLOKCNDOCODE
+           --,@PUNT_BLOK_CODE = @PUNTBLOKCODE
+           --,@PUNT_CODE = @PUNTCODE
+           --,@PHAS_NUMB = @PHASNUMB
+           --,@HIRE_DEGR = @HIREDEGR
+           --,@HIRE_PLAC_DEGR = @HIREPLACDEGR
+           --,@SCOR_NUMB = @SCORNUMB
+           --,@HOME_REGN_PRVN_CNTY_CODE = @HOMEREGNPRVNCNTYCODE
+           --,@HOME_REGN_PRVN_CODE = @HOMEREGNPRVNCODE
+           --,@HOME_REGN_CODE = @HOMEREGNCODE
+           --,@HOME_POST_ADRS = @HOMEPOSTADRS
+           --,@HOME_CORD_X = @HOMECORDX
+           --,@HOME_CORD_Y = @HOMECORDY
+           --,@HOME_ZIP_CODE = @HOMEZIPCODE
            ,@ZIP_CODE = @ZIPCODE
-           ,@RISK_CODE = @RISKCODE
-           ,@RISK_NUMB = @RISKNUMB
-           ,@WAR_DAY_NUMB = @WARDAYNUMB
-           ,@CPTV_DAY_NUMB = @CPTVDAYNUMB
-           ,@MRID_TYPE = @MRIDTYPE
-           ,@JOB_TITL_CODE = @JOBTITLCODE
+           --,@RISK_CODE = @RISKCODE
+           --,@RISK_NUMB = @RISKNUMB
+           --,@WAR_DAY_NUMB = @WARDAYNUMB
+           --,@CPTV_DAY_NUMB = @CPTVDAYNUMB
+           --,@MRID_TYPE = @MRIDTYPE
+           --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
            ,@Pass_Word = @Password;
       END
