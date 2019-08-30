@@ -106,9 +106,28 @@ BEGIN
                   1 -- State.
                   );
          RETURN;
-      END
+      END   
+   END
+   -- آیا کاربر اجازه ثبت وصولی در هر تاریخ دلخواهی دارد یا خیر
+   IF EXISTS(
+      SELECT * 
+        FROM Inserted i
+       WHERE CAST(i.ACTN_DATE AS DATE) != CAST(GETDATE() AS DATE) -- تاریخ امروز
+   )
+   BEGIN
+      -- چک کردن دسترسی کاربر
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>239</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 239 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END   
+   END
    
-   END   
    
    DECLARE @TotlRcptAmnt BIGINT;
    DECLARE @TotlDebtAmnt BIGINT;
@@ -212,6 +231,25 @@ BEGIN
          RETURN;
       END
 	END 
+	-- آیا کاربر اجازه ثبت وصولی در هر تاریخ دلخواهی دارد یا خیر
+   IF EXISTS(
+      SELECT * 
+        FROM Inserted i
+       WHERE CAST(i.ACTN_DATE AS DATE) != CAST(GETDATE() AS DATE) -- تاریخ امروز
+   )
+   BEGIN
+      -- چک کردن دسترسی کاربر
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>239</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 239 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END   
+   END
    
    DECLARE @TotlRcptAmnt BIGINT;
    DECLARE @TotlDebtAmnt BIGINT;
@@ -257,8 +295,9 @@ BEGIN
        T.RWNO           = S.RWNO)
    WHEN MATCHED THEN
       UPDATE 
-         SET MDFY_BY   = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();
+         SET T.MDFY_BY   = UPPER(SUSER_NAME())
+            ,T.MDFY_DATE = GETDATE()
+            ,T.ACTN_DATE = CASE CAST(s.ACTN_DATE AS TIME(0)) WHEN '00:00:00' THEN s.ACTN_DATE + CAST(GETDATE() AS TIME(0)) ELSE s.ACTN_DATE END;
    
    --SELECT * FROM Inserted;
    

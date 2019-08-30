@@ -23,6 +23,7 @@ CREATE TABLE [dbo].[Member_Ship]
 [SESN_MEET_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SMS_SEND] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NEW_FNGR_PRNT] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -255,7 +256,7 @@ BEGIN
        S.TYPE = '005' AND
 	    s.VALD_TYPE = '002' AND 
        S.RECT_CODE = '004')
-   WHEN MATCHED THEN
+ WHEN MATCHED THEN
       UPDATE 
          SET MBFZ_RWNO_DNRM = S.RWNO;
    
@@ -358,7 +359,7 @@ BEGIN
                    (
                      SELECT @DadCellPhon AS '@phonnumb',
                             (
-                                SELECT '009' AS '@type' 
+                           SELECT '009' AS '@type' 
                                        ,@MsgbText
                                    FOR XML PATH('Message'), TYPE 
                             ) 

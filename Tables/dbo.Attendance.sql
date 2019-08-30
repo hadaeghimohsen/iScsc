@@ -39,6 +39,7 @@ CREATE TABLE [dbo].[Attendance]
 [PMEX_CODE] [bigint] NULL,
 [ATTN_SYS_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SEX_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SEND_MESG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -373,6 +374,7 @@ BEGIN
                 WHERE   f.FILE_NO = I.FIGH_FILE_NO
                         AND f.CLUB_CODE_DNRM = S.CLUB_CODE
                         AND S.MORE_FIGH_ONE_DRES = '001'
+                        AND s.DRES_AUTO = '001'
                         AND ISNULL(I.DERS_NUMB, 0) <> 0
                         AND I.EXIT_TIME IS NULL
                         AND EXISTS ( SELECT *
@@ -414,6 +416,24 @@ BEGIN
 	  
             RAISERROR(@ErrMsg, 16, 1);
         END;
+   
+   -- 1398/04/20 * آزاد کردن کمد انلاین
+   IF EXISTS (
+         SELECT *
+           FROM dbo.Settings s
+               ,Inserted i
+          WHERE s.DRES_AUTO = '002'
+            AND ISNULL(i.DERS_NUMB, 0) <> 0
+            AND i.EXIT_TIME IS NOT NULL               
+       
+      )
+   BEGIN
+      UPDATE da
+         SET da.TKBK_TIME = GETDATE()
+        FROM dbo.Dresser_Attendance da, Inserted i
+       WHERE da.ATTN_CODE = i.CODE
+         AND i.EXIT_TIME IS NOT NULL;
+   END
 END;
 GO
 ALTER TABLE [dbo].[Attendance] ADD CONSTRAINT [PK_ATTN] PRIMARY KEY CLUSTERED  ([CODE]) ON [BLOB]
@@ -459,6 +479,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف شماره تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RWNO_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت محاسبه هزینه مربی', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'RCPT_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'ارسال پیامک انجام شده', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'SEND_MESG_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد جلسات', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'TOTL_SESN'
 GO

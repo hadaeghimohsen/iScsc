@@ -328,9 +328,14 @@ BEGIN
       AND PAY_STAT IN ('002', '003');*/
    
    UPDATE dbo.Payment
-      SET SUM_EXPN_PRIC           = ROUND(@SumExpnPric, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
+      SET SUM_EXPN_PRIC           = @SumExpnPric
+         ,SUM_EXPN_EXTR_PRCT      = @SumExpnExtrPrct
+         ,SUM_REMN_PRIC           = @SumRemnPric
+         /*
+          SUM_EXPN_PRIC           = ROUND(@SumExpnPric, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
          ,SUM_EXPN_EXTR_PRCT      = ROUND(@SumExpnExtrPrct, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
          ,SUM_REMN_PRIC           = ROUND(@SumRemnPric, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
+         */
          /*,SUM_RCPT_EXPN_PRIC      = ROUND(@SumRcptExpnPric, -3) - ISNULL(SUM_PYMT_DSCN_DNRM, 0)
          ,SUM_RCPT_EXPN_EXTR_PRCT = ROUND(@SumRcptExpnExtrPrct, -3)
          ,SUM_RCPT_REMN_PRIC      = ROUND(@SumRcptRemnPric, -3)*/

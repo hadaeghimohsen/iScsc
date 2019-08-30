@@ -21,7 +21,7 @@ BEGIN
 	           @RqttCode VARCHAR(3),
 	           @RegnCode VARCHAR(3),
 	           @PrvnCode VARCHAR(3),
-   	           @MdulName VARCHAR(11),
+   	        @MdulName VARCHAR(11),
 	           @SctnName VARCHAR(11);
 
       
@@ -120,7 +120,8 @@ BEGIN
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
              ,@NumbOfAttnWeek INT
-             ,@AttnDayType VARCHAR(3);
+             ,@AttnDayType VARCHAR(3)
+             ,@NewFngrPrnt VARCHAR(20);
              
       SET @StrtDate = NULL;
       SET @EndDate = NULL;
@@ -129,6 +130,7 @@ BEGIN
       SET @NumbOfAttnMont = 0;
       SET @NumbOfAttnWeek = 0;
       SET @AttnDayType = '001';
+      SET @NewFngrPrnt = '';
       
       SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
             ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATE')
@@ -136,10 +138,11 @@ BEGIN
             ,@NumbMontOfer = r.query('Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')            
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
             ,@NumbOfAttnWeek = r.query('Member_Ship').value('(Member_Ship/@numbofattnweek)[1]', 'INT')
-            ,@AttnDayTYpe = r.query('Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)')
+            ,@AttnDayType = r.query('Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)')
+            ,@NewFngrPrnt = r.query('Member_Ship').value('(Member_Ship/@newfngrprnt)[1]', 'VARCHAR(20)')
             --,@MtodCode = r.query('Fighter').value('(Fighter/@mtodcodednrm)[1]', 'BIGINT')
             ,@CtgyCode = r.query('Fighter').value('(Fighter/@ctgycodednrm)[1]', 'BIGINT')
-            ,@CbmtCode = r.query('Fighter').value('(Fighter/@cbmtcodednrm)[1]', 'BIGINT')
+            ,@CbmtCode = r.query('Fighter').value('(Fighter/@cbmtcodednrm)[1]', 'BIGINT')            
         FROM @X.nodes('//Request_Row') Rqrv(r)
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
@@ -229,6 +232,17 @@ BEGIN
       END
       ELSE
          EXEC UPD_MBSP_P @Rqid, @RqroRwno, @FileNo, '001', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, @NumbOfAttnWeek, @AttnDayType;
+      
+      -- 1398/04/05 * بدلیل اضافه شدن گزینه جدید برای عوض کردن کد شناسایی مشتری
+      IF LEN(@NewFngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE FNGR_PRNT_DNRM = @NewFngrPrnt AND FILE_NO <> @FileNo )
+      BEGIN
+         RAISERROR (N'برای فیلد کد شناسایی قبلا توسط مشتری دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
+      END
+      
+      UPDATE dbo.Member_Ship 
+         SET NEW_FNGR_PRNT = @NewFngrPrnt 
+       WHERE RQRO_RQST_RQID = @Rqid
+         AND RQRO_RWNO = @RqroRwno;      
       
       GOTO NextFromRqrv;
       EndFetchRqrv:

@@ -2,7 +2,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE FUNCTION [dbo].[VF$SystemPaymentSummery] (@X XML)
+
+CREATE FUNCTION [dbo].[VF$SystemPaymentSummery01] (@X XML)
 RETURNS TABLE
 AS 
 RETURN
@@ -35,7 +36,6 @@ RETURN
             ,@X.query('//Payment_Discount').value('(Payment_Discount/@topydsdate)[1]',       'DATE') AS TO_PYDS_DATE            
             
             ,@X.query('//Club_Method').value('(Club_Method/@code)[1]',       'BIGINT') AS CBMT_CODE
-            ,@X.query('//Club_Method').value('(Club_Method/@cochfileno)[1]',       'BIGINT') AS COCH_FILE_NO
             
             ,@X.query('//Fighter').value('(Fighter/@cochcode)[1]',     'BIGINT') AS COCH_CODE
             --,@X.query('//Fighter').value('(Fighter/@cmbtcode)[1]',     'BIGINT') AS CBMT_CODE            
@@ -64,8 +64,8 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         su.SUNT_DESC,       
         f.MBSP_STRT_DATE ,
         f.MBSP_END_DATE ,
-        CASE f.FGPB_TYPE_DNRM WHEN '005' THEN '--' ELSE dbo.GET_MTOS_U(f.MBSP_STRT_DATE) END  AS PERS_MBSP_STRT_DATE,
-        CASE f.FGPB_TYPE_DNRM WHEN '005' THEN '--' ELSE dbo.GET_MTOS_U(f.MBSP_END_DATE) END AS PERS_MBSP_END_DATE,        
+        dbo.GET_MTOS_U(f.MBSP_STRT_DATE) AS PERS_MBSP_STRT_DATE,
+        dbo.GET_MTOS_U(f.MBSP_END_DATE) AS PERS_MBSP_END_DATE,        
         --cb.MTOD_CODE,
         --(SELECT m.MTOD_DESC FROM dbo.Method m WHERE m.CODE = cb.MTOD_CODE ) AS MTOD_DESC,
         CAST(cb.STRT_TIME AS TIME(0)) STRT_TIME,
@@ -87,7 +87,6 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         p.SUM_PYMT_DSCN_DNRM ,
         ( ( p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT ) - p.SUM_PYMT_DSCN_DNRM ) AS PYMT_AMNT ,
         ( p.SUM_RCPT_EXPN_PRIC + ISNULL(p.SUM_RCPT_EXPN_EXTR_PRCT, 0) ) AS GET_PYMT_AMNT,
-        ( SELECT d.DOMN_DESC + N', ' FROM dbo.Payment_Method pm, dbo.[D$RCMT] d WHERE pm.PYMT_RQST_RQID = r.RQID AND pm.RCPT_MTOD = d.VALU FOR XML PATH('')) AS GET_PYMT_AMNT_DESC,
         ( ( p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT )
           - ( ( p.SUM_RCPT_EXPN_PRIC + ISNULL(p.SUM_RCPT_EXPN_EXTR_PRCT, 0) )
               + p.SUM_PYMT_DSCN_DNRM ) ) AS DEBT_AMNT ,
@@ -132,8 +131,6 @@ WHERE   rqtp.CODE = r.RQTP_CODE
         AND (Qx.FROM_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
         AND (Qx.TO_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))
         
-        AND ((Qx.CRET_BY IS NULL OR qx.CRET_BY = '') OR r.CRET_BY = QX.CRET_BY)
-        
         /*AND (Qx.FROM_SAVE_DATE IS NULL OR CAST(R.SAVE_DATE AS DATE) >= CAST(Qx.FROM_SAVE_DATE AS DATE))
         AND (Qx.TO_SAVE_DATE IS NULL OR CAST(R.SAVE_DATE AS DATE) <= CAST(Qx.TO_SAVE_DATE AS DATE))
         
@@ -144,9 +141,9 @@ WHERE   rqtp.CODE = r.RQTP_CODE
         AND (Qx.TO_PYDS_DATE IS NULL OR EXISTS(SELECT * FROM dbo.Payment_Discount ps WHERE p.RQST_RQID = ps.PYMT_RQST_RQID AND p.CASH_CODE = ps.PYMT_CASH_CODE AND CAST(ps.CRET_DATE AS DATE) <= CAST(Qx.TO_PYDS_DATE AS DATE)))
         
         AND (Qx.CBMT_CODE IS NULL OR (CASE WHEN Qx.CBMT_CODE = 0 THEN cb.CODE ELSE Qx.CBMT_CODE END = cb.CODE AND f.MBSP_END_DATE >= CAST(GETDATE() AS DATE)))
-        AND (Qx.COCH_FILE_NO IS NULL OR (CASE WHEN Qx.COCH_FILE_NO = 0 THEN cb.COCH_FILE_NO ELSE Qx.COCH_FILE_NO END = cb.COCH_FILE_NO))
         */
 )
 
  
+
 GO

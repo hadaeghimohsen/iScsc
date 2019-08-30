@@ -710,8 +710,8 @@ BEGIN
       
       SET @AttnCode = dbo.GNRT_NVID_U();
          
-      INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE)
-      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type);
+      INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE, SEND_MESG_STAT)
+      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type, '001');
       
       -- 1398/03/14 * اختصاص شماره کمد به مشتری
       -- البته اگر این گزینه کمد انلاین فعال باشه 
@@ -756,11 +756,75 @@ BEGIN
          END                
       END 
       
+      -- 1398/4/11 * ثبت پیامک 
+      DECLARE @CellPhon VARCHAR(11),
+              @SexType VARCHAR(3),
+              @FrstName NVARCHAR(250),
+              @LastName NVARCHAR(250);
+      
+      SELECT @CellPhon = CELL_PHON_DNRM
+            ,@SexType = SEX_TYPE_DNRM
+            ,@FrstName = FRST_NAME_DNRM
+            ,@LastName = LAST_NAME_DNRM
+        FROM dbo.Fighter
+       WHERE FILE_NO = @Figh_File_No
+         AND FGPB_TYPE_DNRM = '001';
+         
+      IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND NOT EXISTS(SELECT * FROM dbo.Attendance WHERE CODE = @AttnCode AND SEND_MESG_STAT = '002')
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@ClubName NVARCHAR(250)
+                ,@InsrCnamStat VARCHAR(3)
+                ,@InsrFnamStat VARCHAR(3)
+                ,@LineType VARCHAR(3);
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '008';
+         
+         IF @MsgbStat = '002' 
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+               
+            DECLARE @XMsg XML;
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      @LineType AS '@linetype',
+                      (
+                        SELECT @CellPhon AS '@phonnumb',
+                               (
+                                   SELECT '008' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            
+            -- send sms successfully
+            UPDATE dbo.Attendance 
+               SET SEND_MESG_STAT = '002'
+             WHERE CODE = @AttnCode;
+         END;
+      END;
+      
       -- 1396/11/15 * ثبت پیامک تلگرام
       DECLARE @ChatId BIGINT
-             ,@SexType VARCHAR(3)
-             ,@FrstName NVARCHAR(250)
-             ,@LastName NVARCHAR(250);
+             --,@SexType VARCHAR(3)
+             --,@FrstName NVARCHAR(250)
+             --,@LastName NVARCHAR(250);
              
       SELECT @ChatId = CHAT_ID_DNRM
             ,@SexType = SEX_TYPE_DNRM
@@ -772,11 +836,11 @@ BEGIN
       IF @ChatId IS NOT NULL
       BEGIN
          DECLARE @TelgStat VARCHAR(3)
-                ,@MsgbStat VARCHAR(3)
-                ,@MsgbText NVARCHAR(MAX)
-                ,@ClubName NVARCHAR(250)
-                ,@InsrCnamStat VARCHAR(3)
-                ,@InsrFnamStat VARCHAR(3);
+                --,@MsgbStat VARCHAR(3)
+                --,@MsgbText NVARCHAR(MAX)
+                --,@ClubName NVARCHAR(250)
+                --,@InsrCnamStat VARCHAR(3)
+                --,@InsrFnamStat VARCHAR(3);
                 
          SELECT @TelgStat = TELG_STAT
                ,@MsgbText = MSGB_TEXT

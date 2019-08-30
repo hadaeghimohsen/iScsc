@@ -14,6 +14,8 @@ BEGIN
           ,@StrtTime TIME(0)
           ,@EndTime TIME(0)
           ,@pridTime INT
+          ,@Sextype VARCHAR(3)
+          ,@DayType VARCHAR(3)
           ,@SatDay VARCHAR(3)
           ,@SunDay VARCHAR(3)
           ,@MonDay VARCHAR(3)
@@ -28,6 +30,8 @@ BEGIN
          ,@StrtTime   = @X.query('Club_Method').value('(Club_Method/@strttime)[1]', 'TIME(0)')
          ,@EndTime    = @X.query('Club_Method').value('(Club_Method/@endtime)[1]', 'TIME(0)')
          ,@PridTime   = @X.query('Club_Method').value('(Club_Method/@pridtime)[1]', 'INT')
+         ,@Sextype   = @X.query('Club_Method').value('(Club_Method/@sextype)[1]', 'VARCHAR(3)')
+         ,@DayType   = @X.query('Club_Method').value('(Club_Method/@daytype)[1]', 'VARCHAR(3)')
          ,@SatDay     = @X.query('Club_Method').value('(Club_Method/@satday)[1]', 'VARCHAR(3)')
          ,@SunDay     = @X.query('Club_Method').value('(Club_Method/@sunday)[1]', 'VARCHAR(3)')
          ,@MonDay     = @X.query('Club_Method').value('(Club_Method/@monday)[1]', 'VARCHAR(3)')
@@ -73,10 +77,10 @@ BEGIN
              @Club_Code = @ClubCode, -- bigint
              @Mtod_Code = @MtodCode, -- bigint
              @Coch_File_No = @CochFileNo, -- bigint
-             @Day_Type = '003', -- varchar(3)
+             @Day_Type = @DayType, -- varchar(3)
              @Strt_Time = @iTime, -- time
              @End_Time = @jTime, -- time
-             @Sex_Type = '003', -- varchar(3)
+             @Sex_Type = @Sextype, -- varchar(3)
              @Cbmt_Desc = N'excl_cbmt_p', -- nvarchar(250)
              @Dflt_Stat = '001', -- varchar(3)
              @Cpct_Numb = 0, -- int

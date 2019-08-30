@@ -42,7 +42,8 @@ BEGIN
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
              ,@NumbOfAttnWeek INT
-             ,@AttnDayType VARCHAR(3);
+             ,@AttnDayType VARCHAR(3)
+             ,@NewFngrPrnt VARCHAR(20);
 
       SELECT @StrtDate = STRT_DATE
             ,@EndDate  = END_DATE
@@ -51,15 +52,27 @@ BEGIN
             ,@NumbOfAttnMont = NUMB_OF_ATTN_MONT
             ,@NumbOfAttnWeek = NUMB_OF_ATTN_WEEK
             ,@AttnDayType = ATTN_DAY_TYPE
+            ,@NewFngrPrnt = NEW_FNGR_PRNT
         FROM Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RQRO_RWNO      = @RqroRwno
          AND FIGH_FILE_NO   = @FileNo;
       
+      -- 1398/04/06 * اگر کد شناسایی خالی باشد
+      IF @NewFngrPrnt = '' SET @NewFngrPrnt = NULL;
+      
       IF NOT EXISTS(SELECT * FROM Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RQRO_RWNO = @RqroRwno AND FIGH_FILE_NO = @FileNo AND RECT_CODE = '004')
          EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '004', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, @NumbOfAttnWeek, @AttnDayType;
       ELSE
          EXEC UPD_MBSP_P @Rqid, @RqroRwno, @FileNo, '004', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, @NumbOfAttnWeek, @AttnDayType;
+      
+      -- 1398/04/05 * بدلیل اضافه شدن گزینه جدید برای عوض کردن کد شناسایی مشتری
+      UPDATE dbo.Member_Ship 
+         SET NEW_FNGR_PRNT = @NewFngrPrnt 
+       WHERE RQRO_RQST_RQID = @Rqid
+         AND RQRO_RWNO = @RqroRwno
+         AND RECT_CODE = '004';      
+
 
       -- 1396/08/18 * اگر درون تخفیفات مشترک گزینه ای باشد که مبلغ تخفیف مابه التفاوت وجود داشته باشد بایستی 
       -- مبلغ بدهی قبلی را به عنوان تخفیف مابه التفاوت لحاظ شود و تسویه حساب کامل انجام شود         
@@ -137,10 +150,11 @@ BEGIN
             AND RWNO = @FgpbRwnoDnrm
             AND RECT_CODE = '004'
             AND (ISNULL(MTOD_CODE, 0) <> @MtodCode
-               OR ISNULL(CTGY_CODE, 0) <> @CtgyCode )
+               OR ISNULL(CTGY_CODE, 0) <> @CtgyCode 
+               OR FNGR_PRNT <> ISNULL(@NewFngrPrnt, FNGR_PRNT))
       )
       BEGIN
-         SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش سبک و رسته پیرو تمدید مشترک بخاطر عوض شدن نوع سبک و رسته"><Request_Row fileno=""><ChngMtodCtgy><Mtod_Code/><Ctgy_Code/> </ChngMtodCtgy></Request_Row></Request></Process>';
+         SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش اطلاعات عمومی پیرو تمدید مشترک بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید"><Request_Row fileno=""><ChngMtodCtgy><Mtod_Code/><Ctgy_Code/> </ChngMtodCtgy></Request_Row></Request></Process>';
          SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
          SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
          SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
@@ -173,6 +187,7 @@ BEGIN
             SET CBMT_CODE = @CbmtCode
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
                ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
+               ,FNGR_PRNT = CASE WHEN ISNULL(@NewFngrPrnt, '') != '' THEN @NewFngrPrnt ELSE FNGR_PRNT END
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004';
          
@@ -212,6 +227,7 @@ BEGIN
             SET CBMT_CODE = @CbmtCode
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
                ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
+               ,FNGR_PRNT = CASE WHEN ISNULL(@NewFngrPrnt, '') != '' THEN @NewFngrPrnt ELSE FNGR_PRNT END
           WHERE RQRO_RQST_RQID = @Rqid
             AND FIGH_FILE_NO = @FileNo;
          

@@ -70,6 +70,23 @@ SELECT  pm.ACTN_DATE ,
         f.SUNT_BUNT_CODE_DNRM ,
         f.SUNT_CODE_DNRM ,
         f.FILE_NO,
+        f.NAME_DNRM AS FIGH_NAME_DNRM,
+        F.FNGR_PRNT_DNRM,
+        (
+           CASE r.RQTP_CODE
+            WHEN '001' THEN
+               (SELECT dbo.GET_MTOS_U(STRT_DATE)
+                 FROM dbo.Member_Ship
+                WHERE FIGH_FILE_NO = F.FILE_NO
+                  AND RECT_CODE = '004'
+                  AND RWNO = 1)
+            WHEN '009' THEN
+               (SELECT dbo.GET_MTOS_U(STRT_DATE)
+                 FROM dbo.Member_Ship
+                WHERE RQRO_RQST_RQID = r.RQID
+                  AND RECT_CODE = '004')
+           END            
+        ) AS STRT_DATE,
         su.SUNT_DESC,
         f.MTOD_CODE_DNRM ,
         m.MTOD_DESC, 
@@ -130,7 +147,7 @@ WHERE   pm.PYMT_RQST_RQID = p.RQST_RQID
         
         AND (Qx.CRET_BY IS NULL OR Qx.CRET_BY = '' OR pm.CRET_BY = Qx.CRET_BY)
 
-UNION
+UNION ALL
 SELECT  pm.ACTN_DATE ,    
         dbo.GET_MTOS_U(pm.ACTN_DATE) AS PERS_ACTN_DATE,
         CAST(pm.ACTN_DATE AS TIME(0)) AS ACTN_TIME,
@@ -150,11 +167,29 @@ SELECT  pm.ACTN_DATE ,
         '' AS SUNT_BUNT_CODE_DNRM ,
         '' AS SUNT_CODE_DNRM ,
         0 AS FILE_NO,
+        N'مهمان' AS FIGH_NAME_DNRM,
+        '--' AS FNGR_PRNT_DNRM,
+        '--' AS STRT_DATE,
         '' AS SUNT_DESC,
         0 AS MTOD_CODE_DNRM ,
         N'درآمد متفرقه' AS MTOD_DESC, 
         0 AS CTGY_CODE_DNRM ,
-        '' AS CTGY_DESC ,
+        (
+           SELECT e.EXPN_DESC + N' ,'
+             FROM dbo.Payment_Detail pd, 
+                  dbo.Expense e/*, 
+                  dbo.Expense_Type et, 
+                  dbo.Expense_Item ei,
+                  dbo.Method m,
+                  dbo.Category_Belt cb*/
+            WHERE pd.PYMT_RQST_RQID = r.RQID
+              AND pd.EXPN_CODE = e.CODE
+              /*AND e.EXTP_CODE = et.CODE
+              AND et.EPIT_CODE = ei.CODE
+              AND e.MTOD_CODE = m.CODE
+              AND e.CTGY_CODE = cb.CODE*/
+              FOR XML PATH('')
+        ) AS CTGY_DESC ,
         0 AS COCH_FILE_NO_DNRM ,
         '' AS NAME_DNRM,
         0 AS CBMT_CODE_DNRM,
