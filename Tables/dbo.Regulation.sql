@@ -13,6 +13,7 @@ CREATE TABLE [dbo].[Regulation]
 [TAX_PRCT] [real] NULL,
 [DUTY_PRCT] [real] NULL,
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INSR_PRIC] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -207,4 +208,6 @@ GO
 ALTER TABLE [dbo].[Regulation] ADD CONSTRAINT [REGL_PK] PRIMARY KEY CLUSTERED  ([YEAR], [CODE]) ON [PRIMARY]
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع واحد پولی', 'SCHEMA', N'dbo', 'TABLE', N'Regulation', 'COLUMN', N'AMNT_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ بیمه سالیانه', 'SCHEMA', N'dbo', 'TABLE', N'Regulation', 'COLUMN', N'INSR_PRIC'
 GO

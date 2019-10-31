@@ -70,5 +70,87 @@ BEGIN
 	   --SET @BackupOptnPathAdrs = @BackupRootPath + '\Backup\iScsc.bak'
 	   BACKUP DATABASE [iScsc] TO  DISK = @DataPath WITH NOFORMAT, INIT,  NAME = N'iScsc-Full Database Backup', SKIP, NOREWIND, NOUNLOAD,  STATS = 10
 	END
+	
+	-- 1396/10/05 * ثبت پیامک       
+	
+   IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '017' AND STAT = '002')
+   BEGIN
+      DECLARE @MsgbStat VARCHAR(3)
+             ,@MsgbText NVARCHAR(MAX)
+             ,@LineType VARCHAR(3)
+             ,@Cel1Phon VARCHAR(11)
+             ,@Cel2Phon VARCHAR(11)
+             ,@Cel3Phon VARCHAR(11)
+             ,@Cel4Phon VARCHAR(11)
+             ,@Cel5Phon VARCHAR(11);
+             
+      SELECT @MsgbStat = STAT
+            ,@MsgbText = MSGB_TEXT
+            ,@LineType = LINE_TYPE
+            ,@Cel1Phon = CEL1_PHON
+            ,@Cel2Phon = CEL2_PHON
+            ,@Cel3Phon = CEL3_PHON
+            ,@Cel4Phon = CEL4_PHON
+            ,@Cel5Phon = CEL5_PHON            
+        FROM dbo.Message_Broadcast
+       WHERE MSGB_TYPE = '017';
+      
+      
+      IF @MsgbStat = '002' 
+      BEGIN
+         DECLARE @XMsg XML;
+         SELECT @XMsg = (
+            SELECT 5 AS '@subsys',
+                   @LineType AS '@linetype',
+                   (
+                     SELECT @Cel1Phon AS '@phonnumb',
+                            (
+                                SELECT '006' AS '@type' 
+                                       ,@MsgbText + CHAR(10) + dbo.GET_MTST_U(GETDATE())
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel2Phon AS '@phonnumb',
+                            (
+                                SELECT '006' AS '@type' 
+                                       ,@MsgbText + CHAR(10) + dbo.GET_MTST_U(GETDATE())
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel3Phon AS '@phonnumb',
+                            (
+                                SELECT '006' AS '@type' 
+                                       ,@MsgbText + CHAR(10) + dbo.GET_MTST_U(GETDATE())
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel4Phon AS '@phonnumb',
+                            (
+                                SELECT '006' AS '@type' 
+                                       ,@MsgbText + CHAR(10) + dbo.GET_MTST_U(GETDATE())
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel5Phon AS '@phonnumb',
+                            (
+                                SELECT '006' AS '@type' 
+                                       ,@MsgbText + CHAR(10) + dbo.GET_MTST_U(GETDATE())
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   )                   
+              FOR XML PATH('Contacts'), ROOT('Process')                            
+         );
+         EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
+      END;
+   END;
 END
 GO

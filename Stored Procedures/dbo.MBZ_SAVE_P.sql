@@ -351,6 +351,274 @@ BEGIN
          
       --END
       
+      -- 1398/06/30 * ثبت پیامک       
+      DECLARE @CellPhon VARCHAR(11),
+              @DadCellPhon VARCHAR(11),
+              @MomCellPhon VARCHAR(11),
+              @SexType VARCHAR(3),
+              @FrstName NVARCHAR(250),
+              @LastName NVARCHAR(250);
+      
+      SELECT @CellPhon = CELL_PHON_DNRM
+            ,@DadCellPhon = DAD_CELL_PHON_DNRM
+            ,@MomCellPhon = MOM_CELL_PHON_DNRM
+            ,@SexType = SEX_TYPE_DNRM
+            ,@FrstName = FRST_NAME_DNRM
+            ,@LastName = LAST_NAME_DNRM
+        FROM dbo.Fighter
+       WHERE FILE_NO = @FileNo;
+                    
+      IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@ClubName NVARCHAR(250)
+                ,@InsrCnamStat VARCHAR(3)
+                ,@InsrFnamStat VARCHAR(3)
+                ,@LineType VARCHAR(3)
+                ,@SendInfo VARCHAR(3)
+                ,@AmntType VARCHAR(3)
+                ,@AmntTypeDesc NVARCHAR(255)
+                ,@MesgInfo NVARCHAR(MAX)
+                ,@MinNumbDayRmnd int;
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '013';
+         
+         IF @MsgbStat = '002' 
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+            
+            IF @SendInfo = '002'
+            BEGIN            
+               SELECT @MesgInfo =                       
+                      N'اطلاعات بلاک دوره شما به شرح زیر میباشد' + CHAR(10) +                       
+                      N'شروع بلاک دوره ' + dbo.GET_MTOS_U(ms.STRT_DATE) + CHAR(10) +
+                      N'پایان بلاک دوره ' + dbo.GET_MTOS_U(ms.END_DATE) + CHAR(10) 
+                 FROM dbo.Request r,
+                      dbo.Request_Row rr,
+                      dbo.Member_Ship ms
+                WHERE r.RQID = rr.RQST_RQID
+                  and rr.RQST_RQID = ms.RQRO_RQST_RQID
+                  AND rr.FIGH_FILE_NO = ms.FIGH_FILE_NO
+                  AND ms.RECT_CODE = '004'                  
+                  AND r.RQID = @Rqid; 
+                                   
+               SET @MsgbText = @MsgbText + CHAR(10) + @MesgInfo;
+            END;
+
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+            
+            DECLARE @XMsg XML;
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      @LineType AS '@linetype',
+                      (
+                        SELECT @CellPhon AS '@phonnumb',
+                               (
+                                   SELECT '013' AS '@type' 
+                                          ,@Rqid AS '@rfid'
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            
+            -- ارسال پیامک به مادر
+            IF @MomCellPhon IS NOT NULL
+            BEGIN
+               SELECT @XMsg = (
+                  SELECT 5 AS '@subsys',
+                         @LineType AS '@linetype',
+                         (
+                           SELECT @MomCellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '013' AS '@type' 
+                                             ,@Rqid AS '@rfid'
+                                             ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' اطلاعات فرزند دلبند شما با موفقیت در سامانه بلاک دوره ثبت گردید. ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + CASE @SendInfo WHEN '002' THEN @MesgInfo ELSE N' ' END + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         )
+                    FOR XML PATH('Contacts'), ROOT('Process')                            
+               );
+               EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END
+            
+            -- ارسال پیامک به پدر
+            IF @DadCellPhon IS NOT NULL
+            BEGIN
+               SELECT @XMsg = (
+                  SELECT 5 AS '@subsys',
+                         @LineType AS '@linetype',
+                         (
+                           SELECT @DadCellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '013' AS '@type' 
+                                             ,@Rqid AS '@rfid'
+                                             ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' اطلاعات فرزند دلبند شما با موفقیت در سامانه بلاک دوره ثبت گردید. ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + CASE @SendInfo WHEN '002' THEN @MesgInfo ELSE N' ' END + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         )
+                    FOR XML PATH('Contacts'), ROOT('Process')                            
+               );
+               EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END;
+            
+            -- ارسال پیامک هشدار جهت تمدید مجدد
+            -- بررسی اینکه پیامک هشدار فعال میباشد یا خیر
+            IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '014' AND STAT = '002')
+            BEGIN
+               SELECT @MsgbStat = STAT
+                     ,@MsgbText = MSGB_TEXT
+                     ,@ClubName = CLUB_NAME
+                     ,@InsrCnamStat = INSR_CNAM_STAT
+                     ,@InsrFnamStat = INSR_FNAM_STAT
+                     ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+                 FROM dbo.Message_Broadcast
+                WHERE MSGB_TYPE = '014';
+               
+               IF @MsgbStat = '002' 
+               BEGIN
+                  IF @InsrFnamStat = '002'
+                     SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+                  
+                  IF @InsrCnamStat = '002'
+                     SET @MsgbText = @MsgbText + N' ' + @ClubName;
+                  
+                  DECLARE @ExpireDay INT = DATEDIFF(DAY, GETDATE(), @EndDate)
+                         ,@i INT = 1;
+                  
+                  IF @i < @ExpireDay
+                  BEGIN
+                  --DECLARE @XMsg XML;
+                  SELECT @XMsg = (
+                     SELECT 5 AS '@subsys',
+                            '001' AS '@linetype',
+                            (
+                              SELECT @CellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '014' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,DATEADD(DAY, @i, GETDATE() ) AS '@actndate'
+                                                ,CASE @SexType WHEN '001' THEN (N' آقای ' + @FrstName) ELSE (@FrstName + N' خانم ') END + @LastName + CHAR(10) + CAST(@i AS NVARCHAR(3)) + N' روز از تعداد روز بلاک دوره شما باقیمانده است ' + CHAR(10) + N' تاریخ اتمام بلاک دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @DadCellPhon AS '@phonnumb',
+                                     (
+                                       SELECT '014' AS '@type' 
+                                              ,@Rqid AS '@rfid'
+                                              ,DATEADD(DAY, @i, GETDATE() ) AS '@actndate'
+                                              ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + CAST(@i AS NVARCHAR(3)) + N' روز از تعداد روز بلاک دوره فرزند شما باقیمانده است ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام بلاک دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                          FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @MomCellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '014' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,DATEADD(DAY, @i, @EndDate ) AS '@actndate'
+                                                ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + CAST(@i AS NVARCHAR(3)) + N' روز از تعداد روز بلاک دوره فرزند شما باقیمانده است ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            )
+                       FOR XML PATH('Contacts'), ROOT('Process')                            
+                  );
+                  EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+                  
+                  SET @i += 1;
+                  END -- IF @i <= @ExpireDay
+               END;
+            END;
+            
+            -- ارسال پیامک هشدار جهت تمدید مجدد
+            -- بررسی اینکه پیامک هشدار فعال میباشد یا خیر
+            IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '015' AND STAT = '002')
+            BEGIN
+               SELECT @MsgbStat = STAT
+                     ,@MsgbText = MSGB_TEXT
+                     ,@ClubName = CLUB_NAME
+                     ,@InsrCnamStat = INSR_CNAM_STAT
+                     ,@InsrFnamStat = INSR_FNAM_STAT
+                     ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+                 FROM dbo.Message_Broadcast
+                WHERE MSGB_TYPE = '015';
+               
+               IF @MsgbStat = '002' 
+               BEGIN
+                  IF @InsrFnamStat = '002'
+                     SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+                  
+                  IF @InsrCnamStat = '002'
+                     SET @MsgbText = @MsgbText + N' ' + @ClubName;
+                  
+                  --DECLARE @XMsg XML;
+                  SELECT @XMsg = (
+                     SELECT 5 AS '@subsys',
+                            '001' AS '@linetype',
+                            (
+                              SELECT @CellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '014' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,@EndDate AS '@actndate'
+                                                ,CASE @SexType WHEN '001' THEN (N' آقای ' + @FrstName) ELSE (@FrstName + N' خانم ') END + @LastName + CHAR(10) + N' بلاک دوره شما به پایان رسیده ' + CHAR(10) + N' تاریخ اتمام بلاک دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @DadCellPhon AS '@phonnumb',
+                                     (
+                                       SELECT '014' AS '@type' 
+                                              ,@Rqid AS '@rfid'
+                                              ,@EndDate AS '@actndate'
+                                              ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' بلاک دوره فرزند شما به پایان رسیده است ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام بلاک دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                          FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @MomCellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '014' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,@EndDate AS '@actndate'
+                                                ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' بلاک دوره فرزنده شما به پایان رسیده است ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            )
+                       FOR XML PATH('Contacts'), ROOT('Process')                            
+                  );
+                  EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+                  
+               END;
+            END;
+            
+         END;
+      END;
+
+      
       COMMIT TRAN T1;
       RETURN 0;
    END TRY

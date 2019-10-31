@@ -32,7 +32,8 @@ BEGIN
              ,@TranCbmtCode BIGINT
              ,@TranMtodCode BIGINT
              ,@TranCtgyCode BIGINT
-             ,@TranExpnCode BIGINT;
+             ,@TranExpnCode BIGINT
+             ,@ExprDate DATE;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -51,8 +52,12 @@ BEGIN
             ,@TranCbmtCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@trancbmtcode)[1]', 'BIGINT')
             ,@TranMtodCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranmtodcode)[1]', 'BIGINT')
             ,@TranCtgyCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranctgycode)[1]', 'BIGINT')
-            ,@TranExpnCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranexpncode)[1]', 'BIGINT');
-
+            ,@TranExpnCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranexpncode)[1]', 'BIGINT')
+            ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE');
+      
+      IF @ExprDate = '1900-01-01'
+         SET @ExprDate = NULL;
+      
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
       BEGIN
          SET @CbmtCodeDnrm = NULL;
@@ -129,6 +134,7 @@ BEGIN
             ,TRAN_MTOD_CODE = @TranMtodCode
             ,TRAN_CTGY_CODE = @TranCtgyCode
             ,TRAN_EXPN_CODE = @TranExpnCode
+            ,EXPR_DATE = @ExprDate
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

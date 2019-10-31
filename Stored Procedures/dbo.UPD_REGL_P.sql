@@ -20,6 +20,7 @@ CREATE PROCEDURE [dbo].[UPD_REGL_P]
   ,@TaxPrct  REAL
   ,@DutyPrct REAL
   ,@AmntType Varchar(3)
+  ,@InsrPric BIGINT
 AS
 BEGIN
    -- بررسی دسترسی کاربر
@@ -48,6 +49,7 @@ BEGIN
 	      ,TAX_PRCT = @TaxPrct
 	      ,DUTY_PRCT = @DutyPrct
 	      ,AMNT_TYPE = @AmntType
+	      ,INSR_PRIC = @InsrPric
 	 WHERE YEAR = @Year
 	   AND CODE = @Code;
 	

@@ -24,7 +24,8 @@ BEGIN
              ,@FighFileNo BIGINT
              ,@CbmtCodeDnrm BIGINT
              ,@MtodCode BIGINT
-             ,@CtgyCode BIGINT;
+             ,@CtgyCode BIGINT
+             ,@Exprdate DATE;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -33,7 +34,8 @@ BEGIN
             ,@PydtDesc = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@pydtdesc)[1]', 'NVARCHAR(250)')
             ,@Qnty = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@qnty)[1]', 'SMALLINT')
             --,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT')
-            ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT');
+            ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT')
+            ,@Exprdate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE');
       
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
       BEGIN
@@ -52,8 +54,8 @@ BEGIN
        WHERE CODE = @PymtPydtExpnCode;
       
       IF NOT EXISTS(SELECT * FROM Payment_Detail WHERE PYMT_CASH_CODE = @PymtCashCode AND PYMT_RQST_RQID = @Rqid AND EXPN_CODE = @PymtPydtExpnCode)
-         INSERT INTO Payment_Detail (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, EXPN_PRIC, CODE, PYDT_DESC, QNTY, FIGH_FILE_NO, CBMT_CODE_DNRM)
-         VALUES                     (@PymtCashCode, @Rqid, 1, @PymtPydtExpnCode, @ExpnPric, dbo.GNRT_NVID_U(), @PydtDesc, @Qnty, @FighFileNo, @CbmtCodeDnrm);
+         INSERT INTO Payment_Detail (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, EXPN_PRIC, CODE, PYDT_DESC, QNTY, FIGH_FILE_NO, CBMT_CODE_DNRM, EXPR_DATE)
+         VALUES                     (@PymtCashCode, @Rqid, 1, @PymtPydtExpnCode, @ExpnPric, dbo.GNRT_NVID_U(), @PydtDesc, @Qnty, @FighFileNo, @CbmtCodeDnrm, @Exprdate);
       ELSE
          UPDATE Payment_Detail
             SET QNTY += @Qnty
@@ -61,6 +63,7 @@ BEGIN
                ,CBMT_CODE_DNRM = @CbmtCodeDnrm
                ,MTOD_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NOT NULL THEN (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCodeDnrm) ELSE @MtodCode END
                ,CTGY_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NULL THEN @CtgyCode END
+               ,EXPR_DATE = @Exprdate
           WHERE PYMT_CASH_CODE = @PymtCashCode
             AND PYMT_RQST_RQID = @Rqid
             AND EXPN_CODE = @PymtPydtExpnCode;   

@@ -26,14 +26,13 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE TRIGGER [dbo].[CG$ADEL_PMTD]
-   ON [dbo].[Payment_Method]
-   AFTER DELETE 
-AS 
+CREATE TRIGGER [dbo].[CG$ADEL_PMTD] ON [dbo].[Payment_Method]
+    AFTER DELETE
+AS
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
-	SET NOCOUNT ON;
+    SET NOCOUNT ON;
    
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
    --MERGE dbo.Payment T
@@ -48,31 +47,164 @@ BEGIN
    --          WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE
    --            AND PYMT_RQST_RQID = S.PYMT_RQST_RQID
    --      );
-   UPDATE Payment 
-      SET SUM_RCPT_EXPN_PRIC = (SELECT ISNULL(SUM(ISNULL(AMNT, 0)), 0) FROM dbo.Payment_Method Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID)
+    UPDATE  Payment
+    SET     SUM_RCPT_EXPN_PRIC = ( SELECT   ISNULL(SUM(ISNULL(AMNT, 0)), 0)
+                                   FROM     dbo.Payment_Method Pd
+                                   WHERE    Pd.PYMT_CASH_CODE = CASH_CODE
+                                            AND Pd.PYMT_RQST_RQID = RQST_RQID
+                                 )
          /*,SUM_EXPN_PRIC = ROUND((   
             SELECT ISNULL(SUM(EXPN_PRIC * QNTY), 0)
               FROM Payment_Detail 
              WHERE PYMT_RQST_RQID = RQST_RQID
                AND PYMT_CASH_CODE = Cash_Code
       ), -3)*/
-    WHERE EXISTS(
-      SELECT *
-        FROM DELETED S
-       WHERE S.PYMT_CASH_CODE = CASH_CODE
-         AND S.PYMT_RQST_RQID = RQST_RQID
-    );
+    WHERE   EXISTS ( SELECT *
+                     FROM   DELETED S
+                     WHERE  S.PYMT_CASH_CODE = CASH_CODE
+                            AND S.PYMT_RQST_RQID = RQST_RQID );
    
    -- بروز کردن مبلغ بدهی هنرجو
-   UPDATE dbo.Fighter
-      SET CONF_STAT = CONF_STAT
-    WHERE FILE_NO IN (
-      SELECT FIGH_FILE_NO
-        FROM dbo.Request_Row Rr, Deleted I
-       WHERE Rr.Rqst_rqid = I.Pymt_Rqst_Rqid       
-    );
-END
-;
+    UPDATE  dbo.Fighter
+    SET     CONF_STAT = CONF_STAT
+    WHERE   FILE_NO IN ( SELECT FIGH_FILE_NO
+                         FROM   dbo.Request_Row Rr ,
+                                Deleted I
+                         WHERE  Rr.RQST_RQID = I.PYMT_RQST_RQID );
+    
+    -- 1398/06/30 * ثبت پیامک
+    IF EXISTS ( SELECT  *
+                FROM    dbo.Message_Broadcast
+                WHERE   MSGB_TYPE = '030'
+                        AND STAT = '002' )
+    BEGIN
+        DECLARE @MsgbStat VARCHAR(3) ,
+            @MsgbText NVARCHAR(MAX) ,
+            @TempMsgbText NVARCHAR(MAX) ,
+            @InsrCnamStat VARCHAR(3) ,
+            @ClubName NVARCHAR(250) ,
+            @XMsg XML ,
+            @LineType VARCHAR(3) ,
+            @CellPhon VARCHAR(11) ,
+            @Cel1Phon VARCHAR(11) ,
+            @Cel2Phon VARCHAR(11) ,
+            @Cel3Phon VARCHAR(11) ,
+            @Cel4Phon VARCHAR(11) ,
+            @Cel5Phon VARCHAR(11) ,
+            @AmntType VARCHAR(3) ,
+            @AmntTypeDesc NVARCHAR(255);
+                      
+        SELECT  @MsgbStat = STAT ,
+                @MsgbText = MSGB_TEXT ,
+                @TempMsgbText = MSGB_TEXT ,
+                @LineType = LINE_TYPE ,
+                @InsrCnamStat = INSR_CNAM_STAT ,
+                @ClubName = CLUB_NAME ,
+                @Cel1Phon = CEL1_PHON ,
+                @Cel2Phon = CEL2_PHON ,
+                @Cel3Phon = CEL3_PHON ,
+                @Cel4Phon = CEL4_PHON ,
+                @Cel5Phon = CEL5_PHON
+        FROM    dbo.Message_Broadcast
+        WHERE   MSGB_TYPE = '030';                    
+            
+        SELECT  @AmntType = rg.AMNT_TYPE ,
+                @AmntTypeDesc = d.DOMN_DESC
+        FROM    iScsc.dbo.Regulation rg ,
+                iScsc.dbo.[D$ATYP] d
+        WHERE   rg.TYPE = '001'
+                AND rg.REGL_STAT = '002'
+                AND rg.AMNT_TYPE = d.VALU;
+
+                    
+        IF @MsgbStat = '002'
+        BEGIN
+            SELECT  @MsgbText = ( SELECT    N'حذف پرداختی مشترک' + CHAR(10)
+                                            + N'از صورتحساب ' + rt.RQTP_DESC
+                                            + N' ' + f.NAME_DNRM + N'مبلغ '
+                                            + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, d.AMNT), 1),
+                                                      '.00', '') + N' '
+                                            + @AmntTypeDesc + N'حذف گردید'
+                                            + CHAR(10) + N'کاربر : '
+                                            + UPPER(SUSER_NAME()) + CHAR(10)
+                                            + N'تاریخ : '
+                                            + dbo.GET_MTOS_U(GETDATE())
+                                  FROM      dbo.Request_Type rt ,
+                                            dbo.Request r ,
+                                            dbo.Request_Row rr ,
+                                            dbo.Fighter f ,
+                                            Deleted d
+                                  WHERE     r.RQID = rr.RQST_RQID
+                                            AND rr.FIGH_FILE_NO = f.FILE_NO
+                                            AND r.RQID = d.PYMT_RQST_RQID
+                                );          
+            SELECT  @XMsg = ( SELECT    5 AS '@subsys' ,
+                                        @LineType AS '@linetype' ,
+                                        ( SELECT    @Cel1Phon AS '@phonnumb' ,
+                                                    ( SELECT  '030' AS '@type' ,
+                                                              @MsgbText
+                                                    FOR
+                                                      XML PATH('Message') ,
+                                                          TYPE
+                                                    )
+                                        FOR
+                                          XML PATH('Contact') ,
+                                              TYPE
+                                        ) ,
+                                        ( SELECT    @Cel2Phon AS '@phonnumb' ,
+                                                    ( SELECT  '030' AS '@type' ,
+                                                              @MsgbText
+                                                    FOR
+                                                      XML PATH('Message') ,
+                                                          TYPE
+                                                    )
+                                        FOR
+                                          XML PATH('Contact') ,
+                                              TYPE
+                                        ) ,
+                                        ( SELECT    @Cel3Phon AS '@phonnumb' ,
+                                                    ( SELECT  '030' AS '@type' ,
+                                                              @MsgbText
+                                                    FOR
+                                                      XML PATH('Message') ,
+                                                          TYPE
+                                                    )
+                                        FOR
+                                          XML PATH('Contact') ,
+                                              TYPE
+                                        ) ,
+                                        ( SELECT    @Cel4Phon AS '@phonnumb' ,
+                                                    ( SELECT  '030' AS '@type' ,
+                                                              @MsgbText
+                                                    FOR
+                                                      XML PATH('Message') ,
+                                                          TYPE
+                                                    )
+                                        FOR
+                                          XML PATH('Contact') ,
+                                              TYPE
+                                        ) ,
+                                        ( SELECT    @Cel5Phon AS '@phonnumb' ,
+                                                    ( SELECT  '030' AS '@type' ,
+                                                              @MsgbText
+                                                    FOR
+                                                      XML PATH('Message') ,
+                                                          TYPE
+                                                    )
+                                        FOR
+                                          XML PATH('Contact') ,
+                                              TYPE
+                                        )
+                            FOR
+                              XML PATH('Contacts') ,
+                                  ROOT('Process')
+                            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg; -- xml                  
+        END;       
+                
+    END;
+
+END;
 GO
 SET QUOTED_IDENTIFIER ON
 GO

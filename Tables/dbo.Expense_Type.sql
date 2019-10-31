@@ -104,7 +104,25 @@ BEGIN
    L$EndFetch:
    CLOSE C#NewExtp;
    DEALLOCATE C#NewExtp;
-                             
+   
+   -- 1398/06/10 * اگر که مبلغ نرخ بیمه درون سیستم آیین نامه وارد شده باشد به ازای هر ایتم زیر گروه چک میکینم که مبلغ نرخ بیمه بروز شده یا خیر
+   IF (SELECT ISNULL(INSR_PRIC, 0) FROM dbo.Regulation WHERE TYPE = '001' AND REGL_STAT = '002') > 0
+   BEGIN
+      UPDATE e
+         SET e.PRIC = rg.INSR_PRIC
+            ,e.EXPN_STAT = '002'
+        FROM dbo.Expense e
+            ,dbo.Expense_Type et
+            ,dbo.Request_Requester rr
+            ,dbo.Regulation rg
+       WHERE e.EXTP_CODE = et.CODE
+         AND et.RQRQ_CODE = rr.CODE
+         AND rr.RQTP_CODE = '012'
+         AND rr.RQTT_CODE = '001'
+         AND rr.REGL_YEAR = rg.YEAR
+         AND rr.REGL_CODE = rg.CODE
+         AND (e.PRIC != rg.INSR_PRIC OR e.EXPN_STAT != '002');
+   END;                          
 END
 ;
 

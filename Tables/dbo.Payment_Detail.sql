@@ -29,6 +29,7 @@ CREATE TABLE [dbo].[Payment_Detail]
 [TRAN_MTOD_CODE] [bigint] NULL,
 [TRAN_CTGY_CODE] [bigint] NULL,
 [TRAN_EXPN_CODE] [bigint] NULL,
+[EXPR_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -514,6 +515,8 @@ GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_RQRO] FOREIGN KEY ([PYMT_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ اضافه واریز', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'ADD_QUTS'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تاریخ انقضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'EXPR_DATE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'هزینه هایی که به صورت مشخص شده در اختیار فرد خاصی قرار میگیرد', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'FIGH_FILE_NO'
 GO

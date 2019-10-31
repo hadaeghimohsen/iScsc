@@ -35,6 +35,141 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE TRIGGER [dbo].[CG$ADEL_PYMT]
+   ON  [dbo].[Payment]
+   AFTER DELETE   
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   -- Insert statements for trigger here
+   IF (SELECT COUNT(*) FROM Deleted d, dbo.Request r WHERE r.RQID = d.RQST_RQID AND r.RQST_STAT = '002') = 1
+   BEGIN
+      -- 1396/10/05 * ثبت پیامک       	
+      IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '018' AND STAT = '002')
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@LineType VARCHAR(3)
+                ,@Cel1Phon VARCHAR(11)
+                ,@Cel2Phon VARCHAR(11)
+                ,@Cel3Phon VARCHAR(11)
+                ,@Cel4Phon VARCHAR(11)
+                ,@Cel5Phon VARCHAR(11)
+                ,@AmntType VARCHAR(3)
+                ,@AmntTypeDesc NVARCHAR(255);
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@LineType = LINE_TYPE
+               ,@Cel1Phon = CEL1_PHON
+               ,@Cel2Phon = CEL2_PHON
+               ,@Cel3Phon = CEL3_PHON
+               ,@Cel4Phon = CEL4_PHON
+               ,@Cel5Phon = CEL5_PHON            
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '018';
+         
+ 	      SELECT @AmntType = rg.AMNT_TYPE, 
+	             @AmntTypeDesc = d.DOMN_DESC
+	        FROM iScsc.dbo.Regulation rg, iScsc.dbo.[D$ATYP] d
+	       WHERE rg.TYPE = '001'
+	         AND rg.REGL_STAT = '002'
+	         AND rg.AMNT_TYPE = d.VALU;
+         
+         SELECT @MsgbText = (
+            SELECT N'حذف کامل صورتحساب' + CHAR(10) +
+                   rt.RQTP_DESC + CHAR(10) + 
+                   N'تاریخ تایید درخواست ' + dbo.GET_MTST_U(r.SAVE_DATE) + CHAR(10) +
+                   N'نام مشترک ' + f.NAME_DNRM + CHAR(10) + 
+                   N'صورتحساب ' + CHAR(10) + 
+                   N'مبلغ کل دوره ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, d.SUM_EXPN_PRIC + d.SUM_EXPN_EXTR_PRCT), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) +
+                   N'مبلغ تخفیف ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, d.SUM_PYMT_DSCN_DNRM), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) +
+                   N'مبلغ پرداختی ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, d.SUM_RCPT_EXPN_PRIC), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) +
+                   N'مبلغ بدهی دوره ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, (d.SUM_EXPN_PRIC + d.SUM_EXPN_EXTR_PRCT) - (d.SUM_PYMT_DSCN_DNRM + d.SUM_RCPT_EXPN_PRIC)), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) +
+                   N'کاربر : ' + UPPER(SUSER_NAME()) + CHAR(10) + 
+                   N'تاریخ : ' + dbo.GET_MTST_U(GETDATE())
+              FROM Deleted d,
+                   dbo.Request_Type rt,
+                   dbo.Request r,
+                   dbo.Request_Row rr,
+                   dbo.Fighter f
+             WHERE d.RQST_RQID = r.RQID
+               AND r.RQTP_CODE = rt.CODE
+               AND r.RQID = rr.RQST_RQID
+               AND rr.FIGH_FILE_NO = f.FILE_NO
+         );          
+         
+         IF @MsgbStat = '002' 
+         BEGIN
+            DECLARE @XMsg XML;
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      @LineType AS '@linetype',
+                      (
+                        SELECT @Cel1Phon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel2Phon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel3Phon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel4Phon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel5Phon AS '@phonnumb',
+                               (
+                                   SELECT '006' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )                   
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
+         END;
+      END;
+   END
+END
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
 CREATE TRIGGER [dbo].[CG$AINS_PYMT]
    ON  [dbo].[Payment]
    AFTER INSERT

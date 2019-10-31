@@ -25,6 +25,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [REMN_PRIC] [int] NULL,
 [TOTL_BUFE_AMNT_DNRM] [bigint] NULL,
 [NUMB] [int] NULL CONSTRAINT [DF_Aggregation_Operation_Detail_NUMB] DEFAULT ((1)),
+[PYDS_AMNT] [bigint] NULL,
 [TOTL_AMNT_DNRM] [bigint] NULL,
 [CUST_NAME] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -236,6 +237,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'حداقل میزان زمان برای بازی', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'MIN_MINT_STEP'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'میزان مبلغ کارتی', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'POS_AMNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ تخفیف', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'PYDS_AMNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کسر هزار ریال', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'REMN_PRIC'
 GO

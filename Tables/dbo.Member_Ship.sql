@@ -318,7 +318,7 @@ BEGIN
       ) AND
       (
          DATEDIFF(DAY, GETDATE(), @EndDate) <= (SELECT MIN_NUMB_DAY_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_DAY_RMND, 0) != 0) OR
-         (@NumbOfAttnMont - @SumOfAttnMont) <= (SELECT MIN_NUMB_ATTN_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_ATTN_RMND, 0) != 0) 
+         (@NumbOfAttnMont > 0 AND ABS(@NumbOfAttnMont - @SumOfAttnMont) <= (SELECT MIN_NUMB_ATTN_RMND FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND ISNULL(MIN_NUMB_ATTN_RMND, 0) != 0)) 
       )
    BEGIN
       DECLARE @MsgbStat VARCHAR(3)
@@ -379,6 +379,115 @@ BEGIN
          EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
       END;
    END;
+   
+   IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '019' AND STAT = '002') AND 
+      EXISTS(SELECT * FROM Inserted i , Deleted d WHERE i.RQRO_RQST_RQID = d.RQRO_RQST_RQID AND i.FIGH_FILE_NO = d.FIGH_FILE_NO AND i.RECT_CODE = d.RECT_CODE AND i.RWNO = d.RWNO AND i.RECT_CODE = '004' AND i.VALD_TYPE != d.VALD_TYPE)
+   BEGIN
+      DECLARE @LineType VARCHAR(3)
+             ,@Cel1Phon VARCHAR(11)
+             ,@Cel2Phon VARCHAR(11)
+             ,@Cel3Phon VARCHAR(11)
+             ,@Cel4Phon VARCHAR(11)
+             ,@Cel5Phon VARCHAR(11)
+             ,@AmntType VARCHAR(3)
+             ,@AmntTypeDesc NVARCHAR(255);
+             
+      SELECT @MsgbStat = STAT
+            ,@MsgbText = MSGB_TEXT
+            ,@LineType = LINE_TYPE
+            ,@Cel1Phon = CEL1_PHON
+            ,@Cel2Phon = CEL2_PHON
+            ,@Cel3Phon = CEL3_PHON
+            ,@Cel4Phon = CEL4_PHON
+            ,@Cel5Phon = CEL5_PHON            
+        FROM dbo.Message_Broadcast
+       WHERE MSGB_TYPE = '019';
+      
+      SELECT @AmntType = rg.AMNT_TYPE, 
+             @AmntTypeDesc = d.DOMN_DESC
+        FROM iScsc.dbo.Regulation rg, iScsc.dbo.[D$ATYP] d
+       WHERE rg.TYPE = '001'
+         AND rg.REGL_STAT = '002'
+         AND rg.AMNT_TYPE = d.VALU;
+      
+      SELECT @MsgbText = (
+         SELECT CASE i.VALD_TYPE WHEN '001' THEN N'غیر فعال کردن دوره' WHEN '002' THEN N'فعال کردن دوره' END + CHAR(10) +
+                rt.RQTP_DESC + CHAR(10) + 
+                N'تاریخ تایید درخواست ' + dbo.GET_MTST_U(r.SAVE_DATE) + CHAR(10) +
+                N'نام مشترک ' + f.NAME_DNRM + CHAR(10) + 
+                N'کاربر : ' + UPPER(SUSER_NAME()) + CHAR(10) + 
+                N'تاریخ : ' + dbo.GET_MTST_U(GETDATE())
+           FROM Deleted d,
+                Inserted i,
+                dbo.Request_Type rt,
+                dbo.Request r,
+                dbo.Request_Row rr,
+                dbo.Fighter f
+          WHERE d.RQRO_RQST_RQID = i.RQRO_RQST_RQID
+            AND d.FIGH_FILE_NO = i.FIGH_FILE_NO
+            AND d.RECT_CODE = i.RECT_CODE
+            AND d.RWNO = i.RWNO
+            AND d.RECT_CODE = '004'
+            AND r.RQTP_CODE = rt.CODE
+            AND r.RQID = rr.RQST_RQID
+            AND rr.FIGH_FILE_NO = f.FILE_NO
+      );          
+      
+      IF @MsgbStat = '002' 
+      BEGIN      
+         SELECT @XMsg = (
+            SELECT 5 AS '@subsys',
+                   @LineType AS '@linetype',
+                   (
+                     SELECT @Cel1Phon AS '@phonnumb',
+                            (
+                                SELECT '019' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel2Phon AS '@phonnumb',
+                            (
+                                SELECT '019' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel3Phon AS '@phonnumb',
+                            (
+                                SELECT '019' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel4Phon AS '@phonnumb',
+                            (
+                                SELECT '019' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   ),
+                   (
+                     SELECT @Cel5Phon AS '@phonnumb',
+                            (
+                                SELECT '019' AS '@type' 
+                                       ,@MsgbText
+                                   FOR XML PATH('Message'), TYPE 
+                            ) 
+                        FOR XML PATH('Contact'), TYPE
+                   )                   
+              FOR XML PATH('Contacts'), ROOT('Process')                            
+         );
+         EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
+      END;
+   END 
    
    -- 1396/11/15 * ثبت پیامک تلگرام
    IF (

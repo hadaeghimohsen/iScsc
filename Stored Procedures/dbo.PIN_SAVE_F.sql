@@ -463,6 +463,196 @@ BEGIN
          );         
          EXEC dbo.END_RQST_P @X;
       END
+      
+      -- 1398/06/30 * سامانه پیامکی
+      IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND EXISTS(SELECT * FROM dbo.Request WHERE RQID = @Rqid AND RQTT_CODE = '001')
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@ClubName NVARCHAR(250)
+                ,@InsrCnamStat VARCHAR(3)
+                ,@InsrFnamStat VARCHAR(3)
+                ,@LineType VARCHAR(3)
+                ,@SendInfo VARCHAR(3)
+                ,@AmntType VARCHAR(3)
+                ,@AmntTypeDesc NVARCHAR(255)
+                ,@MesgInfo NVARCHAR(MAX)
+                ,@MinNumbDayRmnd int;
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '011';
+         
+  	      SELECT @AmntType = rg.AMNT_TYPE, 
+	             @AmntTypeDesc = d.DOMN_DESC
+	        FROM iScsc.dbo.Regulation rg, iScsc.dbo.[D$ATYP] d
+	       WHERE rg.TYPE = '001'
+	         AND rg.REGL_STAT = '002'
+	         AND rg.AMNT_TYPE = d.VALU;
+         
+         IF @MsgbStat = '002' 
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+            
+            IF @SendInfo = '002'
+            BEGIN            
+               SELECT @MesgInfo =                       
+                      N'اطلاعات بیمه شما به شرح زیر میباشد' + CHAR(10) +                       
+                      N'تاریخ ثبت بیمه ' + dbo.GET_MTOS_U(r.SAVE_DATE) + CHAR(10) + 
+                      N'تاریخ اعتبار بیمه ' + dbo.GET_MTOS_U(fp.INSR_DATE) + CHAR(10) +
+                      N'صورتحساب ' + CHAR(10) + 
+                      N'مبلغ بیمه ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) +
+                      N'مبلغ پرداختی ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, p.SUM_RCPT_EXPN_PRIC), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(10) 
+                 FROM dbo.Request r,
+                      dbo.Request_Row rr,
+                      dbo.Fighter_Public fp,
+                      dbo.Payment p
+                WHERE r.RQID = rr.RQST_RQID
+                  AND fp.RQRO_RQST_RQID = r.RQID
+                  AND rr.FIGH_FILE_NO = fp.FIGH_FILE_NO
+                  AND fp.RECT_CODE = '004'                  
+                  AND r.RQID = p.RQST_RQID
+                  AND r.RQID = @Rqid;
+                                   
+               SET @MsgbText = @MsgbText + CHAR(10) + @MesgInfo;
+            END;
+
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+            
+            DECLARE @XMsg XML;
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      @LineType AS '@linetype',
+                      (
+                        SELECT @CellPhon AS '@phonnumb',
+                               (
+                                   SELECT '011' AS '@type' 
+                                          ,@Rqid AS '@rfid'
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            
+            -- ارسال پیامک به مادر
+            IF @MomCellPhon IS NOT NULL
+            BEGIN
+               SELECT @XMsg = (
+                  SELECT 5 AS '@subsys',
+                         @LineType AS '@linetype',
+                         (
+                           SELECT @MomCellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '011' AS '@type' 
+                                             ,@Rqid AS '@rfid'
+                                             ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' اطلاعات بیمه فرزند دلبند شما با موفقیت در سامانه ثبت گردید. ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + CASE @SendInfo WHEN '002' THEN @MesgInfo ELSE N' ' END + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         )
+                    FOR XML PATH('Contacts'), ROOT('Process')                            
+               );
+               EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END
+            
+            -- ارسال پیامک به پدر
+            IF @DadCellPhon IS NOT NULL
+            BEGIN
+               SELECT @XMsg = (
+                  SELECT 5 AS '@subsys',
+                         @LineType AS '@linetype',
+                         (
+                           SELECT @DadCellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '011' AS '@type' 
+                                             ,@Rqid AS '@rfid'
+                                             ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' اطلاعات بیمه فرزند دلبند شما با موفقیت در سامانه ثبت گردید. ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + CASE @SendInfo WHEN '002' THEN @MesgInfo ELSE N' ' END + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         )
+                    FOR XML PATH('Contacts'), ROOT('Process')                            
+               );
+               EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END;
+            
+            -- ارسال پیامک هشدار جهت تمدید مجدد
+            -- بررسی اینکه پیامک هشدار فعال میباشد یا خیر
+            IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '012' AND STAT = '002' AND MIN_NUMB_DAY_RMND != 0)
+            BEGIN
+               SELECT @MsgbStat = STAT
+                     ,@MsgbText = MSGB_TEXT
+                     ,@ClubName = CLUB_NAME
+                     ,@InsrCnamStat = INSR_CNAM_STAT
+                     ,@InsrFnamStat = INSR_FNAM_STAT
+                     ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+                 FROM dbo.Message_Broadcast
+                WHERE MSGB_TYPE = '012';
+               
+               IF @MsgbStat = '002' 
+               BEGIN
+                  IF @InsrFnamStat = '002'
+                     SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+                  
+                  IF @InsrCnamStat = '002'
+                     SET @MsgbText = @MsgbText + N' ' + @ClubName;
+                     
+                  --DECLARE @XMsg XML;
+                  SELECT @XMsg = (
+                     SELECT 5 AS '@subsys',
+                            '001' AS '@linetype',
+                            (
+                              SELECT @CellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '012' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,DATEADD(DAY, @MinNumbDayRmnd * -1, @InsrDate ) AS '@actndate'
+                                                ,@MsgbText
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @DadCellPhon AS '@phonnumb',
+                                     (
+                                       SELECT '012' AS '@type' 
+                                              ,@Rqid AS '@rfid'
+                                              ,DATEADD(DAY, @MinNumbDayRmnd * -1, @InsrDate ) AS '@actndate'
+                                              ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' یبمه فرزند شما روبه اتمام می باشد لطفا جهت تمدید بیمه اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام بیمه ' + dbo.GET_MTOS_U(@InsrDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                          FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            ),
+                            (
+                              SELECT @MomCellPhon AS '@phonnumb',
+                                     (
+                                         SELECT '012' AS '@type' 
+                                                ,@Rqid AS '@rfid'
+                                                ,DATEADD(DAY, @MinNumbDayRmnd * -1, @InsrDate ) AS '@actndate'
+                                                ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' بیمه فرزند شما روبه اتمام می باشد لطفا جهت تمدید بیمه اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام بیمه ' + dbo.GET_MTOS_U(@InsrDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                            FOR XML PATH('Message'), TYPE 
+                                     ) 
+                                 FOR XML PATH('Contact'), TYPE
+                            )
+                       FOR XML PATH('Contacts'), ROOT('Process')                            
+                  );
+                  EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+               END;
+            END
+            
+         END;
+      END;
 
       COMMIT TRAN T1;
    END TRY

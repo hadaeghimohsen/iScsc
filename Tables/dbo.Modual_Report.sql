@@ -67,7 +67,7 @@ BEGIN
                ,STAT = COALESCE(@Stat, '002')
                ,DFLT = COALESCE(@Dflt, '001')
                ,PRNT_AFTR_PAY = COALESCE(@PrntAftrPay, '001')
-               ,CODE = dbo.GNRT_NWID_U()
+               ,CODE = dbo.GNRT_NVID_U()
            WHERE MDUL_NAME = @MdulName
              AND CODE = @Code;
          

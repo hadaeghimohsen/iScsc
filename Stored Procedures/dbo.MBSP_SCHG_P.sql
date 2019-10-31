@@ -182,7 +182,118 @@ BEGIN
                --,CTGY_CODE_DNRM = @CtgyCode
           WHERE PYMT_RQST_RQID = @OrgnRqid;          
       END
+      
+      IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '020' AND STAT = '002')        
+      BEGIN
+         DECLARE @MsgbStat VARCHAR(3)
+                ,@MsgbText NVARCHAR(MAX)
+                ,@XMsg XML                
+                ,@LineType VARCHAR(3)
+                ,@Cel1Phon VARCHAR(11)
+                ,@Cel2Phon VARCHAR(11)
+                ,@Cel3Phon VARCHAR(11)
+                ,@Cel4Phon VARCHAR(11)
+                ,@Cel5Phon VARCHAR(11)
+                ,@AmntType VARCHAR(3)
+                ,@AmntTypeDesc NVARCHAR(255);
+                
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@LineType = LINE_TYPE
+               ,@Cel1Phon = CEL1_PHON
+               ,@Cel2Phon = CEL2_PHON
+               ,@Cel3Phon = CEL3_PHON
+               ,@Cel4Phon = CEL4_PHON
+               ,@Cel5Phon = CEL5_PHON            
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '020';
          
+         SELECT @MsgbText = (
+            SELECT N'اصلاح دوره' + CHAR(10) +
+                   rt.RQTP_DESC + CHAR(10) + 
+                   N'تاریخ تایید درخواست ' + dbo.GET_MTST_U(r.SAVE_DATE) + CHAR(10) +
+                   N'نام مشترک ' + f.NAME_DNRM + CHAR(10) + 
+                   
+                   N'اطلاعات قدیم دوره' + CHAR(10) +
+                   N'تاریخ شروع : ' + dbo.GET_MTOS_U(@StrtDate004) + CHAR(10) + 
+                   N'تاریخ پایان : ' + dbo.GET_MTOS_U(@EndDate004) + CHAR(10) + 
+                   N'تعداد کل جلسات : ' + CAST(@NumbOfAttnMont004 AS VARCHAR(3)) + CHAR(10) + 
+                   N'تعداد جلسات مصرفی : ' + CAST(@SumNumbAttnMont004 AS VARCHAR(3)) + CHAR(10) + 
+                   
+                   N'اطلاعات جدید دوره' + CHAR(10) +
+                   N'تاریخ شروع : ' + dbo.GET_MTOS_U(@StrtDate002) + CHAR(10) + 
+                   N'تاریخ پایان : ' + dbo.GET_MTOS_U(@EndDate002) + CHAR(10) + 
+                   N'تعداد کل جلسات : ' + CAST(@NumbOfAttnMont002 AS VARCHAR(3)) + CHAR(10) + 
+                   N'تعداد جلسات مصرفی : ' + CAST(@SumNumbAttnMont002 AS VARCHAR(3)) + CHAR(10) + 
+                   
+                   N'کاربر : ' + UPPER(SUSER_NAME()) + CHAR(10) + 
+                   N'تاریخ : ' + dbo.GET_MTST_U(GETDATE())
+              FROM dbo.Request_Type rt,
+                   dbo.Request r,
+                   dbo.Request_Row rr,
+                   dbo.Fighter f
+             WHERE r.RQID = @OrgnRqid
+               AND r.RQTP_CODE = rt.CODE
+               AND r.RQID = rr.RQST_RQID
+               AND rr.FIGH_FILE_NO = f.FILE_NO
+         );          
+         
+         IF @MsgbStat = '002' 
+         BEGIN      
+            SELECT @XMsg = (
+               SELECT 5 AS '@subsys',
+                      @LineType AS '@linetype',
+                      (
+                        SELECT @Cel1Phon AS '@phonnumb',
+                               (
+                                   SELECT '020' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel2Phon AS '@phonnumb',
+                               (
+                                   SELECT '020' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel3Phon AS '@phonnumb',
+                               (
+                                   SELECT '020' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel4Phon AS '@phonnumb',
+                               (
+                                   SELECT '020' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      ),
+                      (
+                        SELECT @Cel5Phon AS '@phonnumb',
+                               (
+                                   SELECT '020' AS '@type' 
+                                          ,@MsgbText
+                                      FOR XML PATH('Message'), TYPE 
+                               ) 
+                           FOR XML PATH('Contact'), TYPE
+                      )                   
+                 FOR XML PATH('Contacts'), ROOT('Process')                            
+            );
+            EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
+         END;
+      END 
+               
       COMMIT TRAN T1;
    END TRY
    BEGIN CATCH

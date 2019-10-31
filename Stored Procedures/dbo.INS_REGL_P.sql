@@ -18,6 +18,7 @@ CREATE PROCEDURE [dbo].[INS_REGL_P]
   ,@TaxPrct  REAL
   ,@DutyPrct REAL
   ,@AmntType Varchar(3)
+  ,@InsrPric BIGINT
 AS
 BEGIN
    -- بررسی دسترسی کاربر
@@ -36,8 +37,8 @@ BEGIN
    -- پایان دسترسی
    
   
-	INSERT INTO Regulation ( YEAR, TYPE, SUB_SYS,  REGL_STAT, LETT_NO, LETT_DATE, LETT_OWNR, STRT_DATE, END_DATE, TAX_PRCT, DUTY_PRCT, AMNT_TYPE)
-	VALUES                 (@Year, @Type, 1      , '001'    , @LettNo, @LettDate, @LettOwnr, @StrtDate, @EndDate, @TaxPrct, @DutyPrct, @AmntType)
+	INSERT INTO Regulation ( YEAR, TYPE, SUB_SYS,  REGL_STAT, LETT_NO, LETT_DATE, LETT_OWNR, STRT_DATE, END_DATE, TAX_PRCT, DUTY_PRCT, AMNT_TYPE, INSR_PRIC)
+	VALUES                 (@Year, @Type, 1      , '001'    , @LettNo, @LettDate, @LettOwnr, @StrtDate, @EndDate, @TaxPrct, @DutyPrct, @AmntType, @InsrPric)
 	
 	L$End:
 	RETURN;
