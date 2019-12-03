@@ -37,7 +37,7 @@ BEGIN
 	   AND B.EXPN_CODE      = E.CODE*/;
 	
 	UPDATE T
-	   SET T.TOTL_BUFE_AMNT_DNRM = @TotlBufeAmntDnrm
+	   SET T.TOTL_BUFE_AMNT_DNRM = ISNULL(@TotlBufeAmntDnrm, 0)
 	  FROM dbo.Aggregation_Operation_Detail T, DELETED S
 	 WHERE T.AGOP_CODE      = S.APDT_AGOP_CODE 
 	   AND T.RWNO           = S.APDT_RWNO;
@@ -86,6 +86,12 @@ CREATE TRIGGER [dbo].[CG$AUPD_BUFE]
    AFTER UPDATE
 AS 
 BEGIN
+   IF EXISTS(SELECT * FROM Inserted i WHERE i.QNTY IS NULL OR i.QNTY = 0)
+   BEGIN
+      RAISERROR(N'لطفا تعداد را درست وارد کنید', 16, 1);
+      RETURN;
+   END 
+   
 	MERGE dbo.Buffet T
 	USING (SELECT * FROM INSERTED) S
 	ON (T.APDT_AGOP_CODE = S.APDT_AGOP_CODE AND

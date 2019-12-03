@@ -108,18 +108,18 @@ BEGIN
                 );
       ROLLBACK TRANSACTION;
    END
-   ELSE IF NOT EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM IN ('002', '003')) AND NOT EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE IN ('009', '001', '016', '002', '011', '013', '014', '022', '023', '025')) AND NOT EXISTS(SELECT * FROM Member_Ship WHERE FIGH_FILE_NO = @FileNo AND [TYPE] = '001' AND RECT_CODE = '004' AND CAST(END_DATE AS DATE) >= CAST(GETDATE() AS DATE))
-   BEGIN
-      SELECT @ErorMesg = N' تاریخ اعتبار کارت عضویت هنرجو ' + NAME_DNRM + N' به پایان رسیده. جهت تمدید کارت عضویت اقدام نمایید. '
-        FROM Fighter 
-       WHERE FILE_NO = @FileNo;
+   --ELSE IF NOT EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM IN ('002', '003')) AND NOT EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE IN ('009', '001', '016', '002', '011', '013', '014', '022', '023', '025')) AND NOT EXISTS(SELECT * FROM Member_Ship WHERE FIGH_FILE_NO = @FileNo AND [TYPE] = '001' AND RECT_CODE = '004' AND CAST(END_DATE AS DATE) >= CAST(GETDATE() AS DATE))
+   --BEGIN
+   --   SELECT @ErorMesg = N' تاریخ اعتبار کارت عضویت هنرجو ' + NAME_DNRM + N' به پایان رسیده. جهت تمدید کارت عضویت اقدام نمایید. '
+   --     FROM Fighter 
+   --    WHERE FILE_NO = @FileNo;
        
-      RAISERROR (@ErorMesg, -- Message text.
-                 16, -- Severity.
-                 1   -- State.
-                );
-      ROLLBACK TRANSACTION;
-   END
+   --   RAISERROR (@ErorMesg, -- Message text.
+   --              16, -- Severity.
+   --              1   -- State.
+   --             );
+   --   ROLLBACK TRANSACTION;
+   --END
    ELSE IF @MustLock = '002' -- اگر درخواست از نوعی باشد که هنرجو باید قفل شود باید چک کنیم که درگیر فرآیندی دیگری نباشد
       AND  
       EXISTS(
@@ -341,18 +341,18 @@ BEGIN
                 );
       ROLLBACK TRANSACTION;
    END
-   ELSE IF NOT EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM IN ('002', '003')) AND NOT EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE IN ('009', '001', '016', '002', '011', '013', '014', '022', '023', '025')) AND NOT EXISTS(SELECT * FROM Member_Ship WHERE FIGH_FILE_NO = @FileNo AND [TYPE] = '001' AND RECT_CODE = '004' AND CAST(END_DATE AS DATE) >= CAST(GETDATE() AS DATE))
-   BEGIN
-      SELECT @ErorMesg = N' تاریخ اعتبار کارت عضویت هنرجو ' + NAME_DNRM + N' به پایان رسیده. جهت تمدید کارت عضویت اقدام نمایید. '
-        FROM Fighter 
-       WHERE FILE_NO = @FileNo;
+   --ELSE IF NOT EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM IN ('002', '003')) AND NOT EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE IN ('009', '001', '016', '002', '011', '013', '014', '022', '023', '025')) AND NOT EXISTS(SELECT * FROM Member_Ship WHERE FIGH_FILE_NO = @FileNo AND [TYPE] = '001' AND RECT_CODE = '004' AND CAST(END_DATE AS DATE) >= CAST(GETDATE() AS DATE))
+   --BEGIN
+   --   SELECT @ErorMesg = N' تاریخ اعتبار کارت عضویت هنرجو ' + NAME_DNRM + N' به پایان رسیده. جهت تمدید کارت عضویت اقدام نمایید. '
+   --     FROM Fighter 
+   --    WHERE FILE_NO = @FileNo;
        
-      RAISERROR (@ErorMesg, -- Message text.
-                 16, -- Severity.
-                 1   -- State.
-                );
-      ROLLBACK TRANSACTION;
-   END
+   --   RAISERROR (@ErorMesg, -- Message text.
+   --              16, -- Severity.
+   --              1   -- State.
+   --             );
+   --   ROLLBACK TRANSACTION;
+   --END
    ELSE IF @MustLock = '002' -- اگر درخواست از نوعی باشد که هنرجو باید قفل شود باید چک کنیم که درگیر فرآیندی دیگری نباشد
       AND  
       EXISTS(

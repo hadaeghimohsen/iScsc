@@ -311,7 +311,8 @@ BEGIN
     WHERE f.FILE_NO = i.FIGH_FILE_NO
       AND i.RECT_CODE = '004';
           
-   IF (
+   IF NOT EXISTS(SELECT * FROM iProject.Msgb.Sms_Message_Box WHERE PHON_NUMB IN (@CellPhon, @DadCellPhon, @MomCellPhon) AND MSGB_TYPE = '009' AND STAT = '001') AND      
+      (
          (@CellPhon IS NOT NULL AND LEN(@CellPhon) != 0)  OR 
          (@DadCellPhon IS NOT NULL AND LEN(@DadCellPhon) != 0) OR
          (@MomCellPhon IS NOT NULL AND LEN(@MomCellPhon) != 0)

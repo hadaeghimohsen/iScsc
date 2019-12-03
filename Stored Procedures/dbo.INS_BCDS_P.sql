@@ -17,6 +17,7 @@ CREATE PROCEDURE [dbo].[INS_BCDS_P]
    @REGL_CODE INT,   
    @EPIT_CODE BIGINT,
    @RQTP_CODE VARCHAR(3),
+   @RQTT_CODE VARCHAR(3),
    @AMNT_DSCT INT,
    @PRCT_DSCT INT,
    @DSCT_TYPE VARCHAR(3),
@@ -76,14 +77,17 @@ BEGIN
    IF @ACTN_TYPE IS NULL 
       RAISERROR(N'نوع تخفیف مشخصی وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE != '001' AND @FROM_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004' ) AND @FROM_DATE IS NULL
       RAISERROR(N'فیلد "از تاریخ" وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE != '001' AND @TO_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004' ) AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
    
    IF @RQTP_CODE IS NULL 
       RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
+   
+   IF @RQTT_CODE IS NULL 
+      RAISERROR(N'نوع متقاضی وارد نشده', 16, 1);
    
    IF @CTGY_CODE IS NULL 
       RAISERROR(N'نوع زیر گروه وارد نشده', 16, 1);
@@ -104,6 +108,7 @@ BEGIN
              T.REGL_CODE                = @REGL_CODE AND
              T.EPIT_CODE                = @EPIT_CODE AND
              T.RQTP_CODE                = @RQTP_CODE AND 
+             T.RQTT_CODE                = @RQTT_CODE AND
              t.CTGY_CODE                = @CTGY_CODE
    ) >= 1 
    BEGIN
@@ -122,8 +127,10 @@ BEGIN
              REGL_YEAR ,
              REGL_CODE ,
              RWNO ,
+             code ,
              EPIT_CODE ,
              RQTP_CODE ,
+             RQTT_CODE ,
              AMNT_DSCT ,
              PRCT_DSCT ,
              DSCT_TYPE ,
@@ -140,8 +147,10 @@ BEGIN
              @REGL_YEAR , -- REGL_YEAR - smallint
              @REGL_CODE , -- REGL_CODE - int
              0 , -- RWNO - int
+             0 ,
              @EPIT_CODE , -- EPIT_CODE - bigint
              @RQTP_CODE ,
+             @RQTT_CODE ,
              @AMNT_DSCT , -- AMNT_DSCT - int
              @PRCT_DSCT , -- PRCT_DSCT - int
              @DSCT_TYPE , -- DSCT_TYPE - varchar(3)

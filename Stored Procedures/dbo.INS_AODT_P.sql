@@ -61,7 +61,9 @@ AS
                   CUST_NAME ,
                   CELL_PHON ,
                   CASH_AMNT,
-                  POS_AMNT
+                  POS_AMNT,
+                  PYDS_AMNT,
+                  DPST_AMNT
 	            )
         VALUES  ( @Agop_Code ,
                   0 ,
@@ -91,6 +93,8 @@ AS
                   0 , -- TOTL_AMNT_DNRM - bigint
                   N'' ,  -- CUST_NAME - nvarchar(250)
                   '' ,
+                  0,
+                  0, 
                   0,
                   0
 	            );

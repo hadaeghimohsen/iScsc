@@ -7,8 +7,10 @@ CREATE TABLE [dbo].[Basic_Calculate_Discount]
 [REGL_YEAR] [smallint] NOT NULL,
 [REGL_CODE] [int] NOT NULL,
 [RWNO] [int] NOT NULL CONSTRAINT [DF_Basic_Calculate_Discount_RWNO] DEFAULT ((0)),
+[CODE] [bigint] NOT NULL,
 [EPIT_CODE] [bigint] NULL,
 [RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [AMNT_DSCT] [int] NULL,
 [PRCT_DSCT] [int] NULL,
 [DSCT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
@@ -76,6 +78,7 @@ BEGIN
                    T.REGL_CODE                = S.REGL_CODE AND
                    S.EPIT_CODE                = T.EPIT_CODE AND 
                    S.RQTP_CODE                = T.RQTP_CODE AND
+                   s.RQTT_CODE                = T.RQTT_CODE AND
                    S.CTGY_CODE                = T.CTGY_CODE
          ) > 1 
          BEGIN
@@ -99,6 +102,7 @@ BEGIN
             UPDATE 
             SET CRET_BY   = UPPER(SUSER_NAME())
                ,CRET_DATE = GETDATE()
+               ,T.CODE = CASE S.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE S.CODE END
                ,RWNO = (SELECT ISNULL(MAX(RWNO), 0) + 1 
                           FROM dbo.Basic_Calculate_Discount 
                          WHERE SUNT_Code                = S.SUNT_Code AND
@@ -113,7 +117,7 @@ BEGIN
       BEGIN CATCH
          DECLARE @ErrorMessage NVARCHAR(MAX);
          SET @ErrorMessage = ERROR_MESSAGE();
-         RAISERROR ( @ErrorMessage, -- Message text.
+      RAISERROR ( @ErrorMessage, -- Message text.
                   16, -- Severity.
                   1 -- State.
                   );
@@ -156,7 +160,7 @@ BEGIN
          ,MTOD_CODE = (SELECT cb.MTOD_CODE FROM dbo.Category_Belt cb WHERE cb.CODE = s.CTGY_CODE);
 END
 GO
-ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [PK_BCDS] PRIMARY KEY CLUSTERED  ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE], [REGL_YEAR], [REGL_CODE], [RWNO]) ON [PRIMARY]
+ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [PK_BCDS] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Basic_Calculate_Discount] ADD CONSTRAINT [FK_BCDS_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
 GO

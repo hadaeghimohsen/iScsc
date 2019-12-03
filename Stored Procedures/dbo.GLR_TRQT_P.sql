@@ -224,7 +224,7 @@ BEGIN
 	                   @FileNo , -- FIGH_FILE_NO - bigint
 	                   0 , -- RWNO - bigint
 	                   '001' , -- CONF_STAT - varchar(3)
-	                   0 , -- AMNT - int	                   
+	                   ISNULL(@Amnt, 0) , -- AMNT - int	                   
 	                   @PaidDate , -- PAID_DATE - datetime	                   
 	                   @ResnDesc , -- RESN_DESC - nvarchar(250)
 	                   @DpstStat   -- DPST_STAT - varchar(3)

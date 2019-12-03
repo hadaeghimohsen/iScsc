@@ -31,7 +31,9 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CASH_AMNT] [bigint] NULL,
 [POS_AMNT] [bigint] NULL,
+[DPST_AMNT] [bigint] NULL,
 [AODT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[BCDS_CODE] [bigint] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
@@ -208,6 +210,19 @@ BEGIN
    --   SELECT s.AGOP_CODE, s.RWNO, 0, s.POS_AMNT, '003', GETDATE()
    --     FROM Inserted s;
    --END
+   
+   -- 1398/08/23 * بررسی اینکه شماره تلفنی که وارد کرده اند درست وارد شده است یا خیر
+   IF EXISTS(
+	  SELECT *
+	    FROM dbo.Aggregation_Operation_Detail a, Inserted i
+	   WHERE a.AGOP_CODE = i.AGOP_CODE
+	     AND a.RWNO = i.RWNO
+	     AND LEN(a.CELL_PHON) > 0
+	     AND dbo.CHK_MOBL_U(a.CELL_PHON) = 0
+	  )
+	BEGIN
+		RAISERROR (N'شماره موبایل وارد شده درست وارد نشده، لطفا اصلاح بفرمایید', 16, 1);
+	END 
 END
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [PK_AODT] PRIMARY KEY CLUSTERED  ([AGOP_CODE], [RWNO]) ON [PRIMARY]
@@ -218,13 +233,19 @@ ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_AODT] F
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_ATTN] FOREIGN KEY ([ATTN_CODE]) REFERENCES [dbo].[Attendance] ([CODE])
 GO
+ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_BCDS] FOREIGN KEY ([BCDS_CODE]) REFERENCES [dbo].[Basic_Calculate_Discount] ([CODE]) ON DELETE CASCADE
+GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_FIGH] FOREIGN KEY ([FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_RQST] FOREIGN KEY ([RQST_RQID]) REFERENCES [dbo].[Request] ([RQID])
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_APDT_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد تخفیف محاسبه شده', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'BCDS_CODE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'میزان مبلغ نقدی', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'CASH_AMNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'میزان مبلغ کسر از سپرده', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'DPST_AMNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'زمان پایان', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'END_TIME'
 GO

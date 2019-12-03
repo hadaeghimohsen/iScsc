@@ -173,8 +173,8 @@ BEGIN
             --,@CochCrtfDate = @X.query('//Coch_Crtf_Date').value('.', 'DATE');
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
       -- Begin Check Validate
-      IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" درخواست اطلاعات وارد نشده' , 16, 1);
-      IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" اطلاعات وارد نشده' , 16, 1);
       --IF LEN(@FathName)        = 0 RAISERROR (N'برای فیلد "نام پدر" درخواست اطلاعات وارد نشده' , 16, 1);
       IF LEN(@SexType)         = 0 SET @SexType = '001';--RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
       IF @BrthDate             = '1900-01-01' SET @BrthDate = GETDATE()--RAISERROR (N'برای فیلد "تاریخ تولد" درخواست اطلاعات وارد نشده' , 16, 1);

@@ -31,7 +31,10 @@ CREATE PROCEDURE [dbo].[UPD_AODT_P]
     @Pos_Amnt BIGINT ,
     @Numb INT ,
     @Aodt_Desc NVARCHAR(250),
-    @Attn_Type VARCHAR(3)
+    @Attn_Type VARCHAR(3),
+    @Pyds_Amnt BIGINT,
+    @Dpst_Amnt BIGINT,
+    @Bcds_Code BIGINT
 AS
     BEGIN
         IF @Strt_Time > @End_Time
@@ -60,7 +63,10 @@ AS
 				--,POS_AMNT = ISNULL(@Pos_Amnt, 0)                
                 NUMB = ISNULL(@Numb, 1) ,
                 AODT_DESC = @Aodt_Desc ,
-                ATTN_TYPE = @Attn_Type
+                ATTN_TYPE = @Attn_Type ,
+                PYDS_AMNT = ISNULL(@Pyds_Amnt, 0),
+                DPST_AMNT = ISNULL(@Dpst_Amnt, 0),
+                BCDS_CODE = @Bcds_Code
         WHERE   AGOP_CODE = @Agop_Code
                 AND RWNO = @Rwno;	   
     END;
