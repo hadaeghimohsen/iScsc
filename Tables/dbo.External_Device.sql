@@ -7,7 +7,7 @@ CREATE TABLE [dbo].[External_Device]
 [CYCL_READ] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEV_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_NAME] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[BAND_RATE] [bigint] NULL,
+[BAND_RATE] [int] NULL,
 [IP_ADRS] [nchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_SEND] [bigint] NULL,
 [PORT_RECV] [bigint] NULL,
@@ -15,7 +15,10 @@ CREATE TABLE [dbo].[External_Device]
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL
+[MDFY_DATE] [datetime] NULL,
+[STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXPN_CODE] [bigint] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -79,6 +82,10 @@ END
 GO
 ALTER TABLE [dbo].[External_Device] ADD CONSTRAINT [PK_External_Device] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع وضعیت برخورد با داده رسیده از دستگاه
+عملیات حضور و غیاب انجام شود یا 
+مبلغ بابت هزینه خدمات از سپرده کسر گردد', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'ACTN_TYPE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'دوره خواندن اطلاعات
 برای دستگاه های 
 encoder
@@ -95,6 +102,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'نام دستگاه', 'SCHEMA',
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع دستگاه مثلا کارت خوان یا گیت تردد', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'DEV_TYPE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'بررسی اینکه گیت کدام مبلغ هزینه را بررسی کند و از سپرده کسر کند', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'EXPN_CODE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'این گزینه برای گیت ها مورد استفاده قرار میگیرد', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'IP_ADRS'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'بررسی اینکه این دستگاه چه ورزشی راه بررسی میکند', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'MTOD_CODE'
@@ -102,4 +111,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت دریافت داده از گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_RECV'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت ارسال داده به گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_SEND'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت دستگاه', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'STAT'
 GO
