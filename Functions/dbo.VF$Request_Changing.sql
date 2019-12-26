@@ -16,16 +16,22 @@ RETURNS TABLE
                 T.CRET_BY ,
                 T.RQST_DESC ,
                 T.TOTL_AMNT ,
+                CASE T.TOTL_AMNT 
+                     WHEN 0 THEN 0
+                     ELSE                    
                 ISNULL(( SELECT SUM(Pm.AMNT)
                          FROM   Payment_Method Pm
                          WHERE  Pm.PYMT_CASH_CODE = T.CASH_CODE
                                 AND Pm.PYMT_RQST_RQID = T.PYMT_RQST_RQID
-                       ), 0) AS TOTL_RCPT_AMNT ,
+                       ), 0) END AS TOTL_RCPT_AMNT ,
+                CASE T.TOTL_AMNT
+                     WHEN 0 THEN 0
+                     ELSE 
                 ISNULL(( SELECT SUM(pc.AMNT)
                          FROM   Payment_Discount pc
                          WHERE  pc.PYMT_CASH_CODE = T.CASH_CODE
                                 AND pc.PYMT_RQST_RQID = T.PYMT_RQST_RQID
-                       ), 0) AS TOTL_DSCT_AMNT
+                       ), 0) END AS TOTL_DSCT_AMNT
       FROM      ( SELECT    r.RQTP_CODE ,
                             rqtp.RQTP_DESC ,
                             r.RQTT_CODE ,
@@ -37,10 +43,10 @@ RETURNS TABLE
                             r.RQST_DESC ,
                             r.CRET_BY ,
                             p.RQST_RQID AS PYMT_RQST_RQID ,
-                            p.CASH_CODE ,
-                            ISNULL(SUM(( pd.EXPN_PRIC
+                            p.CASH_CODE ,                            
+                            ISNULL(SUM(CASE p.PYMT_STAT WHEN '001' THEN ( pd.EXPN_PRIC
                                          + ISNULL(pd.EXPN_EXTR_PRCT, 0) )
-                                       * pd.QNTY), 0) AS TOTL_AMNT
+                                       * pd.QNTY ELSE 0 END), 0) AS TOTL_AMNT
                   FROM      dbo.Request r
                             INNER JOIN dbo.Request_Row rr ON r.RQID = rr.RQST_RQID
                             INNER JOIN dbo.Request_Type rqtp ON r.RQTP_CODE = rqtp.CODE

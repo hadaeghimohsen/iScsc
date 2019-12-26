@@ -2,12 +2,16 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
+
 CREATE VIEW [dbo].[V#Pos_Device]
 AS
 SELECT  p.PSID, b.DOMN_DESC AS BANK_NAME, p.BANK_TYPE, p.BNKB_CODE, p.BNKA_ACNT_NUMB, p.SHBA_CODE, p.POS_DESC, p.POS_DFLT, p.GTWY_MAC_ADRS
 FROM     iProject.Global.Pos_Device AS p INNER JOIN
-               iProject.DataGuard.D$BANK AS b ON p.BANK_TYPE = b.VALU
+         iProject.DataGuard.D$BANK AS b ON p.BANK_TYPE = b.VALU INNER JOIN
+         iProject.Global.User_Access_Pos AS up ON p.PSID = up.POSD_PSID AND up.STAT = '002' INNER JOIN
+         iProject.DataGuard.[User] AS u ON u.ID = up.USER_ID AND u.IsVisible = 1 AND UPPER(u.USERDB) = UPPER(SUSER_NAME())         
 WHERE  (p.POS_STAT = '002')
+
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 

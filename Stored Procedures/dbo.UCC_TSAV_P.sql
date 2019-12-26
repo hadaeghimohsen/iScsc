@@ -109,7 +109,32 @@ BEGIN
       --       WHERE PYMT_RQST_RQID = @OldRqid;
       --   END
       --END
-
+      
+      -- 1398/10/01 * ایا درخواست پیرو درخواست صدور صورتحساب اصلاحی می باشد
+      IF EXISTS(
+         SELECT *
+           FROM dbo.Request rp /* درخواست صدور صورتحساب اصلاحی */, dbo.Request rs /* درخواست تمدید مجدد مشتری */
+          WHERE rp.rqid = rs.RQST_RQID
+            AND rp.RQTP_CODE = '030'
+            AND rs.RQID = @Rqid              
+      )
+      BEGIN
+         UPDATE dbo.Payment
+            SET PYMT_TYPE = '002'
+               ,PYMT_PYMT_NO = (
+                  SELECT p.PYMT_NO 
+                    FROM dbo.Payment p, 
+                         dbo.Request ro, /* درخواست صورتحساب ابطال شده */
+                         dbo.Request rp, /* درخواست صدور صورتحساب اصلاحی */
+                         dbo.Request rs /* درخواست تمدید مجدد مشتری */
+                   WHERE ro.RQID = rp.RQST_RQID
+                     AND rp.rqid = rs.RQST_RQID
+                     AND rp.RQTP_CODE = '030'
+                     AND rs.RQID = @Rqid
+                     AND ro.RQID = p.RQST_RQID
+                )
+          WHERE RQST_RQID = @Rqid
+      END
       
       UPDATE Request
          SET RQST_STAT = '002'

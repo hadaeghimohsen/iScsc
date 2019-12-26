@@ -21,11 +21,11 @@ BEGIN
 	-- Declare the return variable here
     DECLARE @Rslt XML;
     DECLARE @Rqid BIGINT ,
-        @RqtpCode VARCHAR(3) ,
-        @RqttCode VARCHAR(3) ,
-        @RqroRwno SMALLINT ,
-        @ExpnCode BIGINT ,
-        @Qnty SMALLINT;
+            @RqtpCode VARCHAR(3) ,
+            @RqttCode VARCHAR(3) ,
+            @RqroRwno SMALLINT ,
+            @ExpnCode BIGINT ,
+            @Qnty SMALLINT;
    
     SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]', 'BIGINT') ,
             @RqroRwno = @X.query('//Request_Row').value('(Request_Row/@rwno)[1]',
@@ -116,7 +116,29 @@ BEGIN
                 FROM    dbo.Expense
                 WHERE   CODE = @ExpnCode;
             END;
-   
+    ELSE IF @RqtpCode = '016' AND @RqttCode = '001'
+    BEGIN
+      -- اگر مهمان آزاد باشد
+      IF EXISTS(SELECT * FROM dbo.Fighter f WHERE f.RQST_RQID = @Rqid AND f.FGPB_TYPE_DNRM = '005')
+      BEGIN
+         SELECT @SuntBuntDeptOrgnCode = SUNT_BUNT_DEPT_ORGN_CODE
+               ,@SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE
+               ,@SuntBuntCode = SUNT_BUNT_CODE
+               ,@SuntCode = SUNT_CODE
+           FROM dbo.Fighter_Public
+          WHERE RQRO_RQST_RQID = @Rqid;            
+      END
+      ELSE
+      BEGIN
+         SELECT @SuntBuntDeptOrgnCode = SUNT_BUNT_DEPT_ORGN_CODE_DNRM
+               ,@SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE_DNRM
+               ,@SuntBuntCode = SUNT_BUNT_CODE_DNRM
+               ,@SuntCode = SUNT_CODE_DNRM
+           FROM dbo.Fighter
+          WHERE RQST_RQID = @Rqid;
+      END      
+    END
+    
     SELECT  @ReglYear = YEAR ,
             @ReglCode = CODE
     FROM    Regulation
@@ -352,8 +374,82 @@ BEGIN
                       XML PATH('Result')
                     );
         RETURN @Rslt;
-    END; 
-	-- Return the result of the function
+    END;
+    
+    -- تخفیف مشتریان وفادار
+    IF EXISTS ( SELECT  *
+                FROM    Basic_Calculate_Discount
+                WHERE   SUNT_BUNT_DEPT_ORGN_CODE = @SuntBuntDeptOrgnCode
+                        AND SUNT_BUNT_DEPT_CODE = @SuntBuntDeptCode
+                        AND SUNT_BUNT_CODE = @SuntBuntCode
+                        AND SUNT_CODE = @SuntCode
+                        AND REGL_YEAR = @ReglYear
+                        AND REGL_CODE = @ReglCode
+                        AND EPIT_CODE = @EpitCode
+                        AND RQTP_CODE = @RqtpCode
+                        AND RQTT_CODE = @RqttCode
+                        AND ACTN_TYPE = '005' -- تخفیف مشتریان وفادار
+                        AND STAT = '002' )
+    BEGIN        
+        SELECT  @BcdsCode = CODE ,
+                @PrctDsct = PRCT_DSCT ,
+                @DsctType = DSCT_TYPE ,
+                @AmntDsct = AMNT_DSCT ,
+                @DsctDesc = DSCT_DESC
+        FROM    Basic_Calculate_Discount
+        WHERE   SUNT_BUNT_DEPT_ORGN_CODE = @SuntBuntDeptOrgnCode
+                AND SUNT_BUNT_DEPT_CODE = @SuntBuntDeptCode
+                AND SUNT_BUNT_CODE = @SuntBuntCode
+                AND SUNT_CODE = @SuntCode
+                AND REGL_YEAR = @ReglYear
+                AND REGL_CODE = @ReglCode
+                AND EPIT_CODE = @EpitCode
+                AND RQTP_CODE = @RqtpCode
+                AND ACTN_TYPE = '005'
+                AND STAT = '002';
+        
+        DECLARE @ContPyds BIGINT;
+        -- بدست آوردن تعداد کل تخفیف صادر شده برای این نوع هزینه
+        SELECT @ContPyds = COUNT(*)
+          FROM dbo.Payment_Discount pd, dbo.[VF$Request_Changing]((SELECT FIGH_FILE_NO FROM dbo.Request_Row WHERE RQST_RQID = @Rqid)) r
+         WHERE pd.EXPN_CODE = @ExpnCode
+           AND pd.PYMT_RQST_RQID = r.RQID;
+        
+        DECLARE @ContExpn BIGINT;
+        -- تعداد دفعاتی که برای این هزینه مشتری درخواست داده را هم بدست می آوریم
+        SELECT @ContExpn = SUM(pd.QNTY)
+          FROM dbo.Payment_Detail pd
+         WHERE pd.PYMT_RQST_RQID = @Rqid
+           AND pd.EXPN_CODE = @ExpnCode;
+        
+        -- سوابق استفاده شده این هزینه برای مشتری
+        SELECT @ContExpn += ISNULL(SUM(pd.QNTY), 0)
+          FROM dbo.Payment_Detail pd, dbo.[VF$Request_Changing]((SELECT FIGH_FILE_NO FROM dbo.Request_Row WHERE RQST_RQID = @Rqid)) r
+         WHERE pd.EXPN_CODE = @ExpnCode
+           AND pd.PYMT_RQST_RQID = r.RQID;          
+        
+        IF (@ContExpn - @ContPyds * @AmntDsct) % @AmntDsct = 0 OR (@ContExpn - @ContPyds * @AmntDsct) > @AmntDsct
+        BEGIN
+            -- بدست اوردن مبلغ آیین نامه ای هزینه
+            SELECT @Pric = PRIC + ISNULL(EXTR_PRCT, 0)
+              FROM Expense
+             WHERE CODE = @ExpnCode;
+         
+            -- %
+            IF @DsctType = '001'
+               SET @Pric = ROUND(@Pric * @PrctDsct / 100, -3);
+         
+            SET @Rslt = ( SELECT    1 AS '@type' ,
+                                   @Pric AS '@amntdsct' ,
+                                   N'محاسبه ' + CAST(@PrctDsct AS NVARCHAR(3)) + N' % تخفیف بابت مشتریان وفادار لحاظ شده است' AS '@dsctdesc' ,
+                                   @BcdsCode AS '@bcdscode'
+                             FOR XML PATH('Result')
+                       );
+            RETURN @Rslt;
+        END
+    END;
+    
+	 -- Return the result of the function
     RETURN '<Result type="0"/>';
 
 END;

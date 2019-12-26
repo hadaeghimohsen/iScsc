@@ -4,7 +4,13 @@ CREATE TABLE [dbo].[Payment]
 [REGL_CODE_DNRM] [int] NULL,
 [CASH_CODE] [bigint] NOT NULL,
 [RQST_RQID] [bigint] NOT NULL,
+[YEAR] [smallint] NULL,
+[CYCL] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PYMT_NO] [int] NULL,
+[PYMT_PYMT_NO] [int] NULL,
 [TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF__Payment__TYPE__02FC7413] DEFAULT ('001'),
+[PYMT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Payment_PYMT_TYPE] DEFAULT ('001'),
+[PYMT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Payment_PYMT_STAT] DEFAULT ('001'),
 [RECV_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF__Payment__RECV_TY__03F0984C] DEFAULT ('001'),
 [SUM_EXPN_PRIC] [int] NOT NULL CONSTRAINT [DF__Payment__SUM_EXP__04E4BC85] DEFAULT ((0)),
 [SUM_EXPN_EXTR_PRCT] [int] NOT NULL CONSTRAINT [DF__Payment__SUM_EXP__05D8E0BE] DEFAULT ((0)),
@@ -123,7 +129,7 @@ BEGIN
                            FOR XML PATH('Contact'), TYPE
                       ),
                       (
-                        SELECT @Cel2Phon AS '@phonnumb',
+  SELECT @Cel2Phon AS '@phonnumb',
                                (
                                    SELECT '006' AS '@type' 
                                           ,@MsgbText
@@ -178,7 +184,22 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
-
+   
+   -- 1398/10/01 * اگر درخواست پایانی شد شماره ردیف صورتحساب را وارد میکنیم 
+   DECLARE @PymtNo INT = 1
+          ,@FileNo BIGINT;
+   
+   SELECT @FileNo = rr.FIGH_FILE_NO
+     FROM dbo.Request_Row rr, Inserted i
+    WHERE rr.RQST_RQID = i.RQST_RQID;
+    
+   SELECT @PymtNo = COUNT(r.RQID) + 1
+     FROM dbo.Request r, dbo.Request_Row rr, dbo.Payment p
+    WHERE r.RQID = p.RQST_RQID
+      AND r.RQID = rr.RQST_RQID
+      AND r.RQST_STAT = '002'         
+      AND rr.FIGH_FILE_NO IN ( @FileNo );
+      
    -- Insert statements for trigger here
    MERGE dbo.Payment T
    USING (SELECT * FROM INSERTED) S
@@ -188,7 +209,10 @@ BEGIN
       UPDATE 
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,DELV_STAT = '001'
+            ,YEAR      = SUBSTRING(DBO.GET_MTOS_U(GETDATE()), 1, 4)
+            ,CYCL      = '0' + SUBSTRING(DBO.GET_MTOS_U(GETDATE()), 6, 2)
+            ,T.PYMT_NO = CASE WHEN @PymtNo IS NOT NULL THEN @PymtNo ELSE 1 END
+            ,DELV_STAT = '001'            
             ,CLUB_CODE_DNRM = 
             CASE WHEN (
 				   SELECT TOP 1 CLUB_CODE 
@@ -250,10 +274,9 @@ BEGIN
          1 -- State.
          );
       ROLLBACK TRANSACTION;
-   END;
-
-   -- 1396/03/04 * تاریخ و زمانی که هزینه قفل شده بعدا در سیستم لحاظ گردد
+   END;   
    
+   -- 1396/03/04 * تاریخ و زمانی که هزینه قفل شده بعدا در سیستم لحاظ گردد   
    MERGE dbo.Payment T
    USING (SELECT * FROM INSERTED) S
    ON (T.RQST_RQID = S.RQST_RQID AND 
@@ -263,7 +286,7 @@ BEGIN
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
             ,CASH_BY   = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_By IS NULL THEN SUSER_NAME() WHEN S.Cash_By IS NULL THEN NULL ELSE S.Cash_By END
-            ,CASH_DATE = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_Date IS NULL THEN GETDATE()  WHEN S.Cash_Date IS NULL THEN NULL ELSE S.Cash_Date END
+            ,CASH_DATE = CASE WHEN S.SUM_EXPN_PRIC = (ISNULL(S.SUM_RCPT_EXPN_PRIC, 0) + S.SUM_PYMT_DSCN_DNRM) AND S.Cash_Date IS NULL THEN GETDATE()  WHEN S.Cash_Date IS NULL THEN NULL ELSE S.Cash_Date END;            
             /*,SUM_EXPN_PRIC = S.SUM_EXPN_PRIC - ISNULL(S.SUM_PYMT_DSCN_DNRM, 0)*/;
    
    IF EXISTS(
@@ -286,23 +309,55 @@ BEGIN
    END;
    
    -- 1396/08/02 * برای آن دسته از درخواست هایی که مشتری کل پرداختی هزینه خود را پرداخت کرده به صورت اتوماتیک وضعیت هزینه پرداخت شده ثبت کنیم     
-   /*IF EXISTS(
-      SELECT *
-        FROM dbo.Payment p , Inserted i
-       WHERE p.RQST_RQID = i.RQST_RQID
-         AND p.CASH_CODE = i.CASH_CODE
-         AND (p.SUM_EXPN_PRIC + ISNULL(p.SUM_EXPN_EXTR_PRCT, 0) - (ISNULL(p.SUM_RCPT_EXPN_PRIC, 0) + ISNULL(p.SUM_PYMT_DSCN_DNRM, 0))) = 0
-   )
-   BEGIN
-      UPDATE pd
-         SET pd.PAY_STAT = '002'
-            ,pd.DOCM_NUMB = i.CASH_CODE
-            ,pd.ISSU_DATE = GETDATE()
-        FROM dbo.Payment_Detail pd, Inserted i
-       WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
-         AND pd.PYMT_CASH_CODE = i.CASH_CODE
-         AND PAY_STAT = '001';
-   END*/
+   -- 1398/10/02 * بازسازی دستور کامنت شده
+   --IF EXISTS(
+   --   SELECT *
+   --     FROM dbo.Payment p , Inserted i, dbo.Request r
+   --    WHERE p.RQST_RQID = i.RQST_RQID
+   --      AND p.CASH_CODE = i.CASH_CODE
+   --      AND r.RQID = p.RQST_RQID
+   --      AND r.RQST_STAT = '002'
+   --      AND (p.SUM_EXPN_PRIC + ISNULL(p.SUM_EXPN_EXTR_PRCT, 0) - (ISNULL(p.SUM_RCPT_EXPN_PRIC, 0) + ISNULL(p.SUM_PYMT_DSCN_DNRM, 0))) = 0
+   --)
+   --BEGIN   
+   --   DISABLE TRIGGER ALL ON dbo.Payment_Detail;
+   --   --ALTER TABLE dbo.Payment_Detail DISABLE TRIGGER [CG$AUPD_PMDT];
+   --   PRINT 'Disabled 1'
+   --   UPDATE pd
+   --      SET pd.PAY_STAT = '002'
+   --         ,pd.DOCM_NUMB = i.CASH_CODE
+   --         ,pd.ISSU_DATE = GETDATE()
+   --     FROM dbo.Payment_Detail pd, Inserted i
+   --    WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
+   --      AND pd.PYMT_CASH_CODE = i.CASH_CODE
+   --      AND PAY_STAT = '001';
+   --   ENABLE TRIGGER ALL ON dbo.Payment_Detail;
+   --   PRINT 'Enabled 1'
+   --END
+   --ELSE IF EXISTS(
+   --   SELECT *
+   --     FROM dbo.Payment p , Inserted i, dbo.Request r
+   --    WHERE p.RQST_RQID = i.RQST_RQID
+   --      AND p.CASH_CODE = i.CASH_CODE
+   --      AND r.RQID = p.RQST_RQID
+   --      AND r.RQST_STAT = '002'
+   --      AND (p.SUM_EXPN_PRIC + ISNULL(p.SUM_EXPN_EXTR_PRCT, 0) - (ISNULL(p.SUM_RCPT_EXPN_PRIC, 0) + ISNULL(p.SUM_PYMT_DSCN_DNRM, 0))) != 0
+   --)
+   --BEGIN
+   --   DISABLE TRIGGER ALL ON dbo.Payment_Detail;
+   --   --ALTER TABLE dbo.Payment_Detail DISABLE TRIGGER [CG$AUPD_PMDT];
+   --   PRINT 'Disabled 2'
+   --   UPDATE pd
+   --      SET pd.PAY_STAT = '001'
+   --         ,pd.DOCM_NUMB = i.CASH_CODE
+   --         ,pd.ISSU_DATE = GETDATE()
+   --     FROM dbo.Payment_Detail pd, Inserted i
+   --    WHERE pd.PYMT_RQST_RQID = i.RQST_RQID
+   --      AND pd.PYMT_CASH_CODE = i.CASH_CODE
+   --      AND PAY_STAT = '002';
+   --   ENABLE TRIGGER ALL ON dbo.Payment_Detail;
+   --   PRINT 'Enabled 2'
+   --END 
 END
 ;
 GO
@@ -319,4 +374,13 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'واحد پولی', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'AMNT_UNIT_TYPE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان تغییرات هزینه ای', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'LOCK_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت صورتحساب', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'PYMT_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع صورتحساب صادر شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'PYMT_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع صورتحساب با بار مثبت یا منفی
+
+واریز وجه به عنوان درآمد
+استرداد وجه به عنوان هزینه', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'TYPE'
 GO

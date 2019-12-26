@@ -428,7 +428,7 @@ WHERE RQST_RQID = @RqstRqid
                ,@RqroRwno AS 'Request_Row/@rwno'
                ,@ExpnCode AS 'Request_Row/Expense/@code'
                ,@Qnty AS 'Request_Row/Expense/@qnty'
-   FOR XML PATH('Request')
+            FOR XML PATH('Request')
       );
         
       SELECT @Rslt = dbo.PYDS_CHCK_U(@Rslt);
@@ -442,8 +442,8 @@ WHERE RQST_RQID = @RqstRqid
        WHERE PYMT_CASH_CODE = @CashCode
          AND PYMT_RQST_RQID = @Rqid
          AND RQRO_RWNO = @RqroRwno
-         AND AMNT_TYPE = '001';
-         --AND EXPN_CODE = @ExpnCode;
+         AND AMNT_TYPE = '001'
+         AND EXPN_CODE = @ExpnCode;
       
       IF @Type = 1
       BEGIN
@@ -489,8 +489,7 @@ WHERE RQST_RQID = @RqstRqid
    GOTO L$NextRow;
    L$EndFetch:
    CLOSE C#AUPD_PMDT;
-   DEALLOCATE C#AUPD_PMDT;   
-      
+   DEALLOCATE C#AUPD_PMDT;
 END
 ;
 GO

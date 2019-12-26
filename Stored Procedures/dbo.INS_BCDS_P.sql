@@ -77,10 +77,10 @@ BEGIN
    IF @ACTN_TYPE IS NULL 
       RAISERROR(N'نوع تخفیف مشخصی وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004' ) AND @FROM_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @FROM_DATE IS NULL
       RAISERROR(N'فیلد "از تاریخ" وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004' ) AND @TO_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
    
    IF @RQTP_CODE IS NULL 

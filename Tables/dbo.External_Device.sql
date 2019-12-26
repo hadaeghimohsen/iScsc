@@ -8,7 +8,7 @@ CREATE TABLE [dbo].[External_Device]
 [DEV_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_NAME] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BAND_RATE] [int] NULL,
-[IP_ADRS] [nchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IP_ADRS] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_SEND] [bigint] NULL,
 [PORT_RECV] [bigint] NULL,
 [MTOD_CODE] [bigint] NULL,
