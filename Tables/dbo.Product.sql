@@ -6,6 +6,8 @@ CREATE TABLE [dbo].[Product]
 [MAKE_DATE] [date] NULL,
 [EXPR_DATE] [date] NULL,
 [SERL_NUMB] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[STOK_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SALE_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -63,4 +65,14 @@ GO
 ALTER TABLE [dbo].[Product] ADD CONSTRAINT [PK_PROD] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Product] ADD CONSTRAINT [FK_PROD_EPIT] FOREIGN KEY ([EPIT_CODE]) REFERENCES [dbo].[Expense_Item] ([CODE]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت فروش
+
+فروش نرفته
+فروش رفته', 'SCHEMA', N'dbo', 'TABLE', N'Product', 'COLUMN', N'SALE_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت کالا
+
+ناموجود
+موجود', 'SCHEMA', N'dbo', 'TABLE', N'Product', 'COLUMN', N'STOK_STAT'
 GO

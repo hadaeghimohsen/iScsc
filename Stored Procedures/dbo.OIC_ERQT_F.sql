@@ -43,6 +43,8 @@ BEGIN
 	           @RqstRqid BIGINT,
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
+	           @LettNo   VARCHAR(15),
+	           @LettDate DATETIME,
 	           @RqstDesc NVARCHAR(1000),
 	           
 	           @RegnCode VARCHAR(3),
@@ -64,6 +66,8 @@ BEGIN
 	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
+	         ,@LettNo   = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
+	         ,@LettDate   = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
 	         ,@RqstDesc = @X.query('//Request').value('(Request/@rqstdesc)[1]', 'NVARCHAR(1000)')
 	         
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
@@ -102,15 +106,15 @@ BEGIN
             @RqstRqid,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
+            @LettNo,
+            @LettDate,
             NULL,
             @Rqid OUT; 
 
          UPDATE Request
             SET MDUL_NAME = @MdulName
                ,SECT_NAME = @SctnName
-               ,RQST_DESC = @RqstDesc
+               ,RQST_DESC = @RqstDesc               
           WHERE RQID = @Rqid;                
      
       END
@@ -118,6 +122,8 @@ BEGIN
       BEGIN      
          UPDATE Request
             SET RQST_DESC = @RqstDesc
+               ,LETT_NO = @LettNo
+               ,LETT_DATE = @LettDate
           WHERE RQID = @Rqid;                
       END;
 

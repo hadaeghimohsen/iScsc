@@ -14,20 +14,7 @@ AS
 BEGIN
 	BEGIN TRY
 	BEGIN TRANSACTION [T$CNCL_PYMT_P]
-	DECLARE @AP BIT
-          ,@AccessString VARCHAR(250);
-   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>243</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
-   EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
-   IF @AP = 0 
-   BEGIN
-      RAISERROR ( N'خطا - عدم دسترسی به ردیف 243 سطوح امینتی', -- Message text.
-               16, -- Severity.
-               1 -- State.
-               );
-      RETURN;
-   END
-   
-   DECLARE @Rqid BIGINT
+	DECLARE @Rqid BIGINT
           ,@RqstRqid BIGINT
           ,@OrginRqid BIGINT
           ,@PrvnCode VARCHAR(3)
@@ -35,8 +22,54 @@ BEGIN
           ,@CnclType VARCHAR(3);
           
 	SELECT @RqstRqid = @x.query('Payment').value('(Payment/@rqid)[1]', 'BIGINT'),
-	       @CnclType = @x.query('Payment').value('(Payment/@cncltype)[1]', 'VARCHAR(3)');	
+	       @CnclType = @x.query('Payment').value('(Payment/@cncltype)[1]', 'VARCHAR(3)');		       
 	
+	-- ابطال عادی
+	IF @CnclType = '001'
+	BEGIN
+	   DECLARE @AP BIT
+             ,@AccessString VARCHAR(250);
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>243</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 243 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+   END
+   -- صورتحساب اصلاحی
+   ELSE IF @CnclType = '002'   
+   BEGIN
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>244</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 244 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+   END
+   -- ابطال بدون بازگشت
+   ELSE IF @CnclType = '003'
+   BEGIN
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>246</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 246 سطوح امینتی', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                    );
+         RETURN;
+      END
+   END
+	
+	-- بدست اطلاعات درخواست مربوط به پرداختی
 	IF EXISTS(SELECT * FROM dbo.Request WHERE RQID = @RqstRqid AND RQTT_CODE = '001' AND RQTP_CODE = '001')
 	   SELECT @RqstRqid = RQST_RQID
 	     FROM dbo.Request
@@ -54,12 +87,13 @@ BEGIN
       RETURN;
 	END;
 	
+	-- بدست اوردن اطلاعات ناحیه
 	SELECT @PrvnCode = REGN_PRVN_CODE
 	      ,@RegnCode = REGN_CODE
 	  FROM dbo.Request
 	 WHERE RQID = @RqstRqid;
 	
-	DECLARE @RqtpCode VARCHAR(3) = CASE @CnclType WHEN '001' THEN '029' WHEN '002' THEN '030' END;
+	DECLARE @RqtpCode VARCHAR(3) = CASE @CnclType WHEN '001' THEN '029' WHEN '002' THEN '030' WHEN '003' THEN '032' END;
 	
 	-- ثبت شماره درخواست 
    IF @Rqid IS NULL OR @Rqid = 0
@@ -121,12 +155,13 @@ BEGIN
       
       IF EXISTS(SELECT * FROM dbo.Request WHERE RQID = @RqstRqid AND RQTP_CODE = '001' AND RQTT_CODE = '001')
       BEGIN
+         -- در این قسمت هم میتوانیم شماره ردیف شماره "یک" مورد خطاب قرار بدهیم این گزینه برای سرعت عمل بیشتر می باشد
          -- غیرفعال کردن دوره 
          UPDATE dbo.Member_Ship
             SET VALD_TYPE = '001'
           WHERE RQRO_RQST_RQID = (SELECT RQID FROM dbo.Request WHERE RQST_RQID = @RqstRqid AND RQST_STAT = '002' AND RQTT_CODE = '004')
             AND RECT_CODE = '004';
-      END
+      END;
       ELSE
       BEGIN      
          -- غیرفعال کردن دوره 
@@ -135,59 +170,69 @@ BEGIN
           WHERE RQRO_RQST_RQID = @RqstRqid
             AND RECT_CODE = '004';
       END;
-   END
+   END;
    
-   -- اگر صورتحساب مشتری دارای پرداختی میباشد مبلغ پرداختی را به صورت سپرده قرار میدهیم
-   IF EXISTS(SELECT * FROM dbo.Payment_Method WHERE PYMT_RQST_RQID = @RqstRqid)
+   -- اگر فرآیند ابطال بدون بازگشت صادر شود مبلغ پرداختی دیگر به عنوان مبلغ سپرده لحاظ نمیشود
+   IF @CnclType IN ('001', '002')
    BEGIN
-      DECLARE @Amnt BIGINT;
-      SELECT @Amnt = SUM(AMNT)
-        FROM dbo.Payment_Method
-       WHERE RQRO_RQST_RQID = @OrginRqid;
-       
-      SELECT @x = (
-         SELECT 
-            0 AS '@rqid',
-            @Rqid AS '@rqstrqid',
-            @FileNo AS 'Request_Row/@fighfileno',
-            0 AS 'Gain_Loss_Rials/@glid',
-            '002' AS 'Gain_Loss_Rials/@type',
-            @Amnt AS 'Gain_Loss_Rials/@amnt',
-            GETDATE() AS 'Gain_Loss_Rials/@paiddate',
-            '002' AS 'Gain_Loss_Rials/@dpststat',
-            N'افزایش سپرده بابت ابطال صورتحساب',
-            (
-               SELECT 1 AS '@rwno',
-                      @Amnt AS '@amnt',
-                      '012' AS '@rcptmtod'
-                 --FROM dbo.Payment_Method
-                --WHERE PYMT_RQST_RQID = @OrginRqid
-                  FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
-            )
-            FOR XML PATH('Request'), ROOT('Process')
-      );
-      
-      EXEC dbo.GLR_TRQT_P @X = @X -- xml
-      
-      SELECT @RqstRqid = RQID
-        FROM dbo.Request
-       WHERE RQTP_CODE = '020'
-         AND RQST_STAT = '001'
-         AND RQTT_CODE = '004'
-         AND CRET_BY = UPPER(SUSER_NAME())
-         AND SUB_SYS = 1;
-      
-      SELECT @X = (
-         SELECT @RqstRqid AS '@rqid'
-            FOR XML PATH('Request'), ROOT('Process')
-      );
-      
-      EXEC dbo.GLR_TSAV_P @X = @X -- xml      
-   END 
+      -- اگر صورتحساب مشتری دارای پرداختی میباشد مبلغ پرداختی را به صورت سپرده قرار میدهیم
+      IF EXISTS(SELECT * FROM dbo.Payment_Method WHERE PYMT_RQST_RQID = @RqstRqid)
+      BEGIN
+         DECLARE @Amnt BIGINT;
+         SELECT @Amnt = SUM(AMNT)
+           FROM dbo.Payment_Method
+          WHERE RQRO_RQST_RQID = @OrginRqid;
+          
+         SELECT @x = (
+            SELECT 
+               0 AS '@rqid',
+               @Rqid AS '@rqstrqid',
+               @FileNo AS 'Request_Row/@fighfileno',
+               0 AS 'Gain_Loss_Rials/@glid',
+               '002' AS 'Gain_Loss_Rials/@type',
+               @Amnt AS 'Gain_Loss_Rials/@amnt',
+               GETDATE() AS 'Gain_Loss_Rials/@paiddate',
+               '002' AS 'Gain_Loss_Rials/@dpststat',
+               N'افزایش سپرده بابت ابطال صورتحساب',
+               (
+                  SELECT 1 AS '@rwno',
+                         @Amnt AS '@amnt',
+                         '012' AS '@rcptmtod'
+                    --FROM dbo.Payment_Method
+                   --WHERE PYMT_RQST_RQID = @OrginRqid
+                     FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
+               )
+               FOR XML PATH('Request'), ROOT('Process')
+         );
+         
+         EXEC dbo.GLR_TRQT_P @X = @X -- xml
+         
+         SELECT @RqstRqid = RQID
+           FROM dbo.Request
+          WHERE RQTP_CODE = '020'
+            AND RQST_STAT = '001'
+            AND RQTT_CODE = '004'
+            AND CRET_BY = UPPER(SUSER_NAME())
+            AND SUB_SYS = 1;
+         
+         SELECT @X = (
+            SELECT @RqstRqid AS '@rqid'
+               FOR XML PATH('Request'), ROOT('Process')
+         );
+         
+         EXEC dbo.GLR_TSAV_P @X = @X -- xml      
+      END; 
+   END;
+   -- 
+   ELSE IF @CnclType IN ('003') 
+   BEGIN
+      -- حال باید در صورتحساب های صادره در گزارشات این مورد را لحاظ کنیم که صورتحساب معتبر باشد
+      PRINT 'Nothing'
+   END;  
    
    SET @RqstRqid = NULL;
    
-      -- تغییر وضعیت صورتحساب به حالت ابطال
+   -- تغییر وضعیت صورتحساب به حالت ابطال
    UPDATE dbo.Payment 
       SET PYMT_STAT = '002' -- وضعیت صورتحساب به صورت ابطال در اورده میشود
     WHERE RQST_RQID = @OrginRqid;

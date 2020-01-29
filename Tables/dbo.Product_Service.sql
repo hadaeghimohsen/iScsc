@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[Product_Service]
 [COMP_SITE] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COMP_TELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COMP_CELL_PHON] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Product_Service_STAT] DEFAULT ('001'),
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -35,8 +36,7 @@ BEGIN
 	MERGE dbo.Product_Service T
 	USING (SELECT * FROM Inserted) S
 	ON (t.RQRO_RQST_RQID = s.RQRO_RQST_RQID AND 
-	    t.RQRO_RWNO = s.RQRO_RWNO AND 
-	    t.PDCS_CODE = s.PDCS_CODE AND 
+	    t.RQRO_RWNO = s.RQRO_RWNO AND 	    
 	    T.CODE = s.CODE)
 	WHEN MATCHED THEN
 	   UPDATE SET

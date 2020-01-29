@@ -67,7 +67,15 @@ BEGIN
                 AND PAY_STAT = '001'
                 AND @X.query('//Payment').value('(Payment/@setondebt)[1]',
                                                 'BIT') = 0;
-      
+        
+        -- 1398/10/06 * اگر درخواست کالایی داشته باشد که فروش رفته باشد باید جدول کالا ها رو بروزرسانی کنیم
+        UPDATE p
+           SET p.SALE_STAT = '002'
+          FROM dbo.Product p, dbo.Payment_Detail_Commodity_Sale pdcs, dbo.Payment_Detail pd
+         WHERE p.CODE = pdcs.PROD_CODE
+           AND pdcs.PYDT_CODE = pd.CODE
+           AND pd.PYMT_RQST_RQID = @Rqid;
+         
         UPDATE  Request
         SET     RQST_STAT = '002'
         WHERE   RQID = @Rqid;
