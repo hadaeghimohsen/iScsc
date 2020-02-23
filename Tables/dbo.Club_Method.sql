@@ -146,7 +146,7 @@ BEGIN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,T.CLAS_TIME = DATEDIFF(MINUTE, S.STRT_TIME, s.END_TIME)
+            --,T.CLAS_TIME = DATEDIFF(MINUTE, S.STRT_TIME, s.END_TIME)
             ,t.STRT_TIME = CAST(s.STRT_TIME AS TIME(0))
             ,t.END_TIME = CAST(s.END_TIME AS TIME(0))
             ,t.CPCT_STAT = ISNULL(s.CPCT_STAT, '001')

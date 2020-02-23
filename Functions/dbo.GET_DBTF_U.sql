@@ -29,6 +29,7 @@ BEGIN
       AND R.RQST_STAT IN ('001', '002')
       AND F.CONF_STAT = '002'
       --AND D.PAY_STAT = '001'
+      AND P.PYMT_STAT != '002'
       AND F.FILE_NO = @FileNo
       AND R.RQTP_CODE NOT IN ('022', '023');
    
@@ -45,6 +46,7 @@ BEGIN
       AND F.CONF_STAT = '002'
       AND D.STAT = '002'
       --AND D.PAY_STAT = '001'
+      AND p.PYMT_STAT != '002'
       AND F.FILE_NO = @FileNo
       AND R.RQTP_CODE NOT IN ('022', '023');
    
@@ -60,6 +62,7 @@ BEGIN
       AND R.RQST_STAT IN ('001', '002')
       AND F.CONF_STAT = '002'
       --AND D.PAY_STAT = '001'
+      AND p.PYMT_STAT != '002'
       AND F.FILE_NO = @FileNo
       AND R.RQTP_CODE NOT IN ('022', '023');
    

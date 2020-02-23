@@ -76,5 +76,6 @@ RETURN
       AND ((@Qnty IS NULL) OR (PYDT.QNTY = @Qnty))
       AND ((@DocmNumb IS NULL) OR (PYDT.DOCM_NUMB = @DocmNumb))
       AND RQST.RQST_STAT IN ('002')
+      AND PYMT.PYMT_STAT != '002'
 )
 GO

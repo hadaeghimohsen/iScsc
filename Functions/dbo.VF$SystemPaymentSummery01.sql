@@ -125,6 +125,7 @@ WHERE   rqtp.CODE = r.RQTP_CODE
         AND f.SUNT_BUNT_DEPT_CODE_DNRM = su.BUNT_DEPT_CODE
         AND f.SUNT_BUNT_CODE_DNRM = su.BUNT_CODE
         AND f.SUNT_CODE_DNRM = su.CODE
+        AND p.PYMT_STAT != '002'
         AND f.CONF_STAT = '002'
         AND f.ACTV_TAG_DNRM >= '101'
         

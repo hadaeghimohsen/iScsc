@@ -55,5 +55,6 @@ RETURN
       AND ((@Rqid IS NULL) OR (PYMT.RQST_RQID = @Rqid))
       AND ((@FileNo IS NULL) OR (RQRO.FIGH_FILE_NO = @FileNo))
       AND RQST.RQST_STAT IN ('002')
+      --AND PYMT.PYMT_STAT != '002'
 )
 GO

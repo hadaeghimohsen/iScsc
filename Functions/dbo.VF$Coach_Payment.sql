@@ -54,6 +54,7 @@ WITH    QXML
             AND pd.RQRO_RWNO = rr.RWNO
             AND r.RQID = rr.RQST_RQID
             AND rr.FIGH_FILE_NO = f.FILE_NO
+            AND p.PYMT_STAT != '002'
             AND 
             (
                (r.RQTP_CODE = '009' AND rr.RQST_RQID = ms.RQRO_RQST_RQID AND rr.RWNO = ms.RQRO_RWNO AND ms.RECT_CODE = '004') OR 

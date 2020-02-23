@@ -31,11 +31,14 @@ BEGIN
 	
 	-- مبلغ استفاده شده از سپرده
 	SELECT @SumPymtAmnt = SUM(Pm.AMNT)
-	  FROM dbo.Request r, dbo.Request_Row rr, dbo.Payment_Method pm
+	  FROM dbo.Request r, dbo.Request_Row rr, dbo.Payment p, dbo.Payment_Method pm
 	 WHERE r.RQID = rr.RQST_RQID
 	   AND rr.RQST_RQID = pm.RQRO_RQST_RQID
 	   AND rr.RWNO = pm.RQRO_RWNO
 	   AND rr.FIGH_FILE_NO = @FileNo
+	   AND r.RQID = p.RQST_RQID
+	   AND p.RQST_RQID = pm.PYMT_RQST_RQID
+	   AND p.PYMT_STAT != '002'
 	   AND r.RQST_STAT = '002'
 	   AND pm.RCPT_MTOD = '005';
    
