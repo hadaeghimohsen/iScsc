@@ -56,9 +56,9 @@ BEGIN
         FROM dbo.Payment_Detail p, dbo.Member_Ship ms, dbo.Fighter_Public fp
        WHERE p.PYMT_RQST_RQID = @Rqid
          AND ms.RQRO_RQST_RQID = @Rqid 
-         AND ms.RECT_CODE = '004'
+         AND ms.RECT_CODE = CASE ms.RWNO WHEN 1 THEN '001' ELSE '004' END
          AND fp.FIGH_FILE_NO = ms.FIGH_FILE_NO                  
-         AND fp.RWNO = ms.FGPB_RWNO_DNRM
+         AND fp.RWNO = CASE ms.RWNO WHEN 1 THEN 1 ELSE ms.FGPB_RWNO_DNRM END
          AND fp.RECT_CODE = '004';
    END;
    

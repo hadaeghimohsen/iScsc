@@ -134,7 +134,7 @@ BEGIN
    IF @Mom_Chat_Id = '' SET @Mom_Chat_Id = NULL
    IF @Dad_Cell_Phon = '' SET @Dad_Cell_Phon = NULL
    IF @Dad_Tell_Phon = '' SET @Dad_Tell_Phon = NULL
-   IF @Dad_Chat_Id = '' SET @Mom_Chat_Id = NULL
+   IF @Dad_Chat_Id = '' SET @Dad_Chat_Id = NULL
    IF @Idty_Numb = '' SET @Idty_Numb = NULL
    --IF @Watr_Fabr_Numb = '' SET @Watr_Fabr_Numb = NULL
    --IF @Gas_Fabr_Numb = '' SET @Gas_Fabr_Numb = NULL

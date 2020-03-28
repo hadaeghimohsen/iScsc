@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Image_Document]
 [IMAG] [varchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FILE_NAME] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_STAT] [smallint] NULL,
+[FILE_ID] [varchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -73,4 +74,6 @@ GO
 ALTER TABLE [dbo].[Image_Document] ADD CONSTRAINT [IMAG_PK] PRIMARY KEY CLUSTERED  ([RCDC_RCID], [RWNO]) ON [BLOB]
 GO
 ALTER TABLE [dbo].[Image_Document] ADD CONSTRAINT [FK_IMAG_RCDC] FOREIGN KEY ([RCDC_RCID]) REFERENCES [dbo].[Receive_Document] ([RCID]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'این گزینه برای شبکه های اجتماعی در نظر گرفته میشود', 'SCHEMA', N'dbo', 'TABLE', N'Image_Document', 'COLUMN', N'FILE_ID'
 GO

@@ -14,7 +14,9 @@ CREATE PROCEDURE [dbo].[INS_MTOD_P]
    @Epit_Type VARCHAR(3),
    @Dflt_Stat VARCHAR(3),
    @Mtod_Stat VARCHAR(3),
-   @Chck_Attn_Alrm VARCHAR(3)
+   @Chck_Attn_Alrm VARCHAR(3),
+   @Natl_Code VARCHAR(3),
+   @Shar_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -32,7 +34,7 @@ BEGIN
    END
    -- پایان دسترسی
    
-   INSERT INTO Method (MTOD_DESC, MTOD_CODE, Epit_Type, DFLT_STAT, MTOD_STAT, CHCK_ATTN_ALRM)
-   VALUES(@Mtod_Desc, @Mtod_Code, @Epit_Type, ISNULL(@Dflt_Stat, '001'), @Mtod_Stat, @Chck_Attn_Alrm);
+   INSERT INTO Method (MTOD_DESC, MTOD_CODE, Epit_Type, DFLT_STAT, MTOD_STAT, CHCK_ATTN_ALRM, NATL_CODE, SHAR_STAT)
+   VALUES(@Mtod_Desc, @Mtod_Code, @Epit_Type, ISNULL(@Dflt_Stat, '001'), @Mtod_Stat, @Chck_Attn_Alrm, @Natl_Code, @Shar_Stat);
 END
 GO

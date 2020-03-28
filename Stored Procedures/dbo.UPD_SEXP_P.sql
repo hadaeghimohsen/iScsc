@@ -20,7 +20,7 @@ BEGIN
              ,@PymtPydtCode BIGINT
              ,@ExpnPric BIGINT
              ,@PydtDesc NVARCHAR(250)
-             ,@Qnty SMALLINT
+             ,@Qnty REAL
              ,@FighFileNo BIGINT
              ,@CbmtCodeDnrm BIGINT
              ,@MtodCodeDnrm BIGINT
@@ -41,7 +41,7 @@ BEGIN
             ,@ExpnCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@expncode)[1]', 'BIGINT')
             ,@ExpnPric = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@expnpric)[1]', 'BIGINT')
             ,@PydtDesc = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@pydtdesc)[1]', 'NVARCHAR(250)')
-            ,@Qnty = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@qnty)[1]', 'SMALLINT')
+            ,@Qnty = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@qnty)[1]', 'REAL')
             --,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT')
             ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT')
             ,@MtodCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mtodcodednrm)[1]', 'BIGINT')

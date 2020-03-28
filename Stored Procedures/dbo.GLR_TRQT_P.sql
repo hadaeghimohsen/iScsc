@@ -37,6 +37,12 @@ BEGIN
 	          ,@RegnCode VARCHAR(3)
 	          ,@RqtpCode VARCHAR(3)
 	          ,@RqttCode VARCHAR(3)
+	          ,@LettNo VARCHAR(15)
+	          ,@LettDate DATETIME
+	          ,@LettOwnr NVARCHAR(250)
+	          ,@RefSubSys INT
+	          ,@RefCode BIGINT
+	           
 	          ,@FileNo   BIGINT
 	          ,@RqroRwno SMALLINT;
   	   
@@ -47,6 +53,12 @@ BEGIN
 	         ,@RqstRqid     = @X.query('//Request').value('(Request/@rqstrqid)[1]', 'BIGINT')
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
 	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
+	         ,@RefSubSys = @X.query('//Request').value('(Request/@refsubsys)[1]', 'INT')
+	         ,@RefCode = @X.query('//Request').value('(Request/@refcode)[1]', 'BIGINT')
+	         ,@LettNo = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
+	         ,@LettDate = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
+	         ,@LettOwnr = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
+	         
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fighfileno)[1]', 'BIGINT');
       
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
@@ -65,16 +77,19 @@ BEGIN
             @RqstRqid,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
-            NULL,
+            @LettNo,
+            @LettDate,
+            @LettOwnr,
             @Rqid OUT;  
             
          UPDATE Request
             SET MDUL_NAME = @MdulName
-              ,SECT_NAME = @SctnName
+               ,SECT_NAME = @SctnName
+               ,REF_SUB_SYS = @RefSubSys
+               ,REF_CODE = @RefCode
           WHERE RQID = @Rqid;                
       END
+      
       -- ثبت ردیف درخواست 
       SELECT @RqroRwno = Rwno
         FROM Request_Row

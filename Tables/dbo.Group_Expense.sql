@@ -1,6 +1,9 @@
 CREATE TABLE [dbo].[Group_Expense]
 (
+[GEXP_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
+[GROP_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ORDR] [smallint] NULL,
 [GROP_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
@@ -58,4 +61,8 @@ END
 ;
 GO
 ALTER TABLE [dbo].[Group_Expense] ADD CONSTRAINT [PK_GEXP] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Group_Expense] ADD CONSTRAINT [FK_GEXP_GEXP] FOREIGN KEY ([GEXP_CODE]) REFERENCES [dbo].[Group_Expense] ([CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مشخص کردن گروه کالا و برند کالا', 'SCHEMA', N'dbo', 'TABLE', N'Group_Expense', 'COLUMN', N'GROP_TYPE'
 GO

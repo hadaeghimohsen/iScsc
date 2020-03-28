@@ -3,11 +3,12 @@ CREATE TABLE [dbo].[Method]
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_MTOD_CODE] DEFAULT ((0)),
 [MTOD_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [MTOD_CODE] [bigint] NULL,
-[NATL_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NATL_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EPIT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MTOD_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHCK_ATTN_ALRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SHAR_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -104,7 +105,8 @@ BEGIN
             ,CRET_DATE = GETDATE()
             ,CODE      = DBO.GNRT_NVID_U()
             ,EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
-            ,CHCK_ATTN_ALRM = ISNULL(s.CHCK_ATTN_ALRM, '001');
+            ,CHCK_ATTN_ALRM = ISNULL(s.CHCK_ATTN_ALRM, '001')
+            ,T.SHAR_STAT = ISNULL(s.SHAR_STAT, '001');
 END
 ;
 GO
@@ -129,7 +131,8 @@ BEGIN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END; 
+            ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
+            ,T.NATL_CODE = CASE WHEN LEN(s.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '000'), 3, '0') END; 
             
                        
    DECLARE @MtodCode BIGINT;
@@ -165,4 +168,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'متناسب با کدام گزینه آیتم درآمدی و هزینه فرآیندی می باشد', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'EPIT_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد بین المللی', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'NATL_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'آیا می توان به صورت اشتراکی جمع خانوادگی استفاده کنند یا خیر', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'SHAR_STAT'
 GO

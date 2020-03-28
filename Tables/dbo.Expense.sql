@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Expense]
 [CTGY_CODE] [bigint] NULL,
 [MTOD_CODE] [bigint] NULL,
 [GROP_CODE] [bigint] NULL,
+[BRND_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_EXPN_CODE] DEFAULT ((0)),
 [EXPN_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PRIC] [int] NOT NULL CONSTRAINT [DF_EXPN_PRIC] DEFAULT ((0)),
@@ -162,6 +163,8 @@ ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [CK_EXPN_EXPN_STAT] CHECK (([EXPN_STA
 GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [EXPN_PK] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_BRND] FOREIGN KEY ([BRND_CODE]) REFERENCES [dbo].[Group_Expense] ([CODE]) ON DELETE CASCADE
+GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_EXTP] FOREIGN KEY ([EXTP_CODE]) REFERENCES [dbo].[Expense_Type] ([CODE]) ON DELETE CASCADE
@@ -173,6 +176,8 @@ GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_REGL] FOREIGN KEY ([REGL_YEAR], [REGL_CODE]) REFERENCES [dbo].[Regulation] ([YEAR], [CODE]) ON DELETE SET NULL
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'درآمدهای اضافی خارج از برنامه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'ADD_QUTS'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد برند', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'BRND_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ارزش افزوده خرید', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'BUY_EXTR_PRCT'
 GO

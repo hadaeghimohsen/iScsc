@@ -22,7 +22,9 @@ RETURN
          , PYMT.PYMT_PYMT_NO
          , PYMT.TYPE 
          , PYMT.PYMT_TYPE
+         , dpt.DOMN_DESC AS PYMT_TYPE_DESC
          , PYMT.PYMT_STAT
+         , dps.DOMN_DESC AS PYMT_STAT_DESC
          , PYMT.RECV_TYPE
          , CASE PYMT.PYMT_STAT WHEN '001' THEN PYMT.SUM_EXPN_PRIC ELSE 0 END AS SUM_EXPN_PRIC
          , CASE PYMT.PYMT_STAT WHEN '001' THEN PYMT.SUM_EXPN_EXTR_PRCT ELSE 0 END AS SUM_EXPN_EXTR_PRCT
@@ -48,13 +50,17 @@ RETURN
      FROM dbo.Request_Type AS RQTP,
           dbo.Request AS RQST,
           dbo.Payment AS PYMT,
-          dbo.Request_Row AS RQRO
+          dbo.Request_Row AS RQRO,
+          D$PMST AS dps,
+          D$PTYP AS dpt
     WHERE RQTP.CODE = Rqst.RQTP_CODE
       AND RQST.RQID = RQRO.RQST_RQID      
       AND RQST.RQID = PYMT.RQST_RQID
       AND ((@Rqid IS NULL) OR (PYMT.RQST_RQID = @Rqid))
       AND ((@FileNo IS NULL) OR (RQRO.FIGH_FILE_NO = @FileNo))
       AND RQST.RQST_STAT IN ('002')
+      AND PYMT.PYMT_STAT = dps.VALU
+      AND PYMT.PYMT_TYPE = dpt.VALU
       --AND PYMT.PYMT_STAT != '002'
 )
 GO

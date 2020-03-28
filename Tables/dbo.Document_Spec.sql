@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[Document_Spec]
 (
 [DSID] [bigint] NOT NULL CONSTRAINT [DF_DCMT_DSID] DEFAULT ((0)),
 [DCMT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[DCMT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -12,7 +13,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 -- =============================================
 -- Author:		<Author,,Name>
 -- Create date: <Create Date,,>
@@ -42,7 +42,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 -- =============================================
 -- Author:		<Author,,Name>
 -- Create date: <Create Date,,>
@@ -66,7 +65,8 @@ BEGIN
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE();            
 END
-
 GO
 ALTER TABLE [dbo].[Document_Spec] ADD CONSTRAINT [PK_DCMT] PRIMARY KEY CLUSTERED  ([DSID]) ON [PRIMARY]
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد دسترسی عکس', 'SCHEMA', N'dbo', 'TABLE', N'Document_Spec', 'COLUMN', N'DCMT_CODE'
 GO

@@ -18,6 +18,7 @@ BEGIN
 	DECLARE @ExpnCode BIGINT
 	       ,@ExpnDesc NVARCHAR(250)
 	       ,@ExpnPric INT
+	       ,@ExpnOrdrItem BIGINT
 	       ,@ExpnMinTime VARCHAR(5)
 	       ,@RqtpCode VARCHAR(3)
 	       ,@RqttCode VARCHAR(3)
@@ -29,6 +30,7 @@ BEGIN
 	SELECT @ExpnCode = @x.query('.').value('(Expense/@code)[1]', 'BIGINT')
 	      ,@ExpnDesc = @x.query('.').value('(Expense/@desc)[1]', 'NVARCHAR(250)')
 	      ,@ExpnPric = @x.query('.').value('(Expense/@pric)[1]', 'BIGINT')
+	      ,@ExpnOrdrItem = @x.query('.').value('(Expense/@ordritem)[1]', 'BIGINT')
 	      ,@ExpnMinTime = @x.query('.').value('(Expense/@mintime)[1]', 'VARCHAR(5)')
 	      ,@RqtpCode = @x.query('.').value('(Expense/@rqtpcode)[1]', 'VARCHAR(3)')
 	      ,@RqttCode = @x.query('.').value('(Expense/@rqttcode)[1]', 'VARCHAR(3)');
@@ -81,6 +83,7 @@ BEGIN
 		      ,e.EXPN_DESC = @ExpnDesc
 		      ,e.MIN_TIME = @ExpnMinTime
 		      ,e.EXPN_STAT = '002'
+		      ,e.ORDR_ITEM = @ExpnOrdrItem
 		  FROM dbo.Expense e, dbo.Expense_Type et
 		 WHERE e.MTOD_CODE = @MtodCode
 		   AND e.CTGY_CODE = @CtgyCode
@@ -94,6 +97,7 @@ BEGIN
 			  ,en.PRIC = @ExpnPric
 			  ,en.MIN_TIME = @ExpnMinTime
 			  ,en.EXPN_STAT = '002'
+			  ,en.ORDR_ITEM = @ExpnOrdrItem
 		  FROM dbo.Expense en, dbo.Expense eo, dbo.Expense_Type et
 		 WHERE en.CTGY_CODE = eo.CTGY_CODE
 		   AND eo.CODE = @ExpnCode

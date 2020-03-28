@@ -317,7 +317,29 @@ BEGIN
          ,@DAD_CHAT_ID         = T.DAD_CHAT_ID
      FROM [dbo].[Fighter_Public] T , INSERTED S
      WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
+       AND t.RQRO_RQST_RQID = s.RQRO_RQST_RQID
+       AND t.RECT_CODE = s.RECT_CODE
+       AND t.RWNO = s.RWNO
      ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;
+   
+   /*SELECT TOP 1 *
+     FROM [dbo].[Fighter_Public] T , INSERTED S
+     WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
+       AND t.RECT_CODE = s.RECT_CODE
+       AND t.RWNO = s.RWNO
+       AND t.RQRO_RQST_RQID = s.RQRO_RQST_RQID
+     ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;
+     
+
+   SELECT *
+     FROM [dbo].[Fighter_Public] T , INSERTED S
+     WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
+       AND t.RECT_CODE = s.RECT_CODE
+       AND t.RWNO = s.RWNO
+       AND t.RQRO_RQST_RQID = s.RQRO_RQST_RQID
+     ORDER BY T.RQRO_RQST_RQID DESC, T.CRET_DATE DESC;*/
+   
+   --RAISERROR(N'Stop', 16, 1);
    
    -- 1396/11/22 * بررسی اینکه ستون هایی که اطلاعات آنها خالی می باشند مقدار "نال" به انها داده شود
    /*IF @FATH_NAME = '' SET @FATH_NAME = NULL;
@@ -334,6 +356,8 @@ BEGIN
    IF @NATL_CODE = '0' OR @NATL_CODE = '' SET @NATL_CODE = NULL;
    IF @GLOB_CODE = '' SET @GLOB_CODE = NULL;*/
    IF @CHAT_ID = 0 SET @CHAT_ID = NULL;
+   IF @DAD_CHAT_ID = 0 SET @DAD_CHAT_ID = NULL;
+   IF @MOM_CHAT_ID = 0 SET @MOM_CHAT_ID = NULL;
    
    -- 1397/12/4 * 
    DECLARE @DuplNatlCode VARCHAR(3)

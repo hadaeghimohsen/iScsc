@@ -15,13 +15,14 @@ CREATE PROCEDURE [dbo].[UPD_CTGY_P]
 	@Ordr    SMALLINT,
 	@Epit_Type VARCHAR(3),
 	@Numb_Of_Attn_Mont INT,
-	@NUmb_Cycl_Day INT,
+	@Numb_Cycl_Day INT,
 	@Numb_Mont_Ofer INT,
 	@Prvt_Coch_Expn VARCHAR(3),
 	@Pric INT,
 	@Dflt_Stat VARCHAR(3),
 	@Ctgy_Stat VARCHAR(3),
-	@Gust_Numb INT
+	@Gust_Numb INT,
+	@Natl_Code VARCHAR(2)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -52,6 +53,7 @@ BEGIN
          ,DFLT_STAT = ISNULL(@Dflt_Stat, '001')
          ,CTGY_STAT = @Ctgy_Stat
          ,GUST_NUMB = @Gust_Numb
+         ,NATL_CODE = @Natl_Code
     WHERE CODE = @Code;
 END
 GO

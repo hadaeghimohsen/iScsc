@@ -56,7 +56,13 @@ BEGIN
 	           @RegnCode VARCHAR(3),
 	           @PrvnCode VARCHAR(3),
 	           @MdulName VARCHAR(11),
-	           @SctnName VARCHAR(11);
+	           @SctnName VARCHAR(11),
+  	           @LettNo VARCHAR(15),
+	           @LettDate DATETIME,
+	           @LettOwnr NVARCHAR(250),
+	           @RefSubSys INT,
+	           @RefCode BIGINT;
+
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
@@ -64,7 +70,12 @@ BEGIN
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
-	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)');
+	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
+	         ,@RefSubSys = @X.query('//Request').value('(Request/@refsubsys)[1]', 'INT')
+	         ,@RefCode = @X.query('//Request').value('(Request/@refcode)[1]', 'BIGINT')
+	         ,@LettNo = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
+	         ,@LettDate = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
+	         ,@LettOwnr = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
       
       IF @RqttCode IS NULL OR @RqttCode = ''
          SET @RqttCode = '001';
@@ -134,14 +145,16 @@ BEGIN
             NULL,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
-            NULL,
+            @LettNo,
+            @LettDate,
+            @LettOwnr,
             @Rqid OUT; 
          
          UPDATE dbo.Request
             SET MDUL_NAME = @MdulName
                ,SECT_NAME = @SctnName
+               ,REF_SUB_SYS = @RefSubSys
+               ,REF_CODE = @RefCode
           WHERE RQID = @Rqid;
       END
       ELSE
@@ -157,9 +170,9 @@ BEGIN
             @RegnCode,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
-            NULL;            
+            @LettNo,
+            @LettDate,
+            @LettOwnr;
       END
       DECLARE @FileNo BIGINT;
       SELECT @FileNo = @X.query('//Fighter').value('(Fighter/@fileno)[1]', 'BIGINT');

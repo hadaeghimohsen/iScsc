@@ -17,6 +17,7 @@ CREATE TABLE [dbo].[Club_Method]
 [CBMT_TIME_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CLAS_TIME] [int] NULL,
 [AMNT] [bigint] NULL,
+[NATL_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -150,7 +151,8 @@ BEGIN
             ,t.STRT_TIME = CAST(s.STRT_TIME AS TIME(0))
             ,t.END_TIME = CAST(s.END_TIME AS TIME(0))
             ,t.CPCT_STAT = ISNULL(s.CPCT_STAT, '001')
-            ,t.CBMT_TIME_STAT = ISNULL(s.CBMT_TIME_STAT, '001');            
+            ,t.CBMT_TIME_STAT = ISNULL(s.CBMT_TIME_STAT, '001')
+            ,T.NATL_CODE = CASE WHEN LEN(s.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '000'), 3, '0') END;
 END
 ;
 GO
@@ -183,6 +185,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'محدودیت در نظر گرفتن ظرفیت کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CPCT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کلاس پیش فرض', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'DFLT_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مشخص کردن کد تعرفه', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'NATL_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'جنسیت افراد کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'SEX_TYPE'
 GO

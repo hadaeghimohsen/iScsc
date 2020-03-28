@@ -24,6 +24,8 @@ CREATE TABLE [dbo].[Request]
 [SECT_NAME] [varchar] (11) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQST_NUMB] [bigint] NULL,
 [RQST_DESC] [nvarchar] (1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[REF_SUB_SYS] [int] NULL,
+[REF_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -527,6 +529,10 @@ GO
 ALTER TABLE [dbo].[Request] ADD CONSTRAINT [FK_RQST_RQTT] FOREIGN KEY ([RQTT_CODE]) REFERENCES [dbo].[Requester_Type] ([CODE])
 GO
 ALTER TABLE [dbo].[Request] ADD CONSTRAINT [FK_RQST_SSTT] FOREIGN KEY ([SSTT_MSTT_CODE], [SSTT_MSTT_SUB_SYS], [SSTT_CODE]) REFERENCES [dbo].[Sub_State] ([MSTT_CODE], [MSTT_SUB_SYS], [CODE])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'شماره درخواست زیر سیستم', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'REF_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'درخواست ثبت شده توسط زیر سیستم دیگر', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'REF_SUB_SYS'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد درخواست های انجام شده برای اعضا', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'RQST_NUMB'
 GO

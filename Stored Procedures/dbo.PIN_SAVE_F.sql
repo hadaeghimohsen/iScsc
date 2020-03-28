@@ -220,6 +220,8 @@ BEGIN
       
       SELECT @MtodCode = MTOD_CODE_DNRM
             ,@CtgyCode = CTGY_CODE_DNRM
+            ,@PrvnCode = REGN_PRVN_CODE
+            ,@RegnCode = REGN_CODE
         FROM Fighter
        WHERE FILE_NO = @FileNo;
       

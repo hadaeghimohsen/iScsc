@@ -45,6 +45,7 @@ BEGIN
 	           @RqttCode VARCHAR(3),
 	           @LettNo   VARCHAR(15),
 	           @LettDate DATETIME,
+	           @LettOwnr NVARCHAR(250),
 	           @RqstDesc NVARCHAR(1000),
 	           
 	           @RegnCode VARCHAR(3),
@@ -52,7 +53,10 @@ BEGIN
 	           @CntyCode VARCHAR(3),
 	           
   	           @MdulName VARCHAR(11),
-	           @SctnName VARCHAR(11);
+	           @SctnName VARCHAR(11),
+	           
+	           @RefSubSys INT,
+	           @RefCode BIGINT;
    	
    	DECLARE @FileNo BIGINT
    	       ,@FrstName NVARCHAR(250)
@@ -68,10 +72,16 @@ BEGIN
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@LettNo   = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
 	         ,@LettDate   = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
+	         ,@LettOwnr   = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
 	         ,@RqstDesc = @X.query('//Request').value('(Request/@rqstdesc)[1]', 'NVARCHAR(1000)')
+	         
 	         
 	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
 	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
+	         
+	         ,@RefSubSys = @X.query('//Request').value('(Request/@refsubsys)[1]', 'INT')
+	         ,@RefCode   = @X.query('//Request').value('(Request/@refcode)[1]', 'BIGINT')
+	         
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT')
 	         
 	         ,@FrstName = @X.query('//Fighter_Public').value('(Fighter_Public/@frstname)[1]', 'NVARCHAR(250)')
@@ -108,12 +118,14 @@ BEGIN
             @RqttCode,
             @LettNo,
             @LettDate,
-            NULL,
+            @LettOwnr,
             @Rqid OUT; 
 
          UPDATE Request
             SET MDUL_NAME = @MdulName
                ,SECT_NAME = @SctnName
+               ,REF_SUB_SYS = @RefSubSys
+               ,REF_CODE = @RefCode
                ,RQST_DESC = @RqstDesc               
           WHERE RQID = @Rqid;                
      

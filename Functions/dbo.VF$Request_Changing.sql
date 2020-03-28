@@ -27,7 +27,7 @@ RETURNS TABLE
                 CASE T.TOTL_AMNT
                      WHEN 0 THEN 0
                      ELSE 
-                ISNULL(( SELECT SUM(pc.AMNT)
+                ISNULL(( SELECT SUM(CAST(pc.AMNT AS BIGINT))
                          FROM   Payment_Discount pc
                          WHERE  pc.PYMT_CASH_CODE = T.CASH_CODE
                                 AND pc.PYMT_RQST_RQID = T.PYMT_RQST_RQID
@@ -44,9 +44,9 @@ RETURNS TABLE
                             r.CRET_BY ,
                             p.RQST_RQID AS PYMT_RQST_RQID ,
                             p.CASH_CODE ,                            
-                            ISNULL(SUM(CASE p.PYMT_STAT WHEN '001' THEN ( pd.EXPN_PRIC
+                            ISNULL(SUM(CAST(CASE p.PYMT_STAT WHEN '001' THEN ( pd.EXPN_PRIC
                                          + ISNULL(pd.EXPN_EXTR_PRCT, 0) )
-                                       * pd.QNTY ELSE 0 END), 0) AS TOTL_AMNT
+                                       * pd.QNTY ELSE 0 END AS BIGINT)), 0) AS TOTL_AMNT
                   FROM      dbo.Request r
                             INNER JOIN dbo.Request_Row rr ON r.RQID = rr.RQST_RQID
                             INNER JOIN dbo.Request_Type rqtp ON r.RQTP_CODE = rqtp.CODE

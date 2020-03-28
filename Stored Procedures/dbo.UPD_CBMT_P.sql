@@ -25,7 +25,8 @@ CREATE PROCEDURE [dbo].[UPD_CBMT_P]
    @Cbmt_Time     INT,
    @Cbmt_Time_Stat VARCHAR(3),
    @Clas_Time     INT,
-   @Amnt         BIGINT   
+   @Amnt         BIGINT,
+   @Natl_Code VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -75,7 +76,8 @@ BEGIN
          ,CBMT_TIME = @Cbmt_Time
          ,CBMT_TIME_STAT = @Cbmt_Time_Stat
          ,CLAS_TIME = @Clas_Time
-         ,AMNT = @Amnt         
+         ,AMNT = @Amnt
+         ,NATL_CODE = @Natl_Code
     WHERE CODE = @Code;
 END
 GO

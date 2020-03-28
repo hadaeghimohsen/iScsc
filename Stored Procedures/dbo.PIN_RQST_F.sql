@@ -54,7 +54,15 @@ BEGIN
 	           @RqtpCode VARCHAR(3),
 	           @RqttCode VARCHAR(3),
 	           @RegnCode VARCHAR(3),
-	           @PrvnCode VARCHAR(3);
+	           @PrvnCode VARCHAR(3),
+	           @MdulName VARCHAR(11),
+	           @SctnName VARCHAR(11),
+	           @LettNo VARCHAR(15),
+	           @LettDate DATETIME,
+	           @LettOwnr NVARCHAR(250),
+	           @RefSubSys INT,
+	           @RefCode BIGINT;
+	           
       DECLARE @FileNo BIGINT;   	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]', 'BIGINT')
@@ -62,6 +70,14 @@ BEGIN
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
+	         ,@MdulName = @X.query('//Request').value('(Request/@mdulname)[1]', 'VARCHAR(11)')
+	         ,@SctnName = @X.query('//Request').value('(Request/@sctnname)[1]', 'VARCHAR(11)')
+	         ,@RefSubSys = @X.query('//Request').value('(Request/@refsubsys)[1]', 'INT')
+	         ,@RefCode = @X.query('//Request').value('(Request/@refcode)[1]', 'BIGINT')
+	         ,@LettNo = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
+	         ,@LettDate = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
+	         ,@LettOwnr = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
+	         
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');
       
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
@@ -80,10 +96,18 @@ BEGIN
             @RqstRqid,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
-            NULL,
+            @LettNo,
+            @LettDate,
+            @LettOwnr,
             @Rqid OUT;      
+         
+         UPDATE Request
+            SET RQST_RQID = @RqstRqid
+               ,MDUL_NAME = @MdulName
+               ,SECT_NAME = @SctnName
+               ,REF_SUB_SYS = @RefSubSys
+               ,REF_CODE = @RefCode
+          WHERE RQID =  @Rqid;
       END
       ELSE
       BEGIN
@@ -91,15 +115,16 @@ BEGIN
             SET SSTT_MSTT_CODE = 1
                ,SSTT_CODE = 1
           WHERE RQID = @Rqid;
+         
          EXEC UPD_RQST_P
             @Rqid,
             @PrvnCode,
             @RegnCode,
             @RqtpCode,
             @RqttCode,
-            NULL,
-            NULL,
-            NULL;            
+            @LettNo,
+            @LettDate,
+            @LettOwnr;
       END
 
 
