@@ -31,7 +31,12 @@ BEGIN
    
    -- Temp Variable
    DECLARE @Cont BIGINT,
-           @xTemp XML;
+           @xTemp XML,
+           @TxfeAmnt BIGINT,
+           @TxfePrct SMALLINT,
+           @TxfeCalcAmnt BIGINT,
+           @DpstAmnt BIGINT,
+           @ColName VARCHAR(30);
    
    IF @CmndCode = '1'
    BEGIN
@@ -394,10 +399,11 @@ BEGIN
         >کارت حضور و غیاب *5*0*5#      قیمت فروش</Expense>        
         <Payment  />
       </Router_Command>
-      */
+      */      
+      
       DECLARE @docHandle INT;	
       EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
-
+      
       DECLARE C$Expns CURSOR
       FOR
       SELECT  *
@@ -423,6 +429,7 @@ BEGIN
         Tarf_Date DATE './@tarfdate',
         Expn_Pric BIGINT './@expnpric',
         Extr_Prct BIGINT './@extrprct',
+        Dscn_Pric BIGINT './@dscnpric',
         Rqtp_Code VARCHAR(3) './@rqtpcode',
         Numb REAL './@numb',
         Expn_Desc NVARCHAR(250) '.'
@@ -431,13 +438,13 @@ BEGIN
       
       DECLARE @SubSys INT, @RefSubSys INT, @RefCode BIGINT, @RefNumb VARCHAR(15), @ChatId BIGINT, @PymtMtod VARCHAR(3), @PymtDate DATETIME,
               @Amnt BIGINT, @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfDate DATE, @ExpnPric BIGINT,
-              @ExtrPrct BIGINT, @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
+              @ExtrPrct BIGINT, @DscnPric BIGINT, @PydsDesc NVARCHAR(250), @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
       
       OPEN [C$Expns];
       L$Loop$Expns:
       FETCH [C$Expns] INTO @SubSys, @RefSubSys, @RefCode, @RefNumb, @StrtDate, @EndDate, @Chatid, 
                            @FrstName, @LastName, @NatlCode, @CellPhon, @AmntType, @PymtMtod, @PymtDate, @Amnt,
-                           @Txid, @TarfCode, @TarfDate, @ExpnPric, @ExtrPrct, @RqtpCode, @Numb, @ExpnDesc;
+                           @Txid, @TarfCode, @TarfDate, @ExpnPric, @ExtrPrct, @DscnPric, @RqtpCode, @Numb, @ExpnDesc;
       
       IF @@FETCH_STATUS <> 0
       BEGIN
@@ -450,14 +457,15 @@ BEGIN
                       (
                         SELECT @CashCode AS '@cashcode',
                                @Rqid AS '@rqstrqid',
-                               CAST((@ExpnPric + ISNULL(@ExtrPrct, 0)) * @Numb AS BIGINT) AS '@amnt',
+                               --CAST((@ExpnPric + ISNULL(@ExtrPrct, 0)) * @Numb AS BIGINT) AS '@amnt',
+                               @Amnt AS '@amnt',
                                @PymtMtod AS '@rcptmtod',
                                @Txid AS '@refno',
                                @PymtDate AS '@actndate'
                            FOR XML PATH('Payment_Method'), ROOT('Insert'), TYPE                           
                       )                      
                  FOR XML PATH('Payment')                 
-            );            
+            ); 
             EXEC dbo.PAY_MSAV_P @X = @xTemp -- xml
             
             -- ذخیره نهایی درخواست
@@ -480,7 +488,7 @@ BEGIN
        WHERE CHAT_ID_DNRM = @ChatId;
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
-      IF @FileNo IS NOT NULL AND @FighStat = '001'
+      IF @FileNo IS NOT NULL AND (@FighStat = '001' AND NOT EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND RQST_RQID = @Rqid))
       BEGIN
          -- Exce {Event Log} for Ref Sub System
          SELECT @xRet = (
@@ -743,7 +751,7 @@ BEGIN
          EXEC dbo.PIN_SAVE_F @X = @xTemp -- xml   
       END 
       ELSE IF @RqtpCode = '016'
-      BEGIN
+      BEGIN 
          -- ثبت درخواست درآمد متفرقه
          IF @Rqid IS NULL
          BEGIN
@@ -805,7 +813,7 @@ BEGIN
             
             SET @CmndStat = '001'
             GOTO L$Loop$Expns;
-         END
+         END        
          
          -- درج ردیف هزینه در جدول هزینه
          EXEC dbo.INS_PYDT_P @PYMT_CASH_CODE = @CashCode, -- bigint
@@ -829,6 +837,18 @@ BEGIN
              @CBMT_CODE_DNRM = NULL, -- bigint
              @EXPR_DATE = @ExprDate, -- date
              @CODE = 0; -- bigint
+         
+         IF @DscnPric > 0
+         BEGIN
+            EXEC dbo.INS_PYDS_P @PymtCashCode = @CashCode, -- bigint
+                @PymtRqstRqid = @Rqid, -- bigint
+                @RqroRwno = 1, -- smallint
+                @ExpnCode = NULL, -- bigint
+                @Amnt = @DscnPric, -- int
+                @AmntType = '001', -- varchar(3)
+                @Stat = '002', -- varchar(3)
+                @PydsDesc = N''; -- nvarchar(250)            
+         END 
       END -- if @rqtpcode = '016'
       ELSE IF @RqtpCode = '020'
       BEGIN
@@ -848,7 +868,7 @@ BEGIN
                @Amnt AS 'Gain_Loss_Rials/@amnt',
                @PymtDate AS 'Gain_Loss_Rials/@paiddate',
                '002' AS 'Gain_Loss_Rials/@dpststat',
-               N'افزایش سپرده توسط نسخه موبایل',
+               N'افزایش سپرده توسط نسخه موبایل' AS 'Gain_Loss_Rials/@resndesc',
                (
                   SELECT 1 AS '@rwno',
                          @Amnt AS '@amnt',
@@ -928,7 +948,20 @@ BEGIN
                FOR XML PATH('Request'), ROOT('Process')
          );         
          EXEC dbo.BYR_TSAV_F @X = @xTemp -- xml
+      END
+      ELSE IF @RqtpCode = '002' 
+      BEGIN
+         SELECT @ColName = @X.query('//Router_Command').value('(Router_Command/@colname)[1]', 'VARCHAR(30)');
+         IF @ColName = 'brthdate'
+            UPDATE fp
+               SET fp.BRTH_DATE = @X.query('//Router_Command').value('(Router_Command/@colvalu)[1]', 'DATE')
+              FROM dbo.Fighter f, dbo.Fighter_Public fp
+             WHERE f.FILE_NO = fp.FIGH_FILE_NO
+               AND f.CHAT_ID_DNRM = @ChatId
+               AND f.FGPB_RWNO_DNRM = fp.RWNO
+               AND fp.RECT_CODE = '004';
       END 
+      
       GOTO L$Loop$Expns;
       L$EndLoopC$Expns:
       CLOSE [C$Expns];
@@ -973,7 +1006,405 @@ BEGIN
       SET @X.modify('insert attribute fileno {sql:variable("@fileno")} into (//Image)[1]');
       EXEC SET_IMAG_P @X;
    END
+   ELSE IF @CmndCode = '102'
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="100" ordrcode="13981127111545917" 
+          strtdate="2020-02-16T11:15:45.917" enddate="2020-02-27T22:30:41.937" 
+          chatid="181326222" amnttype="001" txfeamnt="" txfeprct="" txfecalcamnt="" >
+        <Expense 
+            tarfcode="000014152" tarfdate="2020-02-16" 
+            expnpric="10000" extrprct="0" rqtpcode="016"
+        >کارت حضور و غیاب *5*0*5#      قیمت فروش</Expense>
+        <Payment_Method @actndate="2020-04-07" rcptmtod="001" amnt="10000" flowno="1212" />
+        <Payment_Discount amnt="123" pydsdesc="..."/>
+        <Payment  />
+      </Router_Command>
+      */ 
+      
+      SELECT @SubSys = @X.query('//Router_Command').value('(Router_Command/@subsys)[1]', 'INT'),
+             @RefSubSys = @X.query('//Router_Command').value('(Router_Command/@refsubsys)[1]', 'INT'),
+             @RefCode = @X.query('//Router_Command').value('(Router_Command/@refcode)[1]', 'BIGINT'),
+             @RefNumb = @X.query('//Router_Command').value('(Router_Command/@refnumb)[1]', 'VARCHAR(15)'),
+             @ChatId = @X.query('//Router_Command').value('(Router_Command/@chatid)[1]', 'BIGINT'),
+             @StrtDate = @X.query('//Router_Command').value('(Router_Command/@strtdate)[1]', 'DATETIME'),
+             @EndDate = @X.query('//Router_Command').value('(Router_Command/@enddate)[1]', 'DATETIME'),
+             @FrstName = @X.query('//Router_Command').value('(Router_Command/@frstname)[1]', 'NVARCHAR(250)'),
+             @LastName = @X.query('//Router_Command').value('(Router_Command/@lastname)[1]', 'NVARCHAR(250)'),
+             @NatlCode = @X.query('//Router_Command').value('(Router_Command/@natlcode)[1]', 'VARCHAR(10)'),
+             @CellPhon = @X.query('//Router_Command').value('(Router_Command/@cellphon)[1]', 'VARCHAR(11)'),
+             @AmntType = @X.query('//Router_Command').value('(Router_Command/@amnttype)[1]', 'VARCHAR(3)'),
+             @TxfeAmnt = @X.query('//Router_Command').value('(Router_Command/@txfeamnt)[1]', 'BIGINT'),
+             @TxfePrct = @X.query('//Router_Command').value('(Router_Command/@txfeprct)[1]', 'SMALLINT'),
+             @TxfeCalcAmnt = @X.query('//Router_Command').value('(Router_Command/@txfecalcamnt)[1]', 'BIGINT');
+      
+      -- @@First Step Get Fileno from Services
+      SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
+        FROM dbo.Fighter
+       WHERE CHAT_ID_DNRM = @ChatId;
+      
+      -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
+      IF @FileNo IS NOT NULL AND @FighStat = '001'
+      BEGIN
+         -- Exce {Event Log} for Ref Sub System
+         SELECT @xRet = (
+               SELECT '002' AS '@needrecall'
+                     ,@RefSubSys AS '@subsys'
+                     ,'1000' AS '@cmndcode'                     
+                     ,@RefCode AS '@refcode'
+                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+                  FOR XML PATH('Router_Command')
+            );
+         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
+         SET @CmndStat = '001'
+         GOTO L$Loop$Expns;
+      END
+
+      
+      SELECT @xTemp = (
+         SELECT 0 AS '@rqid'
+               ,'016' AS '@rqtpcode'
+               ,'001' AS '@rqttcode'
+               ,'OIC_MOBL_F' AS '@mdulname'
+               ,'OIC_MOBL_F' AS '@sctnname'
+               ,@RefNumb AS '@lettno'
+               ,@StrtDate AS '@lettdate'
+               ,@ChatId AS '@lettownr'
+               ,@RefSubSys AS '@refsubsys'
+               ,@RefCode AS '@refcode'
+               ,(
+                  SELECT @FileNo AS '@fileno'
+                     FOR XML PATH('Request_Row'), TYPE                           
+               )
+            FOR XML PATH('Request'), ROOT('Process')
+      );
+      EXEC dbo.OIC_ERQT_F @X = @xTemp -- xml
    
+      -- بدست آوردن شماره درخواست درآمد متفرقه
+      SELECT @Rqid = RQID, @CashCode = p.CASH_CODE
+        FROM dbo.Request r, dbo.Payment p
+       WHERE r.RQID = p.RQST_RQID
+         AND r.RQTP_CODE = '016'
+         AND r.REF_CODE = @RefCode
+         AND r.REF_SUB_SYS = @RefSubSys
+         AND r.LETT_NO = @RefNumb
+         AND r.RQST_STAT = '001'
+         AND r.CRET_BY = UPPER(SUSER_NAME());
+      
+      -- درخواست حافظه برای باز کردن سند ایکس ام ال
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      -- خواندن اطلاعات سبد خرید برای ثبت در فاکتور مشتری
+      DECLARE C$Expns CURSOR FOR
+         SELECT *
+           FROM OPENXML(@docHandle, N'//Expense')
+           WITH (
+            Tarf_Code VARCHAR(100) './@tarfcode',
+            Tarf_Date DATE './@tarfdate',
+            Expn_Pric BIGINT './@expnpric',
+            Extr_Prct BIGINT './@extrprct',
+            Dscn_Pric BIGINT './@dscnpric',
+            Rqtp_Code VARCHAR(3) './@rqtpcode',
+            Numb REAL './@numb',
+            Expn_Desc NVARCHAR(250) '.'
+           );
+      
+      OPEN [C$Expns];
+      L$LoopC$Expns1:
+      FETCH [C$Expns] INTO @TarfCode, @TarfDate, @ExpnPric, @ExtrPrct, @DscnPric, @RqtpCode, @Numb, @ExpnDesc;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoopC$Expns1;
+      
+      -- ابتدا باید متوجه شویم که کد تعرفه متعلق به چه هزینه ای متصل می باشد
+      SELECT @ExpnCode = e.CODE, @ExprDate = DATEADD(DAY, e.NUMB_CYCL_DAY, GETDATE())
+        FROM dbo.Expense e, dbo.Expense_Type et, dbo.Request_Requester rr
+       WHERE e.EXTP_CODE = et.CODE
+         AND et.RQRQ_CODE = rr.CODE
+         --AND e.EXPN_STAT = '002'
+         AND rr.RQTP_CODE = @RqtpCode
+         AND e.ORDR_ITEM = CAST(@TarfCode AS BIGINT);
+      
+      -- اگر کد هزینه ای برای کد تعرفه ارسال شده وجود نداشته باشد
+      -- البته این گزینه خیلی اتفاق نمی افتد 
+      -- فقط زمانی این کار انجام میشود که کد تعرفه محصول عوض شده باشد 
+      IF @ExpnCode IS NULL
+      BEGIN
+         -- Exce {Event Log} for Ref Sub System
+         SELECT @xRet = (
+            SELECT '002' AS '@needrecall'
+                  ,@RefSubSys AS '@subsys'
+                  ,'1000' AS '@cmndcode'                     
+                  ,@RefCode AS '@refcode'
+                  ,N'برای کد تعرفه ' + @TarfCode + N' هیچ گونه آیتم هزینه پیدا نشد' AS '@logtext'
+               FOR XML PATH('Router_Command')
+         );
+         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
+         
+         SET @CmndStat = '001'
+         GOTO L$Loop$Expns;
+      END        
+      
+      -- درج ردیف هزینه در جدول هزینه
+      EXEC dbo.INS_PYDT_P @PYMT_CASH_CODE = @CashCode, -- bigint
+          @PYMT_RQST_RQID = @Rqid, -- bigint
+          @RQRO_RWNO = 1, -- smallint
+          @EXPN_CODE = @ExpnCode, -- bigint
+          @PAY_STAT = '001', -- varchar(3)
+          @EXPN_PRIC = @ExpnPric, -- int
+          @EXPN_EXTR_PRCT = @ExtrPrct, -- int
+          @REMN_PRIC = 0, -- int
+          @QNTY = @Numb, -- smallint
+          @DOCM_NUMB = 0, -- bigint
+          @ISSU_DATE = NULL, -- datetime
+          @RCPT_MTOD = @PymtMtod, -- varchar(3)
+          @RECV_LETT_NO = @RefNumb, -- varchar(15)
+          @RECV_LETT_DATE = @StrtDate, -- datetime
+          @PYDT_DESC = @ExpnDesc, -- nvarchar(250)
+          @ADD_QUTS = '', -- varchar(3)
+          @Figh_File_No = NULL, -- bigint
+          @PRE_EXPN_STAT = '', -- varchar(3)
+          @CBMT_CODE_DNRM = NULL, -- bigint
+          @EXPR_DATE = @ExprDate, -- date
+          @CODE = 0; -- bigint
+      
+      IF @DscnPric > 0
+      BEGIN
+         EXEC dbo.INS_PYDS_P @PymtCashCode = @CashCode, -- bigint
+             @PymtRqstRqid = @Rqid, -- bigint
+             @RqroRwno = 1, -- smallint
+             @ExpnCode = NULL, -- bigint
+             @Amnt = @DscnPric, -- int
+             @AmntType = '001', -- varchar(3)
+             @Stat = '002', -- varchar(3)
+             @PydsDesc = @ExpnDesc; -- nvarchar(250)            
+      END  
+      
+      GOTO L$LoopC$Expns1;
+      L$EndLoopC$Expns1:
+      CLOSE [C$Expns];
+      DEALLOCATE [C$Expns];
+      
+      EXEC sp_xml_removedocument @docHandle;  
+      
+      -- درخواست حافظه برای ثبت اطلاعات پرداخت درخواست
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pymts CURSOR FOR
+         SELECT *
+           FROM OPENXML(@docHandle, N'//Payment_Method')
+           WITH (
+            Actn_Date DATETIME './@actndate',
+            Rcpt_Mtod VARCHAR(3) './@rcptmtod',
+            Amnt BIGINT './@amnt',
+            Flow_No VARCHAR(20) './@flowno'
+           );
+      
+      OPEN [C$Pymts];
+      L$LoopC$Pymts1:
+      FETCH [C$Pymts] INTO @PymtDate, @PymtMtod, @Amnt, @Txid;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoopC$Pymts1;
+      
+      -- ثبت وصولی درخواست
+      SELECT @xTemp = (
+         SELECT 'InsertUpdate' AS '@actntype',
+                (
+                  SELECT @CashCode AS '@cashcode',
+                         @Rqid AS '@rqstrqid',
+                         @Amnt AS '@amnt',
+                         @PymtMtod AS '@rcptmtod',
+                         @Txid AS '@refno',
+                         @PymtDate AS '@actndate'
+                     FOR XML PATH('Payment_Method'), ROOT('Insert'), TYPE                           
+                )                      
+           FOR XML PATH('Payment')                 
+      ); 
+      EXEC dbo.PAY_MSAV_P @X = @xTemp -- xml
+      
+      GOTO L$LoopC$Pymts1;
+      L$EndLoopC$Pymts1:      
+      CLOSE [C$Pymts];
+      DEALLOCATE [C$Pymts];
+      
+      EXEC sp_xml_removedocument @docHandle;
+      
+      -- درخواست حافظه برای ثبت اطلاعات تخفیف نقدی درخواست
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pyds CURSOR FOR
+         SELECT *
+           FROM OPENXML(@docHandle, N'//Payment_Discount')
+           WITH (            
+            Amnt BIGINT './@amnt',
+            Pyds_Desc NVARCHAR(250) './@pydsdesc'
+           );
+      
+      OPEN [C$Pyds];
+      L$LoopC$Pyds1:
+      FETCH [C$Pyds] INTO @DscnPric, @PydsDesc;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoopC$Pyds1;
+      
+      -- ثبت تخفیف نقدی درخواست
+      EXEC dbo.INS_PYDS_P @PymtCashCode = @CashCode, -- bigint
+                @PymtRqstRqid = @Rqid, -- bigint
+                @RqroRwno = 1, -- smallint
+                @ExpnCode = NULL, -- bigint
+                @Amnt = @DscnPric, -- int
+                @AmntType = '001', -- varchar(3)
+                @Stat = '002', -- varchar(3)
+                @PydsDesc = @PydsDesc; -- nvarchar(250)  
+      
+      GOTO L$LoopC$Pyds1;
+      L$EndLoopC$Pyds1:      
+      CLOSE [C$Pyds];
+      DEALLOCATE [C$Pyds];
+      
+      EXEC sp_xml_removedocument @docHandle;
+      
+      -- اگر درخواست شامل هزینه های متفرقه ای داشته باشد آن را در جدول هزینه های فاکتور ذخیره میکنیم
+      IF ISNULL(@TxfeCalcAmnt, 0) > 0
+      BEGIN
+         -- هزینه اول بابت کسر حق بازاریابی و فروش اینترنتی
+         INSERT INTO dbo.Payment_Cost(PYMT_CASH_CODE ,PYMT_RQST_RQID ,CODE ,AMNT ,COST_TYPE, EFCT_TYPE ,COST_DESC)
+         VALUES (@CashCode, @Rqid, 0, @TxfeCalcAmnt, '001', '002', dbo.STR_FRMT_U(N'کسر {0} % کارمزد / پورسانت بابت قرارداد فروش انلاین ، خدمات و پشتیبانی شرکت و کارفرما', @TxfePrct))
+      END 
+      
+      IF ISNULL(@TxfeAmnt, 0) > 0
+      BEGIN
+         -- هزینه کارمزد خدمات غیرحضوری برای مشتری
+         INSERT INTO dbo.Payment_Cost(PYMT_CASH_CODE ,PYMT_RQST_RQID ,CODE ,AMNT ,COST_TYPE, EFCT_TYPE ,COST_DESC)
+         VALUES (@CashCode, @Rqid, 0, @TxfeAmnt, '001', '001', dbo.STR_FRMT_U(N'مبلغ {0} کارمزد خدمات غیرحضوری بابت قرارداد فروش نسخه موبایل و وب انلاین ، خدمات و پشتیبانی شرکت و مشتریان کارفرما', @TxfeAmnt ))
+      END       
+      
+      -- ذخیره نهایی درخواست
+      SELECT @xTemp = (
+         SELECT @rqid AS '@rqid',
+                1 AS 'Request_Row/@rwno',
+                @FileNo AS 'Request_Row/@fileno',
+                0 AS 'Payment/@setondebt'
+            FOR XML PATH('Request'), ROOT('Process')
+      );      
+      EXEC dbo.OIC_ESAV_F @X = @xTemp -- xml            
+      
+      -- اگر عملیات بدون هیچ مشکلی انجام شود
+      IF @CmndStat = '002'
+      BEGIN
+         SELECT @xRet = (
+            SELECT '002' AS '@needrecall'
+                  ,@RefSubSys AS '@subsys'
+                  ,'2000' AS '@cmndcode'
+                  ,@RefCode AS '@refcode'
+                  ,'successfull' AS '@rsltdesc'
+                  ,'002' AS '@rsltcode'
+               FOR XML PATH('Router_Command')
+         );
+         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
+      END
+      
+      -- در انتها اگر که درخواستی که انجام شده دارای کارمزد از مشتری داشته باشد آن را به عنوان تغییرات ریالی از مشتری کسر میکنیم
+      IF ISNULL(@TxfeAmnt, 0) > 0
+      BEGIN
+         -- گام اول ایا مشتری اعتبار دارد یا خیر
+         SELECT @DpstAmnt = ISNULL(DPST_AMNT_DNRM, 0)
+           FROM dbo.Fighter
+          WHERE FILE_NO = @FileNo;
+         
+         -- اگر مبلغ کارمزد از مبلغ سپرده بیشتر باشد به این معنا هست که مشتری مبلغ کارمزد را خودش پرداخت کرده         
+         IF @DpstAmnt < @TxfeAmnt
+         BEGIN
+            -- پس در اینجا ما ابتدا به اندازه مبلغ مورد نیاز افزایش اعتبار می زنیم
+            SELECT @x = (
+               SELECT 
+                  0 AS '@rqid',
+                  'GLR_MOBL_F' AS '@mdulname',
+                  'GKR_MOBL_F' AS '@sctnname',
+                  @RefNumb AS '@lettno',
+                  @StrtDate AS '@lettdate',
+                  @ChatId AS '@lettownr',
+                  @RefSubSys AS '@refsubsys',
+                  @RefCode AS '@refcode',
+                  @FileNo AS 'Request_Row/@fighfileno',
+                  0 AS 'Gain_Loss_Rials/@glid',
+                  '002' AS 'Gain_Loss_Rials/@type',
+                  (@TxfeAmnt - @DpstAmnt) AS 'Gain_Loss_Rials/@amnt',
+                  @PymtDate AS 'Gain_Loss_Rials/@paiddate',
+                  '002' AS 'Gain_Loss_Rials/@dpststat',
+                  dbo.STR_FRMT_U(N'افزایش مبلغ سپرده برای کسر کارمزد برای ثبت سفارش {0} توسط نسخه موبایل یا وب سایت فروشگاه انلاین', @RefCode) AS 'Gain_Loss_Rials/@resndesc',
+                  (
+                     SELECT 1 AS '@rwno',
+                            (@TxfeAmnt - @DpstAmnt) AS '@amnt',
+                            @PymtMtod AS '@rcptmtod'
+                        FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
+                  )
+                  FOR XML PATH('Request'), ROOT('Process')
+            );
+            EXEC dbo.GLR_TRQT_P @X = @X -- xml         
+            SELECT @Rqid = RQID
+              FROM dbo.Request r
+             WHERE r.RQTP_CODE = '020'
+               AND r.RQST_STAT = '001'
+               AND r.RQTT_CODE = '004'
+               AND r.REF_CODE = @RefCode
+               AND r.REF_SUB_SYS = @RefSubSys
+               AND r.LETT_NO = @RefNumb
+               AND r.CRET_BY = UPPER(SUSER_NAME())
+               AND SUB_SYS = 1;         
+            SELECT @X = (
+               SELECT @Rqid AS '@rqid'
+                  FOR XML PATH('Request'), ROOT('Process')
+            );         
+            EXEC dbo.GLR_TSAV_P @X = @X -- xml  
+         END          
+         
+         SELECT @x = (
+            SELECT 
+               0 AS '@rqid',
+               'GLR_MOBL_F' AS '@mdulname',
+               'GKR_MOBL_F' AS '@sctnname',
+               @RefNumb AS '@lettno',
+               @StrtDate AS '@lettdate',
+               @ChatId AS '@lettownr',
+               @RefSubSys AS '@refsubsys',
+               @RefCode AS '@refcode',
+               @FileNo AS 'Request_Row/@fighfileno',
+               0 AS 'Gain_Loss_Rials/@glid',
+               '002' AS 'Gain_Loss_Rials/@type',
+               @TxfeAmnt AS 'Gain_Loss_Rials/@amnt',
+               @PymtDate AS 'Gain_Loss_Rials/@paiddate',
+               '001' AS 'Gain_Loss_Rials/@dpststat',
+               dbo.STR_FRMT_U(N'کسر کارمزد برای ثبت سفارش {0} توسط نسخه موبایل یا وب سایت فروشگاه انلاین', @RefCode) AS 'Gain_Loss_Rials/@resndesc',
+               (
+                  SELECT 1 AS '@rwno',
+                         @TxfeAmnt AS '@amnt',
+                         @PymtMtod AS '@rcptmtod'
+                     FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
+               )
+               FOR XML PATH('Request'), ROOT('Process')
+         );
+         EXEC dbo.GLR_TRQT_P @X = @X -- xml         
+         SELECT @Rqid = RQID
+           FROM dbo.Request r
+          WHERE r.RQTP_CODE = '020'
+            AND r.RQST_STAT = '001'
+            AND r.RQTT_CODE = '004'
+            AND r.REF_CODE = @RefCode
+            AND r.REF_SUB_SYS = @RefSubSys
+            AND r.LETT_NO = @RefNumb
+            AND r.CRET_BY = UPPER(SUSER_NAME())
+            AND SUB_SYS = 1;         
+         SELECT @X = (
+            SELECT @Rqid AS '@rqid'
+               FOR XML PATH('Request'), ROOT('Process')
+         );         
+         EXEC dbo.GLR_TSAV_P @X = @X -- xml  
+      END 
+   END
    
    L$EndSp:
    COMMIT TRAN RUNR_DBCM_T05;

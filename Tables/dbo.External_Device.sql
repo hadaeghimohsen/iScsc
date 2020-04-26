@@ -12,13 +12,13 @@ CREATE TABLE [dbo].[External_Device]
 [PORT_SEND] [bigint] NULL,
 [PORT_RECV] [bigint] NULL,
 [MTOD_CODE] [bigint] NULL,
+[STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXPN_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL,
-[STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[EXPN_CODE] [bigint] NULL
+[MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON

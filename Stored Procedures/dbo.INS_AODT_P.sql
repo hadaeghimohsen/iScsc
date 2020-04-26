@@ -35,7 +35,9 @@ AS
                     @Figh_File_No = FILE_NO
             FROM    dbo.Fighter
             WHERE   FGPB_TYPE_DNRM = '005';
-       
+        
+        IF @Figh_File_No IS NULL RETURN;
+         
         INSERT  dbo.Aggregation_Operation_Detail
                 ( AGOP_CODE ,
                   RWNO ,

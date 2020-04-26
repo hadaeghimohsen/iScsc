@@ -145,6 +145,58 @@ BEGIN
                              AND MTOD.CODE = S.MTOD_CODE)*/;
 
    
+   -- بروز رسانی گروه ها، و برندهای پدر
+   IF EXISTS(
+      SELECT *
+        FROM Inserted i
+       WHERE i.GROP_CODE IS NOT NULL 
+          OR i.BRND_CODE IS NOT NULL
+   )
+   BEGIN
+      -- بروز رسانی گروه جدید
+      UPDATE ge
+         SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.GROP_CODE = ge.CODE)
+        FROM Group_Expense ge, INSERTed i
+       WHERE ge.CODE = i.GROP_CODE         
+         AND ge.STAT = '002';
+      
+      IF EXISTS(SELECT * FROM Inserted i, Deleted d WHERE i.GROP_CODE != d.GROP_CODE)
+      BEGIN
+         -- بروز رسانی گروه جدید
+         UPDATE ge
+            SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.GROP_CODE = ge.CODE)
+           FROM Group_Expense ge, Deleted d
+          WHERE ge.CODE = d.GROP_CODE         
+            AND ge.STAT = '002';
+      END 
+      
+      -- بروز رسانی برند جدید
+      UPDATE ge
+         SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.BRND_CODE = ge.CODE)
+        FROM Group_Expense ge, INSERTed i
+       WHERE ge.CODE = i.BRND_CODE
+         AND ge.STAT = '002';
+      
+      IF EXISTS(SELECT * FROM Inserted i, Deleted d WHERE i.BRND_CODE != d.BRND_CODE)
+      BEGIN
+         -- بروز رسانی برند قدیم
+         UPDATE ge
+            SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.BRND_CODE = ge.CODE)
+           FROM Group_Expense ge, Deleted d
+          WHERE ge.CODE = d.BRND_CODE
+            AND ge.STAT = '002';
+      END 
+      
+      -- بروزرسانی اطلاعات درون سیستم ربات
+      IF EXISTS(SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+      BEGIN
+         UPDATE rp
+            SET rp.GROP_TEXT_DNRM = ''
+           FROM iRoboTech.dbo.Robot_Product rp, Inserted i 
+          WHERE rp.TARF_CODE = i.ORDR_ITEM;
+      END 
+   END
+   
    COMMIT TRAN CG$AUPD_EXPN_T;
    END TRY
    BEGIN CATCH

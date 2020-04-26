@@ -130,6 +130,11 @@ BEGIN
 	         ,@DpstStat = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@dpststat)[1]', 'VARCHAR(3)');
 	         --,@RqroRwnoDnrm = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@rqrorwnodnrm)[1]', 'SMALLINT');
 	   
+	   -- ثبت دلیل انجام تغییرات ریالی برای درخواست
+	   UPDATE dbo.Request 
+	      SET RQST_DESC = @ResnDesc
+	    WHERE RQID = @Rqid;
+	   
 	   IF @Type = '001'
 	   BEGIN	   
 	      IF LEN(@ChngType) <> 3 BEGIN RAISERROR(N'نوع تغییرات ریالی وارد نشده', 16, 1); RETURN; END
