@@ -297,7 +297,7 @@ BEGIN
          ,@COCH_DEG            = T.[COCH_DEG]                     , @GUDG_DEG       = T.[GUDG_DEG]
          ,@GLOB_CODE           = T.[GLOB_CODE]                    , @TYPE           = T.[TYPE]
          ,@POST_ADRS           = T.[POST_ADRS]                    , @EMAL_ADRS      = T.[EMAL_ADRS]
-         ,@INSR_NUMB           = T.INSR_NUMB                      , @INSR_DATE   = T.INSR_DATE
+         ,@INSR_NUMB           = T.INSR_NUMB                      , @INSR_DATE      = T.INSR_DATE
          ,@COCH_FILE_NO        = T.[COCH_FILE_NO]                 , @CBMT_CODE      = T.[CBMT_CODE]
          ,@DAY_TYPE            = T.[DAY_TYPE]                     , @ATTN_TIME      = T.[ATTN_TIME]
          ,@EDUC_DEG            = T.[EDUC_DEG]                     , @COCH_CRTF_DATE = T.[COCH_CRTF_DATE]
@@ -311,7 +311,7 @@ BEGIN
          ,@FATH_WORK           = T.FATH_WORK                      , @HIST_DESC      = T.HIST_DESC
          --,@INTR_FILE_NO        = T.INTR_FILE_NO                   , @DPST_ACNT_SLRY_BANK = T.DPST_ACNT_SLRY_BANK
          ,@DPST_ACNT_SLRY      = T.DPST_ACNT_SLRY                 , @CHAT_ID        = T.CHAT_ID
-         /*,@FMLY_NUMB           = T.FMLY_NUMB                    */  , @MOM_CELL_PHON  = T.MOM_CELL_PHON
+         /*,@FMLY_NUMB           = T.FMLY_NUMB                */  , @MOM_CELL_PHON  = T.MOM_CELL_PHON
          ,@MOM_TELL_PHON       = T.MOM_TELL_PHON                  , @MOM_CHAT_ID    = T.MOM_CHAT_ID
          ,@DAD_CELL_PHON       = T.DAD_CELL_PHON                  , @DAD_TELL_PHON  = T.DAD_TELL_PHON
          ,@DAD_CHAT_ID         = T.DAD_CHAT_ID

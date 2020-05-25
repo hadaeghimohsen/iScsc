@@ -280,6 +280,9 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@IdtyNumb = P.IDTY_NUMB
+             ,@ZipCode = P.ZIP_CODE
+             ,@Cmnt = P.CMNT             
              --,@UnitBlokCndoCode = P.UNIT_BLOK_CNDO_CODE
              --,@UnitBlokCode = P.UNIT_BLOK_CODE
              --,@UnitCode = P.UNIT_CODE
@@ -579,7 +582,7 @@ BEGIN
            ,@Dad_Cell_Phon = @DadCellPhon
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
-           ,@IDTY_NUMB = @IDTYNUMB
+           ,@IDTY_NUMB = @IdtyNumb
            --,@WATR_FABR_NUMB = @WATRFABRNUMB
            --,@GAS_FABR_NUMB = @GASFABRNUMB
            --,@POWR_FABR_NUMB = @POWRFABRNUMB
@@ -683,7 +686,7 @@ BEGIN
            ,@Dad_Cell_Phon = @DadCellPhon
            ,@Dad_Tell_Phon = @DadTellPhon
            ,@Dad_Chat_Id = @DadChatId
-           ,@IDTY_NUMB = @IDTYNUMB
+           ,@IDTY_NUMB = @IdtyNumb
            --,@WATR_FABR_NUMB = @WATRFABRNUMB
            --,@GAS_FABR_NUMB = @GASFABRNUMB
            --,@POWR_FABR_NUMB = @POWRFABRNUMB

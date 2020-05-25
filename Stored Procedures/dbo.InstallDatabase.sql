@@ -68,7 +68,7 @@ BEGIN
       DELETE dbo.Dresser_Attendance;
       DELETE dbo.Dresser;   
       DELETE dbo.Expense_Item;
-      DELETE dbo.Group_Expense;
+      --DELETE dbo.Group_Expense;
       DELETE dbo.Holidays;
       DELETE dbo.Organ WHERE CODE != '00';
       DELETE dbo.Sub_Unit WHERE CODE != '0000';

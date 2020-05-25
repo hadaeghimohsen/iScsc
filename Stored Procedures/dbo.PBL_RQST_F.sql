@@ -523,6 +523,9 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@IdtyNumb = p.IDTY_NUMB
+             ,@ZipCode = p.ZIP_CODE
+             ,@Cmnt = p.CMNT
              --,@UnitBlokCndoCode = P.UNIT_BLOK_CNDO_CODE
              --,@UnitBlokCode = P.UNIT_BLOK_CODE
              --,@UnitCode = P.UNIT_CODE

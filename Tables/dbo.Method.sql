@@ -103,7 +103,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = DBO.GNRT_NVID_U()
+            ,CODE      = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END
             ,EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
             ,CHCK_ATTN_ALRM = ISNULL(s.CHCK_ATTN_ALRM, '001')
             ,T.SHAR_STAT = ISNULL(s.SHAR_STAT, '001');

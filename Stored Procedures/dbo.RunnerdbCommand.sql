@@ -16,16 +16,11 @@ BEGIN
    SELECT @CmndCode = @X.query('Router_Command').value('(Router_Command/@cmndcode)[1]', 'VARCHAR(10)');
    
    -- Base Variable
-   DECLARE @FileNo BIGINT          ,@NatlCode VARCHAR(10)
-          ,@CellPhon VARCHAR(11)   ,@Password VARCHAR(250)
-          ,@Rqid BIGINT            ,@CashCode BIGINT
-          ,@PymtAmnt BIGINT        ,@AmntType VARCHAR(3)
-          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)
-          ,@LastName NVARCHAR(250) ,@BrthDate DATE
-          ,@SexType VARCHAR(3)     ,@CbmtCode BIGINT
-          ,@MtodCode BIGINT        ,@CtgyCode BIGINT          
-          ,@StrtDate DATE          ,@EndDate  DATE
-          ,@NumAttnMont INT        ,@FighStat VARCHAR(3)
+   DECLARE @FileNo BIGINT          ,@NatlCode VARCHAR(10)          ,@CellPhon VARCHAR(11)   ,@Password VARCHAR(250)
+          ,@Rqid BIGINT            ,@CashCode BIGINT               ,@PymtAmnt BIGINT        ,@AmntType VARCHAR(3)
+          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)        ,@LastName NVARCHAR(250) ,@BrthDate DATE
+          ,@SexType VARCHAR(3)     ,@CbmtCode BIGINT               ,@MtodCode BIGINT        ,@CtgyCode BIGINT          
+          ,@StrtDate DATE          ,@EndDate  DATE                 ,@NumAttnMont INT        ,@FighStat VARCHAR(3)
           ,@ExpnCode BIGINT        ,@ExprDate DATETIME;
           
    
@@ -416,6 +411,7 @@ BEGIN
         Strt_Date DATETIME '../@strtdate',
         End_Date DATETIME '../@enddate',
         Chat_Id BIGINT '../@chatid',
+        Fngr_Prnt VARCHAR(20) '../@fngrprnt',
         Frst_Name NVARCHAR(250) '../@frstname',
         Last_Name NVARCHAR(250) '../@lastname',
         Natl_Code VARCHAR(10) '../@natlcode',
@@ -437,12 +433,12 @@ BEGIN
       ORDER BY Rqtp_Code;
       
       DECLARE @SubSys INT, @RefSubSys INT, @RefCode BIGINT, @RefNumb VARCHAR(15), @ChatId BIGINT, @PymtMtod VARCHAR(3), @PymtDate DATETIME,
-              @Amnt BIGINT, @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfDate DATE, @ExpnPric BIGINT,
+              @Amnt BIGINT, @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfName NVARCHAR(250), @TarfDate DATE, @ExpnPric BIGINT,
               @ExtrPrct BIGINT, @DscnPric BIGINT, @PydsDesc NVARCHAR(250), @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
       
       OPEN [C$Expns];
       L$Loop$Expns:
-      FETCH [C$Expns] INTO @SubSys, @RefSubSys, @RefCode, @RefNumb, @StrtDate, @EndDate, @Chatid, 
+      FETCH [C$Expns] INTO @SubSys, @RefSubSys, @RefCode, @RefNumb, @StrtDate, @EndDate, @Chatid, @FngrPrnt,
                            @FrstName, @LastName, @NatlCode, @CellPhon, @AmntType, @PymtMtod, @PymtDate, @Amnt,
                            @Txid, @TarfCode, @TarfDate, @ExpnPric, @ExtrPrct, @DscnPric, @RqtpCode, @Numb, @ExpnDesc;
       
@@ -486,6 +482,11 @@ BEGIN
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
        WHERE CHAT_ID_DNRM = @ChatId;
+      
+      IF @FileNo IS NULL
+         SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
+           FROM dbo.Fighter
+          WHERE FNGR_PRNT_DNRM = @FngrPrnt;
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
       IF @FileNo IS NOT NULL AND (@FighStat = '001' AND NOT EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND RQST_RQID = @Rqid))
@@ -1405,6 +1406,75 @@ BEGIN
          EXEC dbo.GLR_TSAV_P @X = @X -- xml  
       END 
    END
+   ELSE IF @CmndCode = '103' /* تعریف کالای جدید */
+   BEGIN
+      SELECT @SubSys = @X.query('//Router_Command').value('(Router_Command/@subsys)[1]', 'INT'),
+             @RefSubSys = @X.query('//Router_Command').value('(Router_Command/@refsubsys)[1]', 'INT'),             
+             @TarfCode = @X.query('//Router_Command').value('(Router_Command/@tarfcode)[1]', 'VARCHAR(100)'),
+             @TarfName = @X.query('//Router_Command').value('(Router_Command/@tarfname)[1]', 'NVARCHAR(250)');
+      
+      -- ثبت آیتم درآمد درجدول آیتم ها
+      EXEC dbo.INS_EPIT_P @Epit_Desc = @TarfName, -- nvarchar(250)
+          @Type = '001', -- varchar(3)
+          @Rqtp_Code = '016', -- varchar(3)
+          @Rqtt_Code = '001', -- varchar(3)
+          @Imag = NULL -- image
+      
+      -- ثبت ردیف نوع درآمد
+      INSERT INTO dbo.Expense_Type(RQRQ_CODE ,EPIT_CODE ,CODE ,EXTP_DESC)
+      SELECT rr.CODE, ei.CODE, 0, ei.EPIT_DESC
+        FROM dbo.Regulation rg, dbo.Request_Requester rr, dbo.Expense_Item ei
+       WHERE rg.TYPE = '001'
+         AND rg.REGL_STAT = '002'
+         AND rg.YEAR = rr.REGL_YEAR
+         AND rg.CODE = rr.REGL_CODE
+         AND rr.RQTP_CODE = ei.RQTP_CODE
+         AND rr.RQTT_CODE = ei.RQTT_CODE
+         AND ei.EPIT_DESC = @TarfName;
+      
+      -- Get MtodCode And CtgyCode
+      SELECT @MtodCode = T.MTOD_CODE, @CtgyCode = T.CTGY_CODE
+        FROM (
+               SELECT TOP 1
+                      e.MTOD_CODE, e.CTGY_CODE, COUNT(e.MTOD_CODE) AS CONT_MTOD_CODE
+                 FROM dbo.Expense e, dbo.Expense_Type et, dbo.Request_Requester rr, dbo.Regulation rg
+                WHERE rg.YEAR = rr.REGL_YEAR
+                  AND rg.CODE = rr.REGL_CODE
+                  AND rr.CODE = et.RQRQ_CODE
+                  and rr.RQTP_CODE = '016'
+                  AND rr.RQTT_CODE = '001'
+                  AND et.CODE = e.EXTP_CODE
+                  AND e.EXPN_STAT = '002'
+                GROUP BY e.MTOD_CODE, e.CTGY_CODE
+                ORDER BY COUNT(e.MTOD_CODE) DESC
+             ) T;
+       
+      -- بروزرسانی جدول درآمدها
+      UPDATE e
+         SET e.EXPN_STAT = '002',
+             e.ORDR_ITEM = CASE WHEN @TarfCode IS NULL OR @TarfCode = '' THEN 0 ELSE @TarfCode END 
+        FROM dbo.Expense e, dbo.Expense_Type et, dbo.Expense_Item ei, dbo.Request_Requester rr, dbo.Regulation rg
+       WHERE rg.YEAR = rr.REGL_YEAR
+         AND rg.CODE = rr.REGL_CODE
+         AND rr.CODE = et.RQRQ_CODE
+         AND rr.RQTP_CODE = '016'
+         AND rr.RQTT_CODE = '001'
+         AND et.EPIT_CODE = ei.CODE
+         AND et.CODE = e.EXTP_CODE
+         AND e.MTOD_CODE = @MtodCode
+         AND e.CTGY_CODE = @CtgyCode         
+         AND ei.EPIT_DESC = @TarfName;
+      
+      SELECT @xRet = (
+         SELECT '001' AS '@needrecall'
+               ,@RefSubSys AS '@subsys'
+               ,'2000' AS '@cmndcode'
+               ,@RefCode AS '@refcode'
+               ,'successfull' AS '@rsltdesc'
+               ,'002' AS '@rsltcode'
+            FOR XML PATH('Router_Command')
+      );             
+   END 
    
    L$EndSp:
    COMMIT TRAN RUNR_DBCM_T05;

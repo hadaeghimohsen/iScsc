@@ -11,6 +11,7 @@ CREATE TABLE [dbo].[External_Device]
 [IP_ADRS] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_SEND] [bigint] NULL,
 [PORT_RECV] [bigint] NULL,
+[SERV_IP_ADRS] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MTOD_CODE] [bigint] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -111,6 +112,9 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت دریافت داده از گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_RECV'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت ارسال داده به گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_SEND'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'آدرس سرور 
+برای راه اندازی برای آن سیستمی که به عنوان سرور شناسایی می شود', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'SERV_IP_ADRS'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت دستگاه', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'STAT'
 GO

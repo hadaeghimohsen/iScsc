@@ -95,7 +95,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = dbo.Gnrt_Nvid_U()
+            ,CODE      = CASE s.code WHEN 0 THEN dbo.Gnrt_Nvid_U() ELSE s.CODE END
             ,ORDR      = CASE WHEN S.Ordr IS NULL THEN (SELECT COUNT(*) FROM dbo.Category_Belt c WHERE c.MTOD_CODE = S.Mtod_Code) ELSE S.Ordr END
             ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END;
    

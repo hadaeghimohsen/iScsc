@@ -124,7 +124,7 @@ BEGIN
    --RAISERROR(N'[CG$AUPD_EXPN]', 16, 1);
    
    MERGE dbo.Expense T
-   USING (SELECT E.Code, E.Regl_Year, E.Regl_Code, I.Extp_Code, I.Ctgy_Code, I.Mtod_Code, I.Pric, I.Expn_Desc, I.EXPN_TYPE, I.Numb_Of_Stok, I.Numb_Of_Sale, I.Numb_Of_Remn_Dnrm, I.Covr_Tax FROM INSERTED I, Expense E WHERE I.Code = E.Code) S
+   USING (SELECT E.Code, E.Regl_Year, E.Regl_Code, I.Extp_Code, I.Ctgy_Code, I.Mtod_Code, I.Pric, I.Expn_Desc, I.EXPN_TYPE, I.Numb_Of_Stok, I.Numb_Of_Sale, I.Numb_Of_Remn_Dnrm, I.Covr_Tax, i.ORDR_ITEM FROM INSERTED I, Expense E WHERE I.Code = E.Code) S
    ON (T.REGL_YEAR = S.REGL_YEAR AND
        T.REGL_CODE = S.REGL_CODE AND
        T.EXTP_CODE = S.EXTP_CODE AND
@@ -138,6 +138,13 @@ BEGIN
             ,EXTR_PRCT = CASE S.Covr_Tax WHEN '002' THEN (SELECT (S.PRIC * (TAX_PRCT + DUTY_PRCT)) / 100 FROM dbo.Regulation WHERE [YEAR] = S.REGL_YEAR AND CODE = S.REGL_CODE AND [TYPE] = '001') ELSE 0 END
             ,EXPN_DESC = CASE WHEN LEN(S.EXPN_DESC) = 0 OR S.EXPN_DESC IS NULL THEN (SELECT EPIT_DESC FROM Expense_Type Et, Expense_Item Ei WHERE Et.Code = S.Extp_Code AND Et.Epit_Code = Ei.Code) ELSE S.Expn_Desc END
             ,NUMB_OF_REMN_DNRM = CASE S.EXPN_TYPE WHEN '001' /* خدمت */ THEN S.NUMB_OF_REMN_DNRM WHEN '002' /* کالا */ THEN ISNULL(S.NUMB_OF_STOK, 0) - ISNULL(S.NUMB_OF_SALE, 0) END
+            ,T.ORDR_ITEM = CASE s.ORDR_ITEM 
+                                WHEN 0 THEN (SELECT ISNULL(MAX(e.ORDR_ITEM), 0) + 1
+                                                        FROM dbo.Expense e
+                                                       WHERE e.EXPN_STAT = '002'
+                                                         AND e.ORDR_ITEM IS NOT NULL) 
+                                ELSE S.ORDR_ITEM 
+                           END 
             /*,EXPN_DESC = (SELECT EXTP.EXTP_DESC + N' به سبک ' + MTOD.MTOD_DESC + N' با رسته ' + CTGY.CTGY_DESC
                             FROM dbo.Expense_Type EXTP, dbo.Category_Belt CTGY, dbo.Method MTOD
                            WHERE EXTP.CODE = S.EXTP_CODE
