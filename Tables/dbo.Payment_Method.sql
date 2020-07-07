@@ -415,7 +415,12 @@ BEGIN
    --PRINT @TotlRcptAmnt;
    --PRINT @TotlDebtAmnt;
    IF ISNULL(@TotlRemnAmnt, 0) + ISNULL(@TotlRcptAmnt, 0) > ISNULL(@TotlDebtAmnt, 0)
-      RAISERROR(N'مبلغ بدهی هنرجو کمتر از مبلغ وارد شده می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
+      RAISERROR(N'مبلغ بدهی مشتری کمتر از مبلغ وارد شده می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
+   
+   -- بررسی اینکه اگر بخواهیم از سپرده مشتری استفاه کنیم ایا میزان مبلغ پرداختی به اندازه سپرده فعلی مشتری و همچنین کمتر باشد
+   IF EXISTS(SELECT * FROM Inserted i, dbo.Fighter f WHERE i.FIGH_FILE_NO_DNRM = f.FILE_NO AND i.AMNT > f.DPST_AMNT_DNRM AND i.RCPT_MTOD = '005')
+      RAISERROR(N'مبلغ وارد شده از مبلغ سپرده بیشتر می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
+   
    
    -- Insert statements for trigger here
    MERGE dbo.Payment_Method T
@@ -430,8 +435,6 @@ BEGIN
          SET T.MDFY_BY   = UPPER(SUSER_NAME())
             ,T.MDFY_DATE = GETDATE()
             ,T.ACTN_DATE = CASE CAST(s.ACTN_DATE AS TIME(0)) WHEN '00:00:00' THEN s.ACTN_DATE + CAST(GETDATE() AS TIME(0)) ELSE s.ACTN_DATE END;
-   
-   --SELECT * FROM Inserted;
    
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
    MERGE dbo.Payment T

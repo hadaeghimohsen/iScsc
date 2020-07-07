@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Dresser]
 [CMND_SEND] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COMM_PORT] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BAND_RATE] [int] NULL,
+[IP_ADRS] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

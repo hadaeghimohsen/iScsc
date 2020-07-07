@@ -415,7 +415,7 @@ BEGIN
         Frst_Name NVARCHAR(250) '../@frstname',
         Last_Name NVARCHAR(250) '../@lastname',
         Natl_Code VARCHAR(10) '../@natlcode',
-        Cell_Phon VARCHAR(10) '../@cellphon',
+        Cell_Phon VARCHAR(11) '../@cellphon',
         Amnt_Type VARCHAR(3) '../@amnttype',
         Pymt_Mtod VARCHAR(3) '../@pymtmtod',
         Pymt_Date DATETIME '../@pymtdate',
@@ -1464,6 +1464,55 @@ BEGIN
          AND e.MTOD_CODE = @MtodCode
          AND e.CTGY_CODE = @CtgyCode         
          AND ei.EPIT_DESC = @TarfName;
+      
+      SELECT @xRet = (
+         SELECT '001' AS '@needrecall'
+               ,@RefSubSys AS '@subsys'
+               ,'2000' AS '@cmndcode'
+               ,@RefCode AS '@refcode'
+               ,'successfull' AS '@rsltdesc'
+               ,'002' AS '@rsltcode'
+            FOR XML PATH('Router_Command')
+      );             
+   END 
+   ELSE IF @CmndCode = '104' /* بروزرسانی مبلغ کالا */
+   BEGIN
+      SELECT @SubSys = @X.query('//Router_Command').value('(Router_Command/@subsys)[1]', 'INT'),
+             @RefSubSys = @X.query('//Router_Command').value('(Router_Command/@refsubsys)[1]', 'INT'),             
+             @TarfCode = @X.query('//Router_Command').value('(Router_Command/@tarfcode)[1]', 'VARCHAR(100)'),
+             @ExpnPric = @X.query('//Router_Command').value('(Router_Command/@tarfpric)[1]', 'BIGINT');
+      
+      -- Get MtodCode And CtgyCode
+      SELECT @MtodCode = T.MTOD_CODE, @CtgyCode = T.CTGY_CODE
+        FROM (
+               SELECT TOP 1
+                      e.MTOD_CODE, e.CTGY_CODE, COUNT(e.MTOD_CODE) AS CONT_MTOD_CODE
+                 FROM dbo.Expense e, dbo.Expense_Type et, dbo.Request_Requester rr, dbo.Regulation rg
+                WHERE rg.YEAR = rr.REGL_YEAR
+                  AND rg.CODE = rr.REGL_CODE
+                  AND rr.CODE = et.RQRQ_CODE
+                  and rr.RQTP_CODE = '016'
+                  AND rr.RQTT_CODE = '001'
+                  AND et.CODE = e.EXTP_CODE
+                  AND e.EXPN_STAT = '002'
+                GROUP BY e.MTOD_CODE, e.CTGY_CODE
+                ORDER BY COUNT(e.MTOD_CODE) DESC
+             ) T;
+       
+      -- بروزرسانی جدول درآمدها
+      UPDATE e
+         SET e.PRIC = @ExpnPric
+        FROM dbo.Expense e, dbo.Expense_Type et, dbo.Expense_Item ei, dbo.Request_Requester rr, dbo.Regulation rg
+       WHERE rg.YEAR = rr.REGL_YEAR
+         AND rg.CODE = rr.REGL_CODE
+         AND rr.CODE = et.RQRQ_CODE
+         AND rr.RQTP_CODE = '016'
+         AND rr.RQTT_CODE = '001'
+         AND et.EPIT_CODE = ei.CODE
+         AND et.CODE = e.EXTP_CODE
+         AND e.MTOD_CODE = @MtodCode
+         AND e.CTGY_CODE = @CtgyCode         
+         AND e.ORDR_ITEM = @TarfCode;
       
       SELECT @xRet = (
          SELECT '001' AS '@needrecall'
