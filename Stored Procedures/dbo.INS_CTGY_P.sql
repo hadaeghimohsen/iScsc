@@ -40,6 +40,14 @@ BEGIN
    END
    -- پایان دسترسی
    
+   -- شماره کد تعرفه
+   IF CONVERT(INT, ISNULL(@Natl_Code, '0')) = 0
+   BEGIN
+      SELECT @Natl_Code = dbo.GET_PSTR_U(MAX(CONVERT(INT, ISNULL(c.NATL_CODE, '0'))) + 1, 2)
+        FROM dbo.Category_Belt c
+       WHERE c.MTOD_CODE = @Mtod_Code;
+   END 
+   
    INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB, NATL_CODE)
    VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb, @Natl_Code);
 END

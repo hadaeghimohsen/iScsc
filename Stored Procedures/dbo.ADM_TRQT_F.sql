@@ -405,6 +405,35 @@ BEGIN
       BEGIN
          RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط هنرجوی دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
       END
+      
+      -- 1399/07/18 * چک کردن اینکه شماره کارت وارد شده معتبر میباشد یا خیر
+      DECLARE @RecdNumb BIGINT;
+      SELECT @RecdNumb = ISNULL(RECD_NUMB, 0) 
+        FROM dbo.V#SubSys;
+      
+      -- تعداد ثبت نامی مجاز
+      IF @RecdNumb != 0
+      BEGIN
+         -- بدست آوردن طول شماره کارت
+         DECLARE @LenFngrPrnt SMALLINT;         
+         SELECT TOP 1 @LenFngrPrnt = CASE ISNULL(LEN_FNGR_PRNT, 0) WHEN 0 THEN LEN(@FngrPrnt) ELSE LEN_FNGR_PRNT END
+           FROM dbo.Settings;
+         
+         IF(LEN(@FngrPrnt) = @LenFngrPrnt)
+         BEGIN
+            -- تعداد رکورد های سیستم
+            DECLARE @RecdCont BIGINT;
+            SELECT @RecdCont = COUNT(f.FILE_NO)
+              FROM dbo.Fighter f
+             WHERE f.CONF_STAT = '002'
+               AND LEN(f.FNGR_PRNT_DNRM) = @LenFngrPrnt;
+            
+            IF @RecdCont >= @RecdNumb
+            BEGIN
+               RAISERROR(N'کد امنیتی کارت شما قابل شناسایی نمیباشد، لطفا با پشتیبانی 09033927103 تماس بگیرید', 16, 1);
+            END 
+         END 
+      END 
 
       -- End   Check Validate
       

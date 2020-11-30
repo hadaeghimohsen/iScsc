@@ -57,7 +57,8 @@ CREATE TABLE [dbo].[Settings]
 [IP_ADR3] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_NUM3] [int] NULL,
 [ATTN_COMP_CNC3] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[ATN4_EVNT_ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[ATN4_EVNT_ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LEN_FNGR_PRNT] [smallint] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -113,6 +114,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان بسته شدن گیت بعد از باز شدن', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'GATE_TIME_CLOS'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'به ازای تعداد تعطیلات چه ضریبی اضاقه شود', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'HLDY_CONT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'طول کدهای کارت های عضویت', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'LEN_FNGR_PRNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
 GO

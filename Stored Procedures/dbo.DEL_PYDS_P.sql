@@ -9,9 +9,9 @@ GO
 -- =============================================
 CREATE PROCEDURE [dbo].[DEL_PYDS_P]
 	-- Add the parameters for the stored procedure here
-	@PymtCashCode BIGINT,
-	@PymtRqstRqid BIGINT,
-	@RqroRwno SMALLINT,
+	@Pymt_Cash_Code BIGINT,
+	@Pymt_Rqst_Rqid BIGINT,
+	@Rqro_Rwno SMALLINT,
 	@Rwno SMALLINT
 AS
 BEGIN
@@ -33,9 +33,9 @@ BEGIN
    --IF @Amnt = 0 RAISERROR (N'مبلغ تخفیف باید مبلغی مثبت و غیر صفر باشد', 16, 1);
    
    DELETE dbo.Payment_Discount
-    WHERE PYMT_CASH_CODE = @PymtCashCode
-      AND PYMT_RQST_RQID = @PymtRqstRqid
-      AND RQRO_RWNO = @RqroRwno
+    WHERE PYMT_CASH_CODE = @Pymt_Cash_Code
+      AND PYMT_RQST_RQID = @Pymt_Rqst_Rqid
+      AND RQRO_RWNO = @Rqro_Rwno
       AND RWNO = @Rwno;           
 END
 GO

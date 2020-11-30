@@ -36,7 +36,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE end;
+            ,CODE      = CASE ISNULL(s.CODE, 0) WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE end;
 END
 ;
 

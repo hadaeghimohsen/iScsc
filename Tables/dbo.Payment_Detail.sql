@@ -6,9 +6,9 @@ CREATE TABLE [dbo].[Payment_Detail]
 [EXPN_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_Payment_Detail_CODE] DEFAULT ((0)),
 [PAY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF__Payment_D__PAY_S__12AA62A5] DEFAULT ('001'),
-[EXPN_PRIC] [int] NULL CONSTRAINT [DF__Payment_D__EXPN___139E86DE] DEFAULT ((0)),
-[EXPN_EXTR_PRCT] [int] NULL CONSTRAINT [DF__Payment_D__EXPN___1492AB17] DEFAULT ((0)),
-[REMN_PRIC] [int] NULL CONSTRAINT [DF__Payment_D__REMN___1586CF50] DEFAULT ((0)),
+[EXPN_PRIC] [bigint] NULL CONSTRAINT [DF__Payment_D__EXPN___139E86DE] DEFAULT ((0)),
+[EXPN_EXTR_PRCT] [bigint] NULL CONSTRAINT [DF__Payment_D__EXPN___1492AB17] DEFAULT ((0)),
+[REMN_PRIC] [bigint] NULL CONSTRAINT [DF__Payment_D__REMN___1586CF50] DEFAULT ((0)),
 [QNTY] [real] NULL CONSTRAINT [DF__Payment_De__QNTY__167AF389] DEFAULT ((1)),
 [DOCM_NUMB] [bigint] NULL,
 [ISSU_DATE] [datetime] NULL,
@@ -51,12 +51,12 @@ BEGIN
 
    -- Insert statements for trigger here
    DECLARE @RQST_RQID            BIGINT,
-           @SUM_EXPN_PRIC           INT,
-           @SUM_EXPN_EXTR_PRCT      INT,
-           @SUM_REMN_PRIC           INT,
-           @SUM_RCPT_EXPN_PRIC      INT,
-           @SUM_RCPT_EXPN_EXTR_PRCT INT,
-           @SUM_RCPT_REMN_PRIC      INT;
+           @SUM_EXPN_PRIC           BIGINT,
+           @SUM_EXPN_EXTR_PRCT      bigINT,
+           @SUM_REMN_PRIC           bigINT,
+           @SUM_RCPT_EXPN_PRIC      bigINT,
+           @SUM_RCPT_EXPN_EXTR_PRCT bigINT,
+           @SUM_RCPT_REMN_PRIC      bigINT;
 
    DECLARE C#ADEL_PMDT CURSOR FOR
       SELECT DISTINCT PYMT_RQST_RQID, PYMT_CASH_CODE
@@ -126,7 +126,7 @@ BEGIN
    DECLARE @Rqid     BIGINT,
            @CashCode BIGINT,
            @ExpnCode BIGINT,
-           @ExpnPric INT,
+           @ExpnPric BIGINT,
            @RqroRwno SMALLINT,
            @PayType VARCHAR(3),
            @AmntUnitType VARCHAR(3);
@@ -237,9 +237,9 @@ BEGIN
    -- Insert statements for trigger here
    
    DECLARE @RqstRqid            BIGINT,
-           @SumExpnPric         INT,
-           @SumExpnExtrPrct     INT,
-           @SumRemnPric         INT
+           @SumExpnPric         bigINT,
+           @SumExpnExtrPrct     bigINT,
+           @SumRemnPric         bigINT
            /*@SumRcptExpnPric     INT,
            @SumRcptExpnExtrPrct INT,
            @SumRcptRemnPric     INT*/;
@@ -252,7 +252,7 @@ BEGIN
           ,@CashCode BIGINT
           ,@RqroRwno SMALLINT
           ,@ExpnCode BIGINT
-          ,@ExpnPric INT
+          ,@ExpnPric bigINT
           ,@Qnty     SMALLINT;
           
    OPEN C#AUPD_PMDT;
@@ -418,7 +418,7 @@ WHERE RQST_RQID = @RqstRqid
       -- Start
       DECLARE @Rslt XML
              ,@Type BIT
-             ,@AmntDsct INT
+             ,@AmntDsct bigINT
              ,@DsctDesc NVARCHAR(500);
       
       --PRINT @ExpnCode;
@@ -434,7 +434,7 @@ WHERE RQST_RQID = @RqstRqid
       SELECT @Rslt = dbo.PYDS_CHCK_U(@Rslt);
       
       SELECT @Type = @Rslt.query('Result').value('(Result/@type)[1]', 'BIT')
-            ,@AmntDsct = @Rslt.query('Result').value('(Result/@amntdsct)[1]', 'INT')
+            ,@AmntDsct = @Rslt.query('Result').value('(Result/@amntdsct)[1]', 'BIGINT')
             ,@DsctDesc = @Rslt.query('Result').value('(Result/@dsctdesc)[1]', 'NVARCHAR(500)');
       -- 1395/06/17 * پاک کردن مبلغ های تخفیف محاسبه شده
       -- 1397/10/08 * حذف تمامی تخفیفات محاسباتی

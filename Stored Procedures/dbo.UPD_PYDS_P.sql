@@ -9,15 +9,15 @@ GO
 -- =============================================
 CREATE PROCEDURE [dbo].[UPD_PYDS_P]
 	-- Add the parameters for the stored procedure here
-	@PymtCashCode BIGINT,
-	@PymtRqstRqid BIGINT,
-	@RqroRwno SMALLINT,
+	@Pymt_Cash_Code BIGINT,
+	@Pymt_Rqst_Rqid BIGINT,
+	@Rqro_Rwno SMALLINT,
 	@Rwno SMALLINT,
-	@ExpnCode BIGINT,
-	@Amnt INT,
-	@AmntType VARCHAR(3) = '002',
+	@Expn_Code BIGINT,
+	@Amnt BIGINT,
+	@Amnt_Type VARCHAR(3) = '002',
 	@Stat VARCHAR(3),
-	@PydsDesc NVARCHAR(250)
+	@Pyds_Desc NVARCHAR(250)
 AS
 BEGIN
 	 	-- بررسی دسترسی کاربر
@@ -38,14 +38,14 @@ BEGIN
    --IF @Amnt = 0 RAISERROR (N'مبلغ تخفیف باید مبلغی مثبت و غیر صفر باشد', 16, 1);
    
    UPDATE dbo.Payment_Discount
-      SET Expn_Code = @ExpnCode
+      SET Expn_Code = @Expn_Code
          ,Amnt = @Amnt
-         ,Amnt_Type = @AmntType
+         ,Amnt_Type = @Amnt_Type
          ,Stat = @Stat
-         ,PYDS_DESC = @PydsDesc
-    WHERE PYMT_CASH_CODE = @PymtCashCode
-      AND PYMT_RQST_RQID = @PymtRqstRqid
-      AND RQRO_RWNO = @RqroRwno
+         ,PYDS_DESC = @Pyds_Desc
+    WHERE PYMT_CASH_CODE = @Pymt_Cash_Code
+      AND PYMT_RQST_RQID = @Pymt_Rqst_Rqid
+      AND RQRO_RWNO = @Rqro_Rwno
       AND RWNO = @Rwno;           
 END
 GO

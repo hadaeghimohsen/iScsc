@@ -9,14 +9,14 @@ GO
 -- =============================================
 CREATE PROCEDURE [dbo].[INS_PYDS_P]
 	-- Add the parameters for the stored procedure here
-	@PymtCashCode BIGINT,
-	@PymtRqstRqid BIGINT,
-	@RqroRwno SMALLINT,
-	@ExpnCode BIGINT,
-	@Amnt INT,
-	@AmntType VARCHAR(3),
+	@Pymt_Cash_Code BIGINT,
+	@Pymt_Rqst_Rqid BIGINT,
+	@Rqro_Rwno SMALLINT,
+	@Expn_Code BIGINT,
+	@Amnt BIGINT,
+	@Amnt_Type VARCHAR(3),
 	@Stat VARCHAR(3),
-	@PydsDesc NVARCHAR(250)
+	@Pyds_Desc NVARCHAR(250)
 AS
 BEGIN
 	 	-- بررسی دسترسی کاربر
@@ -35,10 +35,10 @@ BEGIN
    -- پایان دسترسی
    
    IF @Amnt = 0 RAISERROR (N'مبلغ تخفیف باید مبلغی مثبت و غیر صفر باشد', 16, 1);
-   IF @RqroRwno = 0 OR @RqroRwno IS NULL
-      SET @RqroRwno = 1;
-   IF @AmntType IS NULL
-      SET @AmntType = '002';
+   IF @Rqro_Rwno = 0 OR @Rqro_Rwno IS NULL
+      SET @Rqro_Rwno = 1;
+   IF @Amnt_Type IS NULL
+      SET @Amnt_Type = '002';
    IF @Stat IS NULL 
       SET @Stat = '002';
       
@@ -53,15 +53,15 @@ BEGIN
              STAT ,
              PYDS_DESC 
            )
-   VALUES  ( @PymtCashCode , -- PYMT_CASH_CODE - bigint
-             @PymtRqstRqid , -- PYMT_RQST_RQID - bigint
-             @RqroRwno , -- RQRO_RWNO - smallint
+   VALUES  ( @Pymt_Cash_Code , -- PYMT_CASH_CODE - bigint
+             @Pymt_Rqst_Rqid , -- PYMT_RQST_RQID - bigint
+             @Rqro_Rwno , -- RQRO_RWNO - smallint
              --0 , -- RWNO - smallint
-             @ExpnCode , -- EXPN_CODE - bigint
+             @Expn_Code , -- EXPN_CODE - bigint
              @Amnt , -- AMNT - int
-             @AmntType , -- AMNT_TYPE - varchar(3)
+             @Amnt_Type , -- AMNT_TYPE - varchar(3)
              @Stat , -- STAT - varchar(3)
-             @PydsDesc  -- PYDS_DESC - nvarchar(250)             
+             @Pyds_Desc  -- PYDS_DESC - nvarchar(250)             
            )   
 END
 GO

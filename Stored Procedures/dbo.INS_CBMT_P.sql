@@ -57,6 +57,13 @@ BEGIN
     WHERE FILE_NO = @CochFileNo
       AND CONF_STAT = '002';*/
    
+   -- شماره کد تعرفه
+   IF CONVERT(INT, ISNULL(@Natl_Code, '0')) = 0
+   BEGIN
+      SELECT @Natl_Code = dbo.GET_PSTR_U(MAX(CONVERT(INT, ISNULL(c.NATL_CODE, '0'))) + 1, 3)
+        FROM dbo.Club_Method c;       
+   END 
+   
    INSERT Club_Method (CLUB_CODE, MTOD_CODE, COCH_FILE_NO, STRT_TIME, END_TIME, MTOD_STAT, DAY_TYPE, SEX_TYPE, CBMT_DESC, DFLT_STAT, CPCT_NUMB, CPCT_STAT, CBMT_TIME, CBMT_TIME_STAT, CLAS_TIME, AMNT, NATL_CODE)
    VALUES (@Club_Code, @Mtod_Code, @Coch_File_No, @Strt_Time, @End_Time, '002', @Day_Type, @Sex_Type, @Cbmt_Desc, @Dflt_Stat, @Cpct_Numb, @Cpct_Stat, @Cbmt_Time, @Cbmt_Time_Stat, @Clas_Time, @Amnt, @Natl_Code);
 END

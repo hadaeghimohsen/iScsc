@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[Group_Expense]
 (
 [GEXP_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
+[LINK_JOIN] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GROP_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ORDR] [smallint] NULL,
 [GROP_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

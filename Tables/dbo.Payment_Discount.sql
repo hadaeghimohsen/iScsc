@@ -6,7 +6,7 @@ CREATE TABLE [dbo].[Payment_Discount]
 [RWNO] [smallint] NOT NULL CONSTRAINT [DF_Payment_Discount_RWNO] DEFAULT ((0)),
 [FIGH_FILE_NO_DNRM] [bigint] NULL,
 [EXPN_CODE] [bigint] NULL,
-[AMNT] [int] NULL,
+[AMNT] [bigint] NULL,
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PYDS_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

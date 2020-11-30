@@ -34,6 +34,13 @@ BEGIN
    END
    -- پایان دسترسی
    
+   -- شماره کد تعرفه
+   IF CONVERT(INT, ISNULL(@Natl_Code, '0')) = 0
+   BEGIN
+      SELECT @Natl_Code = dbo.GET_PSTR_U(MAX(CONVERT(INT, ISNULL(m.NATL_CODE, '0'))) + 1, 3)
+        FROM dbo.Method m       
+   END 
+   
    INSERT INTO Method (MTOD_DESC, MTOD_CODE, Epit_Type, DFLT_STAT, MTOD_STAT, CHCK_ATTN_ALRM, NATL_CODE, SHAR_STAT)
    VALUES(@Mtod_Desc, @Mtod_Code, @Epit_Type, ISNULL(@Dflt_Stat, '001'), @Mtod_Stat, @Chck_Attn_Alrm, @Natl_Code, @Shar_Stat);
 END

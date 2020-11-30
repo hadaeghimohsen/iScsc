@@ -9,18 +9,18 @@ CREATE TABLE [dbo].[Expense]
 [BRND_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_EXPN_CODE] DEFAULT ((0)),
 [EXPN_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[PRIC] [int] NOT NULL CONSTRAINT [DF_EXPN_PRIC] DEFAULT ((0)),
-[EXTR_PRCT] [int] NOT NULL CONSTRAINT [DF_EXPN_EXTR_PRCT] DEFAULT ((0)),
+[PRIC] [bigint] NOT NULL CONSTRAINT [DF_EXPN_PRIC] DEFAULT ((0)),
+[EXTR_PRCT] [bigint] NOT NULL CONSTRAINT [DF_EXPN_EXTR_PRCT] DEFAULT ((0)),
 [EXPN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_EXPN_EXPN_STAT] DEFAULT ('002'),
 [ADD_QUTS] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Expense_ADD_QUTS] DEFAULT ('001'),
 [COVR_DSCT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Expense_COVR_DSCT] DEFAULT ('002'),
 [EXPN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[BUY_PRIC] [int] NULL,
-[BUY_EXTR_PRCT] [int] NULL,
+[BUY_PRIC] [bigint] NULL,
+[BUY_EXTR_PRCT] [bigint] NULL,
 [NUMB_OF_STOK] [int] NULL,
 [NUMB_OF_SALE] [int] NULL,
 [NUMB_OF_REMN_DNRM] [int] NULL,
-[ORDR_ITEM] [bigint] NULL,
+[ORDR_ITEM] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COVR_TAX] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NUMB_OF_ATTN_MONT] [int] NULL,
 [NUMB_OF_ATTN_WEEK] [int] NULL CONSTRAINT [DF_Expense_NUMB_OF_ATTN_WEEK] DEFAULT ((3)),
@@ -138,13 +138,13 @@ BEGIN
             ,EXTR_PRCT = CASE S.Covr_Tax WHEN '002' THEN (SELECT (S.PRIC * (TAX_PRCT + DUTY_PRCT)) / 100 FROM dbo.Regulation WHERE [YEAR] = S.REGL_YEAR AND CODE = S.REGL_CODE AND [TYPE] = '001') ELSE 0 END
             ,EXPN_DESC = CASE WHEN LEN(S.EXPN_DESC) = 0 OR S.EXPN_DESC IS NULL THEN (SELECT EPIT_DESC FROM Expense_Type Et, Expense_Item Ei WHERE Et.Code = S.Extp_Code AND Et.Epit_Code = Ei.Code) ELSE S.Expn_Desc END
             ,NUMB_OF_REMN_DNRM = CASE S.EXPN_TYPE WHEN '001' /* خدمت */ THEN S.NUMB_OF_REMN_DNRM WHEN '002' /* کالا */ THEN ISNULL(S.NUMB_OF_STOK, 0) - ISNULL(S.NUMB_OF_SALE, 0) END
-            ,T.ORDR_ITEM = CASE s.ORDR_ITEM 
-                                WHEN 0 THEN (SELECT ISNULL(MAX(e.ORDR_ITEM), 0) + 1
-                                                        FROM dbo.Expense e
-                                                       WHERE e.EXPN_STAT = '002'
-                                                         AND e.ORDR_ITEM IS NOT NULL) 
-                                ELSE S.ORDR_ITEM 
-                           END 
+            --,T.ORDR_ITEM = CASE s.ORDR_ITEM 
+            --                    WHEN 0 THEN (SELECT ISNULL(MAX(e.ORDR_ITEM), 0) + 1
+            --                                            FROM dbo.Expense e
+            --                                           WHERE e.EXPN_STAT = '002'
+            --                                             AND e.ORDR_ITEM IS NOT NULL) 
+            --                    ELSE S.ORDR_ITEM 
+            --               END 
             /*,EXPN_DESC = (SELECT EXTP.EXTP_DESC + N' به سبک ' + MTOD.MTOD_DESC + N' با رسته ' + CTGY.CTGY_DESC
                             FROM dbo.Expense_Type EXTP, dbo.Category_Belt CTGY, dbo.Method MTOD
                            WHERE EXTP.CODE = S.EXTP_CODE
