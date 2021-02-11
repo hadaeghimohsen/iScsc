@@ -423,10 +423,10 @@ BEGIN
          BEGIN
             -- تعداد رکورد های سیستم
             DECLARE @RecdCont BIGINT;
-            SELECT @RecdCont = COUNT(f.FILE_NO)
-              FROM dbo.Fighter f
-             WHERE f.CONF_STAT = '002'
-               AND LEN(f.FNGR_PRNT_DNRM) = @LenFngrPrnt;
+            SELECT @RecdCont = COUNT(DISTINCT fp.FNGR_PRNT)
+              FROM dbo.Fighter_Public fp
+             WHERE fp.RECT_CODE = '004'
+               AND LEN(fp.FNGR_PRNT) = @LenFngrPrnt;
             
             IF @RecdCont >= @RecdNumb
             BEGIN

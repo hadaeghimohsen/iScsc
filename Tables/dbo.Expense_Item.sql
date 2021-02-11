@@ -36,7 +36,7 @@ BEGIN
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
             ,[TYPE]    = CASE WHEN S.[TYPE] IS NULL THEN '002' ELSE S.[TYPE] END
-            ,CODE      = DBO.GNRT_NVID_U();
+            ,CODE      = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END;
    
    DECLARE C$NewExpenseItem CURSOR FOR
       SELECT T.Code FROM Expense_Item T, INSERTED S

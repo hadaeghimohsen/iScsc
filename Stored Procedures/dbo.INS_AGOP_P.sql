@@ -34,7 +34,16 @@ BEGIN
 	       ,@AgopDesc NVARCHAR(500)
 	       ,@UnitBlokCndoCode VARCHAR(3)
 	       ,@UnitBlokCode VARCHAR(3)
-	       ,@UnitCode VARCHAR(3);
+	       ,@UnitCode VARCHAR(3)
+	       ,@SuntBuntDeptOrgnCode VARCHAR(2)
+	       ,@SuntBuntDeptCode VARCHAR(2)
+	       ,@SuntBuntCode VARCHAR(2)
+	       ,@SuntCode VARCHAR(4)
+	       ,@LettNo VARCHAR(15)
+	       ,@LettDate DATETIME
+	       ,@LettOwnr NVARCHAR(250)
+	       ,@ExpnAmnt BIGINT
+	       ,@RcptMtod VARCHAR(3);
    
    SELECT @Code = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@code)[1]'    , 'BIGINT')
          ,@RegnPrvnCntyCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@regnprvncntycode)[1]'    , 'VARCHAR(3)')
@@ -58,7 +67,16 @@ BEGIN
          ,@AgopDesc = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@agopdesc)[1]'    , 'NVARCHAR(500)')
          ,@UnitBlokCndoCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitblokcndocode)[1]'    , 'VARCHAR(3)')
          ,@UnitBlokCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitblokcode)[1]'    , 'VARCHAR(3)')
-         ,@UnitCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitcode)[1]'    , 'VARCHAR(3)');
+         ,@UnitCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@unitcode)[1]'    , 'VARCHAR(3)')
+         ,@SuntBuntDeptOrgnCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@suntbuntdeptorgncode)[1]'    , 'VARCHAR(2)')
+         ,@SuntBuntDeptCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@suntbuntdeptcode)[1]'    , 'VARCHAR(2)')
+         ,@SuntBuntCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@suntbuntcode)[1]'    , 'VARCHAR(2)')
+         ,@SuntCode = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@suntcode)[1]'    , 'VARCHAR(4)')
+         ,@LettNo = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@lettno)[1]'    , 'VARCHAR(15)')
+         ,@LettDate = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@lettdate)[1]'    , 'DATETIME')
+         ,@LettOwnr = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@lettownr)[1]'    , 'NVARCHAR(250)')
+         ,@ExpnAmnt = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@expnamnt)[1]'    , 'BIGINT')
+         ,@RcptMtod = @X.query('//Aggregation_Operation').value('(Aggregation_Operation/@rcptmtod)[1]'    , 'VARCHAR(3)');
    
    -- Check Validate Data
    IF @RegnCode IS NOT NULL AND @RegnPrvnCode IS NULL
@@ -117,12 +135,16 @@ BEGIN
    IF @CochFileNo = 0
       SELECT @CochFileNo = NULL;
    
-   IF @FromDate = '1900-01-01'
+   IF @FromDate = '1900-01-01' OR @FromDate IS NULL
       SELECT @FromDate = GETDATE();
    
-   IF @TODate = '1900-01-01'
+   IF @TODate = '1900-01-01' OR @ToDate IS NULL
       SELECT @ToDate = GETDATE();
    
+   SET @SuntBuntDeptOrgnCode = CASE LEN(@SuntBuntDeptOrgnCode) WHEN 2 THEN @SuntBuntDeptOrgnCode ELSE '00'   END;
+   SET @SuntBuntDeptCode     = CASE LEN(@SuntBuntDeptCode)     WHEN 2 THEN @SuntBuntDeptCode     ELSE '00'   END;
+   SET @SuntBuntCode         = CASE LEN(@SuntBuntCode)         WHEN 2 THEN @SuntBuntCode         ELSE '00'   END;
+   SET @SuntCode             = CASE LEN(@SuntCode)             WHEN 4 THEN @SuntCode             ELSE '0000' END;
    
    -- End Check Validate Data
    
@@ -163,7 +185,16 @@ BEGIN
                 AGOP_DESC,
                 UNIT_BLOK_CNDO_CODE,
                 UNIT_BLOK_CODE,
-                UNIT_CODE
+                UNIT_CODE,
+                SUNT_BUNT_DEPT_ORGN_CODE,
+                SUNT_BUNT_DEPT_CODE,
+                SUNT_BUNT_CODE, 
+                SUNT_CODE,
+                LETT_NO,
+                LETT_DATE,
+                LETT_OWNR,
+                EXPN_AMNT,
+                RCPT_MTOD
               )
       VALUES  ( @Code , -- CODE - bigint
                 @RegnPrvnCntyCode , -- REGN_PRVN_CNTY_CODE - varchar(3)
@@ -189,7 +220,16 @@ BEGIN
                 @AgopDesc,
                 @UnitBlokCndoCode,
                 @UnitBlokCode,
-                @UnitCode
+                @UnitCode,
+                @SuntBuntDeptOrgnCode,
+                @SuntBuntDeptCode,
+                @SuntBuntCode,
+                @SuntCode,
+                @LettNo,
+                @LettDate,
+                @LettOwnr,
+                @ExpnAmnt,
+                @RcptMtod
               );
    END
    ELSE
@@ -217,6 +257,15 @@ BEGIN
             ,UNIT_BLOK_CNDO_CODE = @UnitBlokCndoCode
             ,UNIT_BLOK_CODE = @UnitBlokCode
             ,UNIT_CODE = @UnitCode
+            ,SUNT_BUNT_DEPT_ORGN_CODE = @SuntBuntDeptOrgnCode
+            ,SUNT_BUNT_DEPT_CODE = @SuntBuntDeptCode
+            ,SUNT_BUNT_CODE = @SuntBuntCode
+            ,SUNT_CODE = @SuntCode
+            ,LETT_NO = @LettNo
+            ,LETT_DATE = @LettDate
+            ,LETT_OWNR = @LettOwnr
+            ,EXPN_AMNT = @ExpnAmnt
+            ,RCPT_MTOD = @RcptMtod
       WHERE Code = @Code;
    END
 END

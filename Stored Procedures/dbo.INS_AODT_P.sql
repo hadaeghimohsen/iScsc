@@ -26,17 +26,23 @@ CREATE PROCEDURE [dbo].[INS_AODT_P]
     @Expn_Pric INT ,
     @Expn_Extr_Prct INT ,
     @Cust_Name NVARCHAR(250) ,
-    @Cell_Phon VARCHAR(11) 
+    @Cell_Phon VARCHAR(11) ,
+    @Fngr_Prnt VARCHAR(20)
 AS
     BEGIN
-        IF @Figh_File_No IS NULL
-            OR @Figh_File_No = 0
+        IF @Figh_File_No = 0 SET @Figh_File_No = NULL;
+        
+        IF @Fngr_Prnt IS NULL AND 
+           (@Figh_File_No IS NULL OR 
+            @Figh_File_No = 0 )
+        BEGIN
             SELECT TOP 1
                     @Figh_File_No = FILE_NO
             FROM    dbo.Fighter
             WHERE   FGPB_TYPE_DNRM = '005';
+        END 
         
-        IF @Figh_File_No IS NULL RETURN;
+        IF @Figh_File_No IS NULL AND @Fngr_Prnt IS NULL RETURN;
          
         INSERT  dbo.Aggregation_Operation_Detail
                 ( AGOP_CODE ,
@@ -65,7 +71,8 @@ AS
                   CASH_AMNT,
                   POS_AMNT,
                   PYDS_AMNT,
-                  DPST_AMNT
+                  DPST_AMNT,
+                  FNGR_PRNT
 	            )
         VALUES  ( @Agop_Code ,
                   0 ,
@@ -98,7 +105,8 @@ AS
                   0,
                   0, 
                   0,
-                  0
+                  0,
+                  @Fngr_Prnt
 	            );
     END;
 GO

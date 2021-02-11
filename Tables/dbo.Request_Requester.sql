@@ -38,7 +38,7 @@ BEGIN
       UPDATE
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = DBO.GNRT_NVID_U();
+            ,CODE      = CASE s.code WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END;
    
    DECLARE C$NewRequestRequester CURSOR FOR
       SELECT T.Code FROM dbo.Request_Requester T, INSERTED S

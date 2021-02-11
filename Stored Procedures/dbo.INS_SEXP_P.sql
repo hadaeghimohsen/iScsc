@@ -132,7 +132,7 @@ BEGIN
          FROM Fighter_Public P
         WHERE P.RQRO_RQST_RQID = @Rqid;
        
-       SELECT @Qnty = NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
+       SELECT @Qnty = 1--NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
          FROM dbo.Member_Ship
         WHERE RQRO_RQST_RQID = @Rqid
           AND RQRO_RWNO = @RqroRwno;

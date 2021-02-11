@@ -20,15 +20,16 @@ BEGIN
                 @SetOnDebt BIT ,
                 @Rqid BIGINT;
 	       
-            SELECT  @FileNo = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@fileno)[1]',
-                                                              'BIGINT') ,
-                    @AgopCode = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@agopcode)[1]',
-                                                              'BIGINT') ,
-                    @Rwno = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@rwno)[1]',
-                                                              'INT') ,
-                    @SetOnDebt = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@setondebt)[1]',
+            SELECT  @FileNo = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@fileno)[1]', 'BIGINT') ,
+                    @AgopCode = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@agopcode)[1]', 'BIGINT') ,
+                    @Rwno = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@rwno)[1]', 'INT') ,
+                    @SetOnDebt = @X.query('/Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@setondebt)[1]', 'BIT');
             
-                                                              'BIT');
+            -- Local Var
+            DECLARE @CashAmnt BIGINT,
+                    @PydsAmnt BIGINT,
+                    @DpstAmnt BIGINT,
+                    @ExpnAmnt BIGINT;
             
             -- 1398/08/27 * اگر هزینه میز بدهکار باشد
             IF @SetOnDebt IS NULL OR @SetOnDebt = ''
@@ -37,6 +38,24 @@ BEGIN
                   SET @SetOnDebt = 1
                ELSE
                   SET @SetOnDebt = 0;               
+            END 
+            
+            -- 1399/11/17 * اگر مشتری دارای شارژ سپرده باشد مبلغ بدهی راه در نظر نگیرد
+            SELECT @ExpnAmnt = EXPN_PRIC, 
+                   @DpstAmnt = f.DPST_AMNT_DNRM
+              FROM dbo.Aggregation_Operation_Detail a, dbo.Fighter f
+             WHERE a.AGOP_CODE = @AgopCode
+               AND a.FIGH_FILE_NO = @FileNo
+               AND f.FILE_NO = @FileNo;
+             
+            IF (@DpstAmnt) > 0 AND (@ExpnAmnt >= @DpstAmnt)
+            BEGIN
+               SET @SetOnDebt = 0;
+               UPDATE dbo.Aggregation_Operation_Detail
+                  SET PYDS_AMNT += EXPN_PRIC - @DpstAmnt,
+                      DPST_AMNT = @DpstAmnt
+               WHERE AGOP_CODE = @AgopCode
+                 AND FIGH_FILE_NO = @FileNo;
             END 
             
             IF @SetOnDebt = 1
@@ -287,9 +306,6 @@ BEGIN
    -- 1396/2/11
    -- ثبت مبلغ های پرداخت شده
    -- ابتدا مبلغ نقدی
-            DECLARE @CashAmnt BIGINT ,
-                    @PydsAmnt BIGINT,
-                    @DpstAmnt BIGINT;
             SELECT  @CashAmnt = ISNULL(CASH_AMNT, 0) ,
                     @PydsAmnt = ISNULL(PYDS_AMNT, 0) ,
                     @DpstAmnt = ISNULL(DPST_AMNT, 0)
@@ -411,14 +427,14 @@ BEGIN
             --DEALLOCATE C$Pyds;
    
             IF @PydsAmnt > 0
-                EXEC dbo.INS_PYDS_P @PymtCashCode = @CashCode, -- bigint
-                    @PymtRqstRqid = @Rqid, -- bigint
-                    @RqroRwno = 1, -- smallint
-                    @ExpnCode = NULL, -- bigint
+                EXEC dbo.INS_PYDS_P @Pymt_Cash_Code = @CashCode, -- bigint
+                    @Pymt_Rqst_Rqid = @Rqid, -- bigint
+                    @Rqro_Rwno = 1, -- smallint
+                    @Expn_Code = NULL, -- bigint
                     @Amnt = @PydsAmnt, -- int
-                    @AmntType = '', -- varchar(3)
+                    @Amnt_Type = '', -- varchar(3)
                     @Stat = NULL, -- varchar(3)
-                    @PydsDesc = NULL; -- nvarchar(250)   
+                    @Pyds_Desc = NULL; -- nvarchar(250)   
    --
    -- مشخص کردن هزینه به صورت تسویه حساب یا ثبت بدهی و دفتری
             DECLARE @TotlAmntDnrm BIGINT;

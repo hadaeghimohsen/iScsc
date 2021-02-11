@@ -11,9 +11,8 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [MBSP_RWNO] [smallint] NULL,
 [ATTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_AMNT] [bigint] NULL,
+[FNGR_PRNT] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [REC_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Aggregation_Operation_Detail_REC_STAT] DEFAULT ('002'),
-[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CRET_DATE] [datetime] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Aggregation_Operation_Detail_STAT] DEFAULT ('001'),
 [EXPN_CODE] [bigint] NULL,
 [MIN_MINT_STEP] [time] (0) NULL,
@@ -34,6 +33,8 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [DPST_AMNT] [bigint] NULL,
 [AODT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BCDS_CODE] [bigint] NULL,
+[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
@@ -67,6 +68,7 @@ BEGIN
          SET CRET_BY = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
             ,DEBT_AMNT = (SELECT DEBT_DNRM FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No)
+            ,T.STAT = ISNULL(S.STAT, '001')
             ,RWNO = (
                SELECT ISNULL(MAX(RWNO), 0) + 1
                  FROM dbo.Aggregation_Operation_Detail
@@ -110,7 +112,7 @@ BEGIN
    MERGE dbo.Aggregation_Operation_Detail T
    USING (SELECT * FROM INSERTED) S
    ON (T.AGOP_CODE = S.Agop_Code AND
-       T.FIGH_FILE_NO = S.Figh_File_No AND
+       --T.FIGH_FILE_NO = S.Figh_File_No AND
        T.RWNO = S.Rwno)
    WHEN MATCHED THEN
       UPDATE 

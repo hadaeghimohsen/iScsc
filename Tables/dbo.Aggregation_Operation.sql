@@ -25,6 +25,15 @@ CREATE TABLE [dbo].[Aggregation_Operation]
 [UNIT_BLOK_CNDO_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [UNIT_BLOK_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [UNIT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_BUNT_DEPT_ORGN_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_BUNT_DEPT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_BUNT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_CODE] [varchar] (4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LETT_NO] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LETT_DATE] [datetime] NULL,
+[LETT_OWNR] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXPN_AMNT] [bigint] NULL,
+[RCPT_MTOD] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -279,17 +288,18 @@ BEGIN
       
    BEGIN
       DECLARE C$Figh002004 CURSOR FOR
-         SELECT FIGH_FILE_NO, REC_STAT, RQST_RQID
+         SELECT FIGH_FILE_NO, REC_STAT, RQST_RQID, Ao.FNGR_PRNT
            FROM dbo.Aggregation_Operation_Detail Ao
           WHERE Ao.AGOP_CODE = @Code;
 
       
       DECLARE @RecStat BIGINT
-             ,@RqstRqid BIGINT;
+             ,@RqstRqid BIGINT
+             ,@FngrPrnt VARCHAR(20);
       
       OPEN C$figh002004;
       L$FC$figh002004:
-      FETCH NEXT FROM C$figh002004 INTO @fileno, @RecStat, @RqstRqid;
+      FETCH NEXT FROM C$figh002004 INTO @fileno, @RecStat, @RqstRqid, @fngrPrnt;
       
       IF @@FETCH_STATUS <> 0
          GOTO L$EC$Figh002004;
@@ -299,7 +309,8 @@ BEGIN
          DECLARE @X XML;
          SELECT @X =(
           SELECT @Code AS '@agopcode'
-                ,@FileNo AS '@fighfileno'            
+                ,@FileNo AS '@fighfileno'
+                ,@FngrPrnt AS '@fngrprnt'
           FOR XML PATH('Aodt'), ROOT('Agop')
          );
          EXEC AGOP_ERQT_P @X;
@@ -395,6 +406,8 @@ GO
 ALTER TABLE [dbo].[Aggregation_Operation] ADD CONSTRAINT [FK_AGOP_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
 GO
 ALTER TABLE [dbo].[Aggregation_Operation] ADD CONSTRAINT [FK_AGOP_RQTT] FOREIGN KEY ([RQTT_CODE]) REFERENCES [dbo].[Requester_Type] ([CODE])
+GO
+ALTER TABLE [dbo].[Aggregation_Operation] ADD CONSTRAINT [FK_AGOP_SUNT] FOREIGN KEY ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]) REFERENCES [dbo].[Sub_Unit] ([BUNT_DEPT_ORGN_CODE], [BUNT_DEPT_CODE], [BUNT_CODE], [CODE]) ON DELETE CASCADE
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ساعت کلاسی جدید', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation', 'COLUMN', N'NEW_CBMT_CODE'
 GO
