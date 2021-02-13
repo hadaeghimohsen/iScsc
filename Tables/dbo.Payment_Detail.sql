@@ -279,17 +279,16 @@ BEGIN
    
    SELECT @ExpnPric =CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END
          ,@ExpnExtrPrct = T.EXTR_PRCT 
-         ,@RemnPric = ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -3 WHEN '002' THEN -2 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY
+         ,@RemnPric = ABS(ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -4 WHEN '002' THEN -3 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY)
          ,@CovrDsct = COVR_DSCT
    FROM Expense T, INSERTED S
-   WHERE T.CODE = @ExpnCode;
-     /*
-         T.CODE = S.EXPN_CODE
-     AND S.PYMT_RQST_RQID = @Rqid
+   WHERE T.CODE = @ExpnCode
+     AND T.CODE = S.EXPN_CODE
+     /*AND S.PYMT_RQST_RQID = @Rqid
      AND S.PYMT_CASH_CODE = @CashCode
      AND S.RQRO_RWNO = @RqroRwno
-     AND S.EXPN_CODE = @ExpnCode;
-     */
+     AND S.EXPN_CODE = @ExpnCode;*/
+
    -- Insert statements for trigger here
    MERGE dbo.Payment_Detail T
    USING (SELECT * FROM INSERTED) S
@@ -308,8 +307,8 @@ BEGIN
             ,EXPN_PRIC      = CASE @PayType WHEN '002' THEN @ExpnPric      ELSE -@ExpnPric END
             ,EXPN_EXTR_PRCT = CASE @PayType WHEN '002' THEN @ExpnExtrPrct ELSE -@ExpnExtrPrct END
             ,REMN_PRIC      = @RemnPric
-            ,ISSU_DATE      = CASE WHEN S.PAY_STAT IN ('002', '003') AND S.ISSU_DATE IS NULL THEN GETDATE() WHEN S.ISSU_DATE IS NOT NULL THEN S.ISSU_DATE ELSE NULL END;
-
+            ,ISSU_DATE      = CASE WHEN S.PAY_STAT IN ('002', '003') AND S.ISSU_DATE IS NULL THEN GETDATE() WHEN S.ISSU_DATE IS NOT NULL THEN S.ISSU_DATE ELSE NULL END;   
+   
    ---------------
    
    SELECT @SumExpnPric           = ISNULL(SUM(EXPN_PRIC * QNTY), 0), 

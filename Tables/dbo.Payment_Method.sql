@@ -277,7 +277,7 @@ BEGIN
     );
    
    SELECT @TotlDebtAmnt =
-          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT
+          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT + T.SUM_REMN_PRIC
      FROM Payment T
     WHERE EXISTS(
       SELECT *
@@ -289,8 +289,10 @@ BEGIN
    SELECT @TotlRemnAmnt = SUM(AMNT)
      FROM INSERTED S;
    
-   IF @TotlRemnAmnt + ISNULL(@TotlRcptAmnt, 0) > @TotlDebtAmnt
+   IF ISNULL(@TotlRemnAmnt, 0) + ISNULL(@TotlRcptAmnt, 0) > ISNULL(@TotlDebtAmnt, 0)
+   BEGIN
       RAISERROR(N'مبلغ بدهی مشتری کمتر مبلغ وارد شده می باشد. لطفا مبلغ درست را وارد کنید.', 16, 1);
+   END 
    
    IF EXISTS(SELECT * FROM INSERTED WHERE AMNT IS NULL)
       RAISERROR(N'مبلغ بدهی مشتری باید مبلغ قابل قبول و درستی باشد.', 16, 1);
@@ -399,7 +401,7 @@ BEGIN
     );
    
    SELECT @TotlDebtAmnt =
-          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT - T.SUM_PYMT_DSCN_DNRM
+          SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT + t.SUM_REMN_PRIC - T.SUM_PYMT_DSCN_DNRM
      FROM Payment T
     WHERE EXISTS(
       SELECT *
@@ -415,7 +417,9 @@ BEGIN
    --PRINT @TotlRcptAmnt;
    --PRINT @TotlDebtAmnt;
    IF ISNULL(@TotlRemnAmnt, 0) + ISNULL(@TotlRcptAmnt, 0) > ISNULL(@TotlDebtAmnt, 0)
+   BEGIN
       RAISERROR(N'مبلغ بدهی مشتری کمتر از مبلغ وارد شده می باشد. لطفا مبلغ را اصلاح کنید.', 16, 1);
+   END 
    
    -- بررسی اینکه اگر بخواهیم از سپرده مشتری استفاه کنیم ایا میزان مبلغ پرداختی به اندازه سپرده فعلی مشتری و همچنین کمتر باشد
    IF EXISTS(SELECT * FROM Inserted i, dbo.Fighter f WHERE i.FIGH_FILE_NO_DNRM = f.FILE_NO AND i.AMNT > f.DPST_AMNT_DNRM AND i.RCPT_MTOD = '005')
