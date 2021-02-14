@@ -101,14 +101,17 @@ BEGIN
        IF NOT EXISTS(SELECT * FROM Payment WHERE RQST_RQID = @Rqid)
        BEGIN
 		   INSERT INTO Payment (RQST_RQID, CASH_CODE, TYPE) 
-		   SELECT DISTINCT @Rqid, Cash_Code, '002'
+		   /*SELECT DISTINCT @Rqid, Cash_Code, '002'
 		   FROM VF$All_Expense_Detail(@PrvnCode, @RegnCode, NULL, @RqtpCode, @RqttCode, NULL, NULL, @MtodCode, @CtgyCode) a, dbo.Session b, dbo.Member_Ship c
 		   WHERE a.ADD_QUTS = '001'
 		     AND a.EXPN_CODE = b.EXPN_CODE
 		     AND b.MBSP_FIGH_FILE_NO = c.FIGH_FILE_NO
 		     AND b.MBSP_RECT_CODE = c.RECT_CODE
 		     AND b.MBSP_RWNO = c.RWNO
-		     AND c.RQRO_RQST_RQID = @Rqid;
+		     AND c.RQRO_RQST_RQID = @Rqid;*/
+		   SELECT DISTINCT @Rqid, c.CODE, '002'
+		     FROM dbo.Cash c
+		    WHERE c.CASH_STAT = '002'
 	    END
     END
     ELSE 
@@ -116,9 +119,12 @@ BEGIN
        IF NOT EXISTS(SELECT * FROM Payment WHERE RQST_RQID = @Rqid)
        BEGIN
 		   INSERT INTO Payment (RQST_RQID, CASH_CODE, TYPE) 
-		   SELECT DISTINCT @Rqid, Cash_Code, '002'
+		   /*SELECT DISTINCT @Rqid, Cash_Code, '002'
 		   FROM VF$All_Expense_Detail(@PrvnCode, @RegnCode, NULL, @RqtpCode, @RqttCode, NULL, NULL, @MtodCode, @CtgyCode)
-		   WHERE ADD_QUTS = '001';
+		   WHERE ADD_QUTS = '001';*/
+		   SELECT DISTINCT @Rqid, c.CODE, '002'
+		     FROM dbo.Cash c
+		    WHERE c.CASH_STAT = '002'
 	    END
 	END
     

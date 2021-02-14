@@ -133,12 +133,19 @@ BEGIN
       
    UPDATE Payment 
       SET SUM_PYMT_DSCN_DNRM = (SELECT ISNULL(SUM(ISNULL(AMNT, 0)), 0) FROM Payment_Discount Pd WHERE Pd.PYMT_CASH_CODE = CASH_CODE AND Pd.PYMT_RQST_RQID = RQST_RQID AND STAT = '002')
-         ,SUM_EXPN_PRIC = ROUND((   
+         -- 1399/11/26 * عملیات روند کردن مبلغ را کلا بر داشتیم
+         --,SUM_EXPN_PRIC = ROUND((   
+         --   SELECT ISNULL(SUM(EXPN_PRIC * QNTY), 0)
+         --     FROM Payment_Detail 
+         --    WHERE PYMT_RQST_RQID = RQST_RQID
+         --      AND PYMT_CASH_CODE = Cash_Code
+         --), -3),
+         ,SUM_EXPN_PRIC = (   
             SELECT ISNULL(SUM(EXPN_PRIC * QNTY), 0)
               FROM Payment_Detail 
              WHERE PYMT_RQST_RQID = RQST_RQID
                AND PYMT_CASH_CODE = Cash_Code
-         ), -3)
+         )
     WHERE EXISTS(
       SELECT *
         FROM INSERTED S

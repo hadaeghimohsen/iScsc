@@ -144,11 +144,11 @@ BEGIN
       AND CASH_CODE = @CashCode;
    
    DECLARE @ExpnExtrPrct INT
-          ,@RemnPric INT;
+          ,@RemnPric INT = 0;
 
    SELECT @ExpnPric      = CASE WHEN @ExpnPric = 0 THEN(T.PRIC) ELSE @ExpnPric END
          ,@ExpnExtrPrct  = (T.EXTR_PRCT)
-         ,@RemnPric      = ROUND((T.PRIC + T.EXTR_PRCT), CASE @AmntUnitType WHEN '001' THEN -3 WHEN '002' THEN -2 END , 0) - (T.PRIC + T.EXTR_PRCT)
+         --,@RemnPric      = ROUND((T.PRIC + T.EXTR_PRCT), CASE @AmntUnitType WHEN '001' THEN -3 WHEN '002' THEN -2 END , 0) - (T.PRIC + T.EXTR_PRCT)
    FROM Expense T --, INSERTED S
    WHERE T.CODE = @ExpnCode;
    /*
@@ -274,12 +274,12 @@ BEGIN
        AND CASH_CODE = @CashCode;
    
    DECLARE @ExpnExtrPrct INT
-          ,@RemnPric INT
+          ,@RemnPric INT = 0
           ,@CovrDsct VARCHAR(3);
    
    SELECT @ExpnPric =CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END
          ,@ExpnExtrPrct = T.EXTR_PRCT 
-         ,@RemnPric = ABS(ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -4 WHEN '002' THEN -3 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY)
+         --,@RemnPric = ABS(ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -4 WHEN '002' THEN -3 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY)
          ,@CovrDsct = COVR_DSCT
    FROM Expense T, INSERTED S
    WHERE T.CODE = @ExpnCode
