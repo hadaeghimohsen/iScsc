@@ -43,6 +43,23 @@ AS
         END 
         
         IF @Figh_File_No IS NULL AND @Fngr_Prnt IS NULL RETURN;
+        
+        -- 1399/11/25 * اگر مشتری قبلا برای میزی باز شده باشد آیا این اجازه را داریم که دوباره میز دیگری برایش باز کنیم یا خیر
+        IF EXISTS(SELECT * FROM dbo.Aggregation_Operation_Detail a WHERE a.AGOP_CODE = @Agop_Code AND a.FIGH_FILE_NO = @Figh_File_No AND a.REC_STAT = '002' AND a.STAT = '001')
+        BEGIN
+            DECLARE @AP BIT
+                   ,@AccessString VARCHAR(250);
+            SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>248</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+            EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+            IF @AP = 0 
+            BEGIN
+               RAISERROR ( N'خطا - عدم دسترسی به ردیف 248 سطوح امینتی', -- Message text.
+                        16, -- Severity.
+                        1 -- State.
+                        );
+               RETURN;
+            END
+        END 
          
         INSERT  dbo.Aggregation_Operation_Detail
                 ( AGOP_CODE ,
