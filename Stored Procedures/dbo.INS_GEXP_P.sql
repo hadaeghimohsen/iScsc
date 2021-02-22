@@ -11,18 +11,20 @@ CREATE PROCEDURE [dbo].[INS_GEXP_P]
 	@Gexp_Code BIGINT,
 	@Grop_Type VARCHAR(3),
 	@Ordr SMALLINT,
-    @Grop_Desc NVARCHAR(250),
-	@Stat VARCHAR(3)
+   @Grop_Desc NVARCHAR(250),
+	@Stat VARCHAR(3),
+	@Link_Join VARCHAR(100)
 AS
 BEGIN
-    INSERT INTO dbo.Group_Expense (GEXP_CODE,CODE,GROP_TYPE,ORDR,GROP_DESC,STAT)
-    SELECT @Gexp_Code, 0, @Grop_Type, @Ordr, @Grop_Desc, @Stat
+    INSERT INTO dbo.Group_Expense (GEXP_CODE,CODE,GROP_TYPE,ORDR,GROP_DESC,STAT, LINK_JOIN)
+    SELECT @Gexp_Code, 0, @Grop_Type, @Ordr, @Grop_Desc, @Stat, @Link_Join
      WHERE NOT EXISTS (
            SELECT * 
              FROM dbo.Group_Expense ge
             WHERE ge.GEXP_CODE = @Gexp_Code
               AND ge.GROP_TYPE = @Grop_Type
-              AND ge.GROP_DESC = @Grop_Desc		    
+              AND ge.GROP_DESC = @Grop_Desc
+              AND ge.LINK_JOIN = @Link_Join
            );	
 END
 GO

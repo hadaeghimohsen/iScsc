@@ -8,12 +8,13 @@ GO
 -- Description:	<Description,,>
 -- =============================================
 CREATE PROCEDURE [dbo].[UPD_GEXP_P]
-    @Code BIGINT,
+   @Code BIGINT,
 	@Gexp_Code BIGINT,
 	@Grop_Type VARCHAR(3),
 	@Ordr SMALLINT,
-    @Grop_Desc NVARCHAR(250),
-	@Stat VARCHAR(3)
+   @Grop_Desc NVARCHAR(250),
+	@Stat VARCHAR(3),
+	@Link_Join VARCHAR(100)
 AS
 BEGIN
     UPDATE dbo.Group_Expense
@@ -21,7 +22,8 @@ BEGIN
            GROP_TYPE = @Grop_Type,
            ORDR = @Ordr,
            GROP_DESC = @Grop_Desc,
-           STAT = @Stat
+           STAT = @Stat,
+           LINK_JOIN = @Link_Join
      WHERE CODE = @Code;
 END
 GO
