@@ -728,9 +728,9 @@ BEGIN
             
          END;
       END;
-      -- 1396/11/15 * ثبت پیامک تلگرام
+      -- 1396/11/15 * ثبت پیامک  بله
       IF @ChatId IS NOT NULL
-      BEGIN  
+      BEGIN
          DECLARE @TelgStat VARCHAR(3);
          
          SELECT @TelgStat = TELG_STAT
@@ -811,8 +811,62 @@ BEGIN
 	                   @CONT_CELL_PHON = NULL; -- varchar(11)	            
 	         END;
          END;
-      END;
-      
+      END;      
+      -- 1399/12/07
+      -- اگر این گزینه که مشتری کد برنامه بله خود را وارد کرده باشد
+      IF ISNUMERIC(@ChatId) = 1
+      BEGIN
+         -- اگر شماره کد بله درون سیستم برای مشتری ثبت شده آن را برای سیستم باشگاه و فروشگاه آنلاین ثبت میکنیم
+         IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+         BEGIN
+            -- این برای سیستم موبایل باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               391 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+            -- این برای سیستم فروشگاه اینترنتی باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               401 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+         END
+      END      
       COMMIT TRAN T$ADM_TSAV_F;
    END TRY
    BEGIN CATCH

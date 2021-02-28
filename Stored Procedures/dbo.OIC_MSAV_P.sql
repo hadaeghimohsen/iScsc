@@ -165,8 +165,8 @@ BEGIN
             ,@IssuPlac = P.ISSU_PLAC
             ,@FathWork = P.FATH_WORK
             ,@HistDesc = P.HIST_DESC
-            ,@IntrFileNo = P.INTR_FILE_NO    
-            ,@CntrCode = P.CNTR_CODE        
+            --,@IntrFileNo = P.INTR_FILE_NO    
+            --,@CntrCode = P.CNTR_CODE        
         FROM Fighter_Public P
        WHERE P.FIGH_FILE_NO = @FileNo
          AND P.RQRO_RQST_RQID = @Rqid

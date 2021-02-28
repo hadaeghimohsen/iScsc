@@ -263,9 +263,9 @@ BEGIN
       
       SELECT @StrtDate = GETDATE()
 			,@EndDate = DATEADD(YEAR, 120, GETDATE())
-			,@NumbMontOfer = 1
-			,@NumbOfAttnMont = 1
-			,@NumbOfAttnWeek = 3
+			,@NumbMontOfer = 0
+			,@NumbOfAttnMont = 0
+			,@NumbOfAttnWeek = 0
 			,@AttnDayType = '001';
 
       SET @X = '<Process><Request rqstrqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
@@ -306,7 +306,63 @@ BEGIN
          SET FGPB_RWNO_DNRM = 1
             ,FGPB_RECT_CODE_DNRM = '004'
        WHERE RQRO_RQST_RQID = @Rqid;
-   
+      
+      -- 1399/12/07
+      -- اگر این گزینه که مشتری کد برنامه بله خود را وارد کرده باشد
+      IF ISNUMERIC(@ChatId) = 1
+      BEGIN
+         -- اگر شماره کد بله درون سیستم برای مشتری ثبت شده آن را برای سیستم باشگاه و فروشگاه آنلاین ثبت میکنیم
+         IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+         BEGIN
+            -- این برای سیستم موبایل باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               391 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+            -- این برای سیستم فروشگاه اینترنتی باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               401 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+         END
+      END 
+      
       COMMIT TRAN T$HRS_TSAV_F;
    END TRY
    BEGIN CATCH

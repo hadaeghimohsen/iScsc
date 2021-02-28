@@ -983,8 +983,8 @@ BEGIN
                   ,'002' AS '@rsltcode'
                FOR XML PATH('Router_Command')
          );
-         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-      END
+         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml         
+      END      
    END
    ELSE IF @CmndCode = '101'
    BEGIN
@@ -1267,7 +1267,7 @@ BEGIN
       CLOSE [C$Pyds];
       DEALLOCATE [C$Pyds];
       
-      EXEC sp_xml_removedocument @docHandle;
+      EXEC sp_xml_removedocument @docHandle;      
       
       -- اگر درخواست شامل هزینه های متفرقه ای داشته باشد آن را در جدول هزینه های فاکتور ذخیره میکنیم
       IF ISNULL(@TxfeCalcAmnt, 0) > 0

@@ -8,6 +8,7 @@ RETURN (
 WITH QXML AS
    (
       SELECT @X.query('//Club_Method').value('(Club_Method/@code)[1]',       'BIGINT') AS CBMT_CODE
+            ,@X.query('//Club_Method').value('(Club_Method/@cochfileno)[1]', 'BIGINT') AS COCH_FILE_NO
    )
 SELECT ms.RWNO
       ,CAST(ms.STRT_DATE AS DATE) AS STRT_DATE
@@ -51,5 +52,6 @@ SELECT ms.RWNO
    AND c.FILE_NO = cm.COCH_FILE_NO
    
    AND (Qx.CBMT_CODE IS NULL OR (CASE WHEN Qx.CBMT_CODE = 0 THEN cm.CODE ELSE Qx.CBMT_CODE END = cm.CODE))
+   AND (Qx.COCH_FILE_NO IS NULL OR (CASE WHEN Qx.COCH_FILE_NO = 0 THEN cm.COCH_FILE_NO ELSE Qx.COCH_FILE_NO END = cm.COCH_FILE_NO))
  )
 GO

@@ -34,9 +34,10 @@ RETURN
             
             ,@X.query('//Payment_Discount').value('(Payment_Discount/@frompydsdate)[1]',       'DATE') AS FROM_PYDS_DATE
             ,@X.query('//Payment_Discount').value('(Payment_Discount/@topydsdate)[1]',       'DATE') AS TO_PYDS_DATE            
-            
+            */
             ,@X.query('//Club_Method').value('(Club_Method/@code)[1]',       'BIGINT') AS CBMT_CODE
-            
+            ,@X.query('//Club_Method').value('(Club_Method/@cochfileno)[1]',       'BIGINT') AS COCH_FILE_NO
+            /*            
             ,@X.query('//Fighter').value('(Fighter/@cochcode)[1]',     'BIGINT') AS COCH_CODE
 
             ,@X.query('//Fighter').value('(Fighter/@mtodcode)[1]',     'BIGINT') AS MTOD_CODE
@@ -99,7 +100,8 @@ SELECT  pm.ACTN_DATE ,
         CAST(cm.END_TIME AS VARCHAR(5)) AS END_TIME,
         cm.CBMT_DESC,
         /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '001', f.CBMT_CODE_DNRM)*/ 0 AS MTOD_CONT,
-        /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM)*/ 0 AS CBMT_CONT
+        /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM)*/ 0 AS CBMT_CONT,
+        pm.VALD_TYPE
 FROM    dbo.Payment_Method pm ,        
         dbo.Payment p ,
         dbo.Request r ,
@@ -168,8 +170,10 @@ SELECT  pm.ACTN_DATE ,
         '' AS SUNT_BUNT_CODE_DNRM ,
         '' AS SUNT_CODE_DNRM ,
         0 AS FILE_NO,
-        N'مهمان' AS FIGH_NAME_DNRM,
-        '--' AS FNGR_PRNT_DNRM,
+        CASE f.FGPB_TYPE_DNRM WHEN '005' THEN fp.FRST_NAME + N' ' + fp.LAST_NAME + N'(کاربر مهمان)' ELSE f.NAME_DNRM END AS FIGH_NAME_DNRM,
+        --N'مهمان' AS FIGH_NAME_DNRM,
+        CASE f.FGPB_TYPE_DNRM WHEN '005' THEN '--' ELSE f.FNGR_PRNT_DNRM END AS FNGR_PRNT_DNRM,
+        --'--' AS FNGR_PRNT_DNRM,
         '--' AS STRT_DATE,
         '' AS SUNT_DESC,
         0 AS MTOD_CODE_DNRM ,
@@ -198,10 +202,13 @@ SELECT  pm.ACTN_DATE ,
         '' AS END_TIME,
         '' AS CBMT_DESC,
         0 AS MTOD_CONT,
-        0 AS CBMT_CONT
+        0 AS CBMT_CONT,
+        pm.VALD_TYPE
 FROM    dbo.Payment_Method pm ,        
         dbo.Payment p ,
-        dbo.Request r ,
+        dbo.Request r 
+        LEFT OUTER JOIN dbo.Fighter_Public fp ON r.RQID = fp.RQRO_RQST_RQID,
+        dbo.fighter f,
         dbo.Request_Type rt,
         dbo.[D$RCMT] rc,
         dbo.[D$ATYP] at,
@@ -213,7 +220,7 @@ WHERE   pm.PYMT_RQST_RQID = p.RQST_RQID
         AND pm.RCPT_MTOD = rc.VALU
         AND p.AMNT_UNIT_TYPE_DNRM = at.VALU
         AND r.RQTP_CODE IN ('016')
-        
+        AND f.FILE_NO = pm.FIGH_FILE_NO_DNRM
         --AND (Qx.FROM_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) >= CAST(Qx.FROM_RQST_DATE AS DATE))
         --AND (Qx.TO_RQST_DATE IS NULL OR CAST(R.RQST_DATE AS DATE) <= CAST(Qx.TO_RQST_DATE AS DATE))
         

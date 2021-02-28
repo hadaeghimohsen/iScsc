@@ -101,17 +101,21 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         ) AS COCH_NAME ,
         pd.FIGH_FILE_NO ,
         p.AMNT_UNIT_TYPE_DNRM ,
-        (SELECT DOMN_DESC FROM dbo.[D$ATYP] WHERE VALU = p.AMNT_UNIT_TYPE_DNRM) AS AMNT_TYPE_DESC        
+        (SELECT DOMN_DESC FROM dbo.[D$ATYP] WHERE VALU = p.AMNT_UNIT_TYPE_DNRM) AS AMNT_TYPE_DESC,
+        fp.FRST_NAME,
+        fp.LAST_NAME,
+        fp.CELL_PHON
 FROM    dbo.Request_Type rqtp ,
         dbo.Requester_Type rqtt ,
         dbo.Request r ,
-        dbo.Request_Row rr ,
+        dbo.Request_Row rr 
+        RIGHT OUTER JOIN dbo.Fighter_Public fp ON (rr.RQST_RQID = fp.RQRO_RQST_RQID AND rr.RWNO = fp.RQRO_RWNO),
         dbo.Fighter f ,
         dbo.Sub_Unit su,
         dbo.Payment p ,
         dbo.Payment_Detail pd 
         LEFT OUTER JOIN dbo.Club_Method cb ON cb.CODE = pd.CBMT_CODE_DNRM
-        LEFT OUTER JOIN dbo.Method m ON m.CODE = pd.MTOD_CODE_DNRM ,
+        LEFT OUTER JOIN dbo.Method m ON m.CODE = pd.MTOD_CODE_DNRM ,        
         QXML Qx
 WHERE   rqtp.CODE = r.RQTP_CODE
         AND rqtt.CODE = r.RQTT_CODE
@@ -144,9 +148,10 @@ WHERE   rqtp.CODE = r.RQTP_CODE
         AND (Qx.FROM_PYDS_DATE IS NULL OR EXISTS(SELECT * FROM dbo.Payment_Discount ps WHERE p.RQST_RQID = ps.PYMT_RQST_RQID AND p.CASH_CODE = ps.PYMT_CASH_CODE AND CAST(ps.CRET_DATE AS DATE) >= CAST(Qx.FROM_PYDS_DATE AS DATE)))
         AND (Qx.TO_PYDS_DATE IS NULL OR EXISTS(SELECT * FROM dbo.Payment_Discount ps WHERE p.RQST_RQID = ps.PYMT_RQST_RQID AND p.CASH_CODE = ps.PYMT_CASH_CODE AND CAST(ps.CRET_DATE AS DATE) <= CAST(Qx.TO_PYDS_DATE AS DATE)))
         
-        AND (Qx.CBMT_CODE IS NULL OR (CASE WHEN Qx.CBMT_CODE = 0 THEN cb.CODE ELSE Qx.CBMT_CODE END = cb.CODE AND f.MBSP_END_DATE >= CAST(GETDATE() AS DATE)))
-        AND (Qx.COCH_FILE_NO IS NULL OR (CASE WHEN Qx.COCH_FILE_NO = 0 THEN cb.COCH_FILE_NO ELSE Qx.COCH_FILE_NO END = cb.COCH_FILE_NO))
         */
+        AND (Qx.CBMT_CODE IS NULL OR Qx.CBMT_CODE = 0 OR  cb.CODE = Qx.CBMT_CODE)
+        AND (Qx.COCH_FILE_NO IS NULL OR Qx.COCH_FILE_NO = 0 OR cb.COCH_FILE_NO = Qx.COCH_FILE_NO)
+
 )
 
  

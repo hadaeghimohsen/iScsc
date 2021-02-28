@@ -16,6 +16,7 @@ CREATE TABLE [dbo].[Payment_Method]
 [REF_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ACTN_DATE] [datetime] NULL,
 [SHOP_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -186,7 +187,7 @@ BEGIN
                                         ) ,
                                         ( SELECT    @Cel5Phon AS '@phonnumb' ,
                                                     ( SELECT  '030' AS '@type' ,
-                                                              @MsgbText
+              @MsgbText
                                                     FOR
                                                       XML PATH('Message') ,
                                                           TYPE
@@ -311,7 +312,8 @@ BEGIN
             ,CRET_DATE = GETDATE()
             ,RWNO      = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.Payment_Method WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE AND PYMT_RQST_RQID = S.PYMT_RQST_RQID AND RQRO_RQST_RQID = S.RQRO_RQST_RQID AND RQRO_RWNO      = S.RQRO_RWNO)
             ,ACTN_DATE = COALESCE(S.Actn_Date, GETDATE())
-            ,FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.RQRO_RQST_RQID AND rr.RWNO = s.RQRO_RWNO);
+            ,FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.RQRO_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
+            ,T.VALD_TYPE = ISNULL(S.VALD_TYPE, '002');
    
    -- اگر مبلغ ذخیره شده صفر باشد   
    DELETE Payment_Method
@@ -491,4 +493,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره ترمینال', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Method', 'COLUMN', N'TERM_NO'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره تراکنش', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Method', 'COLUMN', N'TRAN_NO'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'این گزینه برای این می باشد که ایا این پرداختی به عنوان درآمد محسوب میشود یا خیر', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Method', 'COLUMN', N'VALD_TYPE'
 GO

@@ -46,7 +46,7 @@ BEGIN
    END 
    ELSE IF @SubSys = '12' AND EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
    BEGIN
-      EXEC dbo.RouterdbCommand @X = @X, @xRet = @xRet OUTPUT -- xml      
+      EXEC iRoboTech.dbo.RouterdbCommand @X = @X, @xRet = @xRet OUTPUT -- xml      
    END 
    
    COMMIT TRAN ROTR_DBCM_T05;

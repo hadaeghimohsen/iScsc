@@ -87,8 +87,8 @@ BEGIN
    IF @RQTP_CODE IS NULL
       RAISERROR(N'نوع درخواست وارد نشده', 16, 1);
    
-   IF @RQTT_CODE IS NULL
-      RAISERROR(N'نوع متقاصی وارد نشده', 16, 1);
+   IF @RQTT_CODE IS NULL SET @RQTT_CODE = '001'
+      --RAISERROR(N'نوع متقاصی وارد نشده', 16, 1);
       
    IF @CTGY_CODE IS NULL
       RAISERROR(N'نوع زیر گروه وارد نشده', 16, 1);

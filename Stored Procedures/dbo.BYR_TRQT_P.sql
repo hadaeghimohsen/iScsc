@@ -201,9 +201,14 @@ BEGIN
                ,@CtgyCode = CODE               
            FROM dbo.Category_Belt;
       
-      IF ISNULL(@CbmtCode, 0) = 0
+      -- 1399/12/07 * در این قسمت این مشکل وجود دارد که با انتخاب ساعت کلاسی کد مربوط به بخش عوض میشود
+      IF ISNULL(@CbmtCode, 0) = 0 AND ISNULL(@ClubCode, 0) = 0
 		   Select Top 1 @CbmtCode = Code, @ClubCode = CLUB_CODE
-		     FROM Club_Method;		
+		     FROM Club_Method;
+		ELSE 
+		   Select Top 1 @CbmtCode = Code, @ClubCode = CLUB_CODE
+		     FROM Club_Method
+		    WHERE CLUB_CODE = @ClubCode;
       
       IF LEN(@FngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE FNGR_PRNT_DNRM = @FngrPrnt AND FILE_NO <> @FileNo )
       BEGIN

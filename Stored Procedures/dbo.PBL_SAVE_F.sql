@@ -63,7 +63,7 @@ BEGIN
 
 
 	DECLARE @ErrorMessage NVARCHAR(MAX);
-	BEGIN TRAN T1;
+	BEGIN TRAN T$PBL_SAVE_F;
 	BEGIN TRY
 	   DECLARE @Rqid     BIGINT,
 	           @RqtpCode VARCHAR(3),
@@ -761,8 +761,64 @@ BEGIN
          );         
          EXEC dbo.END_RQST_P @X;
       END
+      
+      -- 1399/12/07
+      -- اگر این گزینه که مشتری کد برنامه بله خود را وارد کرده باشد
+      IF ISNUMERIC(@ChatId) = 1
+      BEGIN
+         -- اگر شماره کد بله درون سیستم برای مشتری ثبت شده آن را برای سیستم باشگاه و فروشگاه آنلاین ثبت میکنیم
+         IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+         BEGIN
+            -- این برای سیستم موبایل باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               391 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+            -- این برای سیستم فروشگاه اینترنتی باشگاه
+            SELECT @X = (
+               SELECT 12 AS '@subsys'
+                     ,'102' AS '@cmndcode' -- عملیات جامع ذخیره سازی
+                     ,5 AS '@refsubsys' -- محل ارجاعی
+                     ,'appuser' AS '@execaslogin' -- توسط کدام کاربری اجرا شود               
+                     ,(
+                        SELECT FRST_NAME_DNRM AS '@frstname',
+                               LAST_NAME_DNRM AS '@lastname',
+                               CELL_PHON_DNRM AS '@cellphon',
+                               NATL_CODE_DNRM AS '@natlcode',
+                               5 AS '@subsys',
+                               CHAT_ID_DNRM AS '@chatid',
+                               401 AS '@rbid',
+                               '010' AS '@actntype',
+                               'reguser' AS '@cmndtext'                               
+                          FROM dbo.Fighter
+                         WHERE FILE_NO = @FileNo                          
+                           FOR XML PATH('Service'), TYPE
+                     )
+                  FOR XML PATH('Router_Command')
+            );
+            EXEC dbo.RouterdbCommand @X = @X, @xRet = @X OUTPUT;
+         END
+      END
 
-      COMMIT TRAN T1;
+      COMMIT TRAN T$PBL_SAVE_F;
    END TRY
    BEGIN CATCH
   	   IF (SELECT CURSOR_STATUS('local','C$RQRV')) >= -1
@@ -779,7 +835,7 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN T1;
+      ROLLBACK TRAN T$PBL_SAVE_F;
    END CATCH;   
 END
 GO
