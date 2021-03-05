@@ -939,6 +939,8 @@ BEGIN
            FROM dbo.Message_Broadcast
           WHERE MSGB_TYPE = '008';
          
+         SET @MsgbText = '';
+         
          IF @TelgStat = '002'
          BEGIN
             IF @InsrFnamStat = '002'
@@ -1013,6 +1015,8 @@ BEGIN
                   ,@InsrFnamStat = INSR_FNAM_STAT
               FROM dbo.Message_Broadcast
              WHERE MSGB_TYPE = '008';
+            
+            SET @MsgbText = '';
             
             IF @TelgStat = '002'
             BEGIN

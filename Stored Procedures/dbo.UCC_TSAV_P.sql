@@ -624,7 +624,7 @@ BEGIN
       END;      
       -- 1396/11/15 * ثبت پیامک تلگرام
       IF @ChatId IS NOT NULL
-      BEGIN  
+      BEGIN
          DECLARE @TelgStat VARCHAR(3);
          
          SELECT @TelgStat = TELG_STAT
@@ -651,6 +651,8 @@ BEGIN
          SELECT @PymtAmnt = ISNULL(SUM(AMNT), 0)
            FROM dbo.Payment_Method
           WHERE PYMT_RQST_RQID = @OrgnRqid;
+         
+         SET @MsgbText = '';
          
          IF @TelgStat = '002'
          BEGIN

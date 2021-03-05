@@ -741,6 +741,8 @@ BEGIN
            FROM dbo.Message_Broadcast
           WHERE MSGB_TYPE = '006';
          
+         SET @MsgbText = '';
+         
          IF @TelgStat = '002'
          BEGIN
             IF @InsrFnamStat = '002'
