@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Note]
 [NOTE_SUBJ] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NOTE_CMNT] [nvarchar] (1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NOTE_DATE] [datetime] NULL,
+[VIST_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -41,7 +42,8 @@ BEGIN
          T.CRET_DATE = GETDATE(),
          T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE 0 END,
          T.RWNO = (SELECT ISNULL(MAX(n.RWNO), 0) + 1 FROM dbo.Note n WHERE n.FIGH_FILE_NO = s.FIGH_FILE_NO),
-         T.NOTE_DATE = GETDATE();
+         T.NOTE_DATE = GETDATE(),
+         T.VIST_STAT = ISNULL(S.VIST_STAT, '001');
          
 END
 GO

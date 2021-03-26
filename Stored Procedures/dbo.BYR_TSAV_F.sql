@@ -305,6 +305,7 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = 1
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,VALD_TYPE = '001' -- 1399/12/21
        WHERE RQRO_RQST_RQID = @Rqid;
       
       -- 1399/12/07

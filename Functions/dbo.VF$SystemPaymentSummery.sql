@@ -104,12 +104,14 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         (SELECT DOMN_DESC FROM dbo.[D$ATYP] WHERE VALU = p.AMNT_UNIT_TYPE_DNRM) AS AMNT_TYPE_DESC,
         fp.FRST_NAME,
         fp.LAST_NAME,
-        fp.CELL_PHON
+        fp.CELL_PHON,
+        pd.EXPR_DATE,
+        dbo.GET_MTOS_U(pd.EXPR_DATE) AS PERS_EXPR_DATE
 FROM    dbo.Request_Type rqtp ,
         dbo.Requester_Type rqtt ,
         dbo.Request r ,
         dbo.Request_Row rr 
-        RIGHT OUTER JOIN dbo.Fighter_Public fp ON (rr.RQST_RQID = fp.RQRO_RQST_RQID AND rr.RWNO = fp.RQRO_RWNO),
+        LEFT OUTER JOIN dbo.Fighter_Public fp ON (rr.RQST_RQID = fp.RQRO_RQST_RQID AND rr.RWNO = fp.RQRO_RWNO AND fp.RECT_CODE = '004'),
         dbo.Fighter f ,
         dbo.Sub_Unit su,
         dbo.Payment p ,

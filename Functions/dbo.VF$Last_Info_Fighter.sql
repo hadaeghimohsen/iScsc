@@ -97,7 +97,8 @@ SELECT     f.FILE_NO,
            f.MOM_CHAT_ID_DNRM,
            f.DAD_CELL_PHON_DNRM,
            f.DAD_TELL_PHON_DNRM,
-           f.DAD_CHAT_ID_DNRM
+           f.DAD_CHAT_ID_DNRM,
+           f.SERV_NO_DNRM
 FROM       dbo.Fighter f,           
            dbo.Sub_Unit s,
            dbo.[D$FGTP],

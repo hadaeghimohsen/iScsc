@@ -107,6 +107,9 @@ RETURNS TABLE
                 AND r.RQID = rr.RQST_RQID
                 AND rr.RQST_RQID = g.RQRO_RQST_RQID
                 AND rr.RWNO = g.RQRO_RWNO
-                AND rr.FIGH_FILE_NO = @FileNo
+                AND ( 
+                      @FileNo IS NULL OR 
+                      rr.FIGH_FILE_NO = @FileNo
+                    )
     );
 GO

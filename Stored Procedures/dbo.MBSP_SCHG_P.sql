@@ -56,7 +56,8 @@ BEGIN
              ,@NumbMontOfer002 INT
              ,@NumbOfAttnMont002 INT
              ,@SumNumbAttnMont002 INT
-             ,@AttnDayType002 VARCHAR(3);
+             ,@AttnDayType002 VARCHAR(3)
+             ,@NewFgpbRwno INT;
      
      DECLARE  @StrtDate004 DATE
              ,@EndDate004  DATE
@@ -64,7 +65,8 @@ BEGIN
              ,@NumbMontOfer004 INT
              ,@NumbOfAttnMont004 INT
              ,@SumNumbAttnMont004 INT
-             ,@AttnDayType004 VARCHAR(3);
+             ,@AttnDayType004 VARCHAR(3)
+             ,@OldFgpbRwno INT;
       
       SELECT @StrtDate002 = STRT_DATE
             ,@EndDate002 = END_DATE
@@ -81,6 +83,7 @@ BEGIN
             ,@NumbOfAttnMont004 = NUMB_OF_ATTN_MONT
             ,@SumNumbAttnMont004 = SUM_ATTN_MONT_DNRM
             ,@NumbMontOfer004 = NUMB_MONT_OFER
+            ,@OldFgpbRwno = FGPB_RWNO_DNRM
         FROM dbo.Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004'
@@ -171,6 +174,9 @@ BEGIN
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004'; 
          
+         -- 1399/12/25 * بدست آورده شماره جدید ردیف عمومی مشتری
+         SET @NewFgpbRwno = @FgpbRwno;
+         
          UPDATE dbo.Member_Ship
             SET FGPB_RWNO_DNRM = @FgpbRwno
           WHERE RQRO_RQST_RQID = @OrgnRqid
@@ -239,7 +245,7 @@ BEGIN
          );          
          
          IF @MsgbStat = '002' 
-         BEGIN      
+         BEGIN
             SELECT @XMsg = (
                SELECT 5 AS '@subsys',
                       @LineType AS '@linetype',
@@ -293,6 +299,58 @@ BEGIN
             EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
          END;
       END 
+      
+      -- ثبت درخواست اصلاح دوره در سابقه مشتری
+      -- 1399/12/29 * ثبت درخواست
+      DECLARE @RqtpCode VARCHAR(3) = '034',
+              @RqttCode VARCHAR(3) = '004',
+              @LettNo  VARCHAR(15) = @Rqid,
+              @LettDate DATETIME = GETDATE(),
+              @LettOwnr VARCHAR(250) = UPPER(SUSER_NAME());
+      
+      SELECT @PrvnCode = REGN_PRVN_CODE
+            ,@RegnCode = REGN_CODE
+        FROM dbo.Fighter
+       WHERE FILE_NO = @FileNo;
+              
+      EXEC dbo.INS_RQST_P
+         @PrvnCode,
+         @RegnCode,
+         @Rqid,
+         @RqtpCode,
+         @RqttCode,
+         @LettNo,
+         @LettDate,
+         @LettOwnr,
+         @Rqid OUT; 
+         
+      UPDATE dbo.Request
+         SET MDUL_NAME = 'MBSP_CHNG_F'
+            ,SECT_NAME = 'MBSP_CHNG_F'            
+       WHERE RQID = @Rqid;
+      
+      EXEC INS_RQRO_P
+         @Rqid
+        ,@FileNo
+        ,@RqroRwno OUT;
+      
+      -- چیزی که بوده
+      EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '001', '001', @StrtDate004, @EndDate004, 0, @NumbMontOfer004, @NumbOfAttnMont004, 0, @AttnDayType004;
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = @OldFgpbRwno
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @Rqid;
+       
+      -- چیزی که شده
+      EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '002', '001', @StrtDate002, @EndDate002, 0, @NumbMontOfer002, @NumbOfAttnMont002, 0, @AttnDayType002;
+      UPDATE dbo.Member_Ship
+         SET FGPB_RWNO_DNRM = ISNULL(@NewFgpbRwno, @OldFgpbRwno)
+            ,FGPB_RECT_CODE_DNRM = '004'
+       WHERE RQRO_RQST_RQID = @Rqid;
+      
+      UPDATE Request
+         SET RQST_STAT = '002'
+       WHERE RQID = @Rqid;
                
       COMMIT TRAN T1;
    END TRY

@@ -447,7 +447,7 @@ BEGIN
       BEGIN
          -- اگر درخواست درآمد متفرقه داشته باشیم باید درخواست را پایانی کنیم
          IF @RqtpCode = '016' AND @Rqid IS NOT NULL
-         BEGIN            
+         BEGIN
             -- ثبت وصولی درخواست
             SELECT @xTemp = (
                SELECT 'InsertUpdate' AS '@actntype',
@@ -901,14 +901,17 @@ BEGIN
       END 
       ELSE IF @RqtpCode = '025'
       BEGIN
-         SELECT @FngrPrnt = MAX(CONVERT(BIGINT, f.FNGR_PRNT_DNRM)) + 1
-           FROM dbo.Fighter f
-          WHERE f.FNGR_PRNT_DNRM IS NOT NULL
-            AND LEN(f.FNGR_PRNT_DNRM) > 0
-            AND ISNUMERIC(f.FNGR_PRNT_DNRM) = 1;         
+         -- 1399/12/21 * اگر کد شناسایی وارد شده باشد
+         if isnull(@FngrPrnt, '') = ''
+            SELECT @FngrPrnt = MAX(CONVERT(BIGINT, f.FNGR_PRNT_DNRM)) + 1
+              FROM dbo.Fighter f
+             WHERE f.FNGR_PRNT_DNRM IS NOT NULL
+               AND LEN(f.FNGR_PRNT_DNRM) > 0
+               AND ISNUMERIC(f.FNGR_PRNT_DNRM) = 1;         
          
          SELECT @xTemp = (
-            SELECT 0 AS '@rqid',
+            SELECT Top 1 
+                   0 AS '@rqid',
                    '025' AS '@rqtpcode',
                    '004' AS '@rqttcode',
                    '017' AS '@prvncode',

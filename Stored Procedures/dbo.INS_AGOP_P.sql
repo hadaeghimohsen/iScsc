@@ -159,7 +159,7 @@ BEGIN
         FROM dbo.Aggregation_Operation
        WHERE CODE = @Code
    )
-   BEGIN   
+   BEGIN
       INSERT INTO dbo.Aggregation_Operation
               ( CODE ,
                 REGN_PRVN_CNTY_CODE ,
@@ -234,6 +234,38 @@ BEGIN
    END
    ELSE
    BEGIN
+      -- 1400/01/01 * اگر دفتر بسته شود ولی میز هزینه دار درون آن وجود داشته باشد
+      IF @OprtStat = '003'
+      BEGIN
+         IF EXISTS (SELECT * 
+                      FROM dbo.Aggregation_Operation_Detail a
+                     WHERE a.AGOP_CODE = @Code
+                       AND a.RQST_RQID IS NULL)
+         BEGIN
+            -- 1400/01/01 * لاگ برداری از عملیات کاربر
+   	      DECLARE @XTemp XML = (
+   	         SELECT NULL AS '@fileno',
+                      '005' AS '@type',
+                      (
+                        SELECT 
+                               N'میز ' + ei.EPIT_DESC + N' از ساعت ' + CAST(a.STRT_TIME AS VARCHAR(5)) + N' شروع شده و تا ساعت ' + CAST(a.END_TIME AS VARCHAR(5)) + N' به مدت ' + CAST(a.TOTL_MINT_DNRM AS VARCHAR(10)) + N' دقیقه باز بوده که ارزش میز به مبلغ ' + 
+                               REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, a.TOTL_AMNT_DNRM), 1), '.00', '') + N' بوده که توسط کاربر ' + UPPER(SUSER_NAME()) + N' حذف شده است.' + CHAR(10) + CHAR(10)
+                          FROM dbo.Aggregation_Operation_Detail a, dbo.Expense e, dbo.Expense_Type et, dbo.Expense_Item ei
+                         WHERE a.AGOP_CODE = @Code
+                           AND e.CODE = a.EXPN_CODE
+                           AND e.EXTP_CODE = et.CODE
+                           AND et.EPIT_CODE = ei.CODE
+                           AND a.RQST_RQID IS NULL
+                           FOR XML PATH('')                           
+                      ) AS '@text'
+                 FROM dbo.Aggregation_Operation ao
+                WHERE ao.CODE = @Code
+                  FOR XML PATH('Log')
+   	      );
+   	      EXEC dbo.INS_LGOP_P @X = @XTemp; -- xml
+         END 
+      END
+       
       UPDATE dbo.Aggregation_Operation
          SET REGN_PRVN_CNTY_CODE = @RegnPrvnCntyCode
             ,REGN_PRVN_CODE = @RegnPrvnCode

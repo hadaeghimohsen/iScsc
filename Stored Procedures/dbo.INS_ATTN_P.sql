@@ -1084,7 +1084,10 @@ BEGIN
                16, -- Severity.
                1 -- State.
                );
-      ROLLBACK TRAN INS_ATTN_P_T;      
+      ROLLBACK TRAN INS_ATTN_P_T;
+      -- 1400/01/01 * ثبت خطای رخ داده شده درون سیستم
+      INSERT INTO dbo.Log_Operation ( FIGH_FILE_NO ,LOID ,LOG_TYPE ,LOG_TEXT )
+      VALUES   ( @Figh_File_No , 0 , '001' , @ErrorMessage );
    END CATCH   
 END
 GO
