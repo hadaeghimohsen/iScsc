@@ -34,7 +34,11 @@ BEGIN
    END*/
    
    DECLARE @HostName NVARCHAR(128)
-          ,@ComaCode BIGINT;   
+          ,@ComaCode BIGINT
+          ,@AttnDelyTime SMALLINT;   
+   
+   SELECT @AttnDelyTime = ISNULL(MAX(ATTN_DELY_TIME), 0)
+     FROM dbo.Settings;    
    
    IF ISNULL(@Mbsp_Rwno, 0) = 0
    BEGIN
@@ -66,6 +70,22 @@ BEGIN
       RETURN;
    END
    
+   -- 1400/05/03 * مدت زمان یک دقیقه
+   IF EXISTS (   
+      SELECT *
+        FROM dbo.Attendance a
+       WHERE a.FIGH_FILE_NO = @Figh_File_No
+         AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno
+         AND (
+                (a.EXIT_TIME IS NULL AND DATEADD(SECOND, @AttnDelyTime, a.CRET_DATE) >= GETDATE()) 
+             OR
+                (a.EXIT_TIME IS NOT NULL AND DATEADD(SECOND, @AttnDelyTime, a.MDFY_DATE) >= GETDATE()) 
+             )
+   )
+   BEGIN
+      RAISERROR(N'مدت زمان انتظار شما هنوز تمام نشده، لطفا کمی صبر کنید', 16, 1);
+      RETURN;
+   END 
    
    DECLARE @Type VARCHAR(3);
    IF @Club_Code IS NULL
@@ -413,7 +433,8 @@ BEGIN
             AND F.[TYPE] IN ('001', '005', '006')
             AND F.CBMT_CODE = Cm.CODE
             AND Cm.CODE = cmw.CBMT_CODE
-            AND mb.VALD_TYPE = '002'         
+            AND mb.VALD_TYPE = '002'
+            AND f.SEX_TYPE = cm.SEX_TYPE -- 1400/04/02
             AND NOT EXISTS(
                SELECT *
                  FROM dbo.Attendance a
@@ -428,6 +449,15 @@ BEGIN
                   (cm.CBMT_TIME_STAT = '002' /* اگر ساعت و زمان برای کلاس فعال باشد */  AND (CAST(GETDATE() AS TIME(0)) < CAST(cm.STRT_TIME AS TIME(0)) OR CAST(GETDATE() AS TIME(0)) > CAST(cm.END_TIME AS TIME(0))) /* NOT BETWEEN CAST(cm.STRT_TIME AS TIME(0)) AND CAST(cm.END_TIME AS TIME(0)) */)               
                 )
             
+      ) 
+      -- اگر ردیفی به عنوان حضور و غیاب در روز قبل داشته باشید و الان وارد فردا شده باشیم باید بگوییم کسانی که در روز قبل حضوری زده اند اجازه خروج را دوباره بدهیم
+      AND NOT EXISTS (
+         SELECT * 
+           FROM dbo.Attendance a 
+          WHERE a.FIGH_FILE_NO = @Figh_File_No 
+            AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno
+            AND a.ATTN_DATE = CAST(DATEADD(DAY, -1, GETDATE()) AS DATE)
+            AND a.EXIT_TIME IS NULL
       )
       BEGIN
          DECLARE @MtodDesc NVARCHAR(250)
@@ -664,12 +694,18 @@ BEGIN
       -- 1397/12/04 * میزان محدودیت
       IF @Attn_TYPE IN ( '007' , '008' ) AND (
          SELECT COUNT(*)
-           FROM dbo.Attendance a
+           FROM dbo.Attendance a, dbo.Settings s
           WHERE a.FIGH_FILE_NO = @Figh_File_No
             AND a.MBSP_RECT_CODE_DNRM = '004'
             AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno
             AND a.ATTN_TYPE IN ('007', '008')
             AND a.ATTN_STAT = '002'
+            
+            AND a.CLUB_CODE = s.CLUB_CODE
+            AND (
+                  (ISNULL(s.ATTN_GUST_NUMB_TYPE, '001') = '002' AND a.ATTN_DATE = CAST(GETDATE() AS DATE)) OR 
+                  (ISNULL(s.ATTN_GUST_NUMB_TYPE, '001') = '001')
+                )
       ) >= (
          SELECT ISNULL(cb.GUST_NUMB, 0)
            FROM dbo.Member_Ship ms, dbo.Fighter_Public fp, dbo.Category_Belt cb
@@ -689,6 +725,7 @@ BEGIN
                    );
          RETURN;
       END
+      
       -- 1396/10/26 * گزینه مشخص شود که چه ورزشی می باشد      
       DECLARE @ChckAttnAlrm VARCHAR(3);
                    
@@ -835,21 +872,14 @@ BEGIN
 
       IF @ChatId IS NOT NULL
       BEGIN
-         DECLARE @TelgStat VARCHAR(3)
-                --,@MsgbStat VARCHAR(3)
-                --,@MsgbText NVARCHAR(MAX)
-                --,@ClubName NVARCHAR(250)
-                --,@InsrCnamStat VARCHAR(3)
-                --,@InsrFnamStat VARCHAR(3);
-                
+         DECLARE @TelgStat VARCHAR(3);                
          SELECT @TelgStat = TELG_STAT
                ,@MsgbText = MSGB_TEXT
                ,@ClubName = CLUB_NAME
                ,@InsrCnamStat = INSR_CNAM_STAT
                ,@InsrFnamStat = INSR_FNAM_STAT
            FROM dbo.Message_Broadcast
-          WHERE MSGB_TYPE = '008';
-         
+          WHERE MSGB_TYPE = '008';         
          IF @TelgStat = '002'
          BEGIN
             IF @InsrFnamStat = '002'
@@ -985,6 +1015,67 @@ BEGIN
 	                   @LAT = NULL, -- float
 	                   @LON = NULL, -- float
 	                   @CONT_CELL_PHON = NULL; -- varchar(11)	            
+	         END;
+         END;
+         
+         -- ثبت متن نظر سنجی
+         SELECT @TelgStat = TELG_STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrFnamStat = INSR_FNAM_STAT
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '040';         
+         IF @TelgStat = '002' 
+         BEGIN
+            IF @InsrFnamStat = '002'
+               SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
+            
+            IF @InsrCnamStat = '002'
+               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;              
+            
+            IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
+	         BEGIN
+	            --DECLARE @RoboServFileNo BIGINT;
+	            SELECT @RoboServFileNo = SERV_FILE_NO
+	              FROM iRoboTech.dbo.Service_Robot
+	             WHERE ROBO_RBID = 391
+	               AND CHAT_ID = @ChatId;
+	            
+	            DECLARE @InlnKeyb XML = (
+	               SELECT 1 AS '@ordr',
+	                      (
+	                        SELECT T.Data AS '@data', t.Ordr AS '@ordr', t.Cptn
+	                          FROM (
+	                           SELECT '' AS Data, '1' AS Ordr, N'⭐ ' AS Cptn
+	                           UNION 
+	                           SELECT '' AS Data, '2' AS Ordr, N'⭐⭐ ' AS Cptn
+	                           UNION 
+	                           SELECT '' AS Data, '3' AS Ordr, N'⭐⭐⭐ ' AS Cptn
+	                           UNION 
+	                           SELECT '' AS Data, '4' AS Ordr, N'⭐⭐⭐⭐ ' AS Cptn
+	                           UNION 
+	                           SELECT '' AS Data, '5' AS Ordr, N'⭐⭐⭐⭐⭐ ' AS Cptn
+	                        ) T 
+	                        FOR XML PATH('InlineKeyboardButton'), TYPE
+	                      )
+	                  FOR XML PATH('InlineKeyboardMarkup')	                  
+	            );	            
+	            
+	            IF @RoboServFileNo IS NOT NULL
+	               EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
+	                   @SRBT_ROBO_RBID = 391, -- bigint
+	                   @RWNO = 0, -- bigint
+	                   @SRMG_RWNO = NULL, -- bigint
+	                   @Ordt_Ordr_Code = NULL, -- bigint
+	                   @Ordt_Rwno = NULL, -- bigint
+	                   @MESG_TEXT = @MsgbText, -- nvarchar(max)
+	                   @FILE_ID = NULL, -- varchar(200)
+	                   @FILE_PATH = NULL, -- nvarchar(max)
+	                   @MESG_TYPE = '001', -- varchar(3)
+	                   @LAT = NULL, -- float
+	                   @LON = NULL, -- float
+	                   @CONT_CELL_PHON = NULL,
+	                   @Inln_Keyb_Dnrm = @InlnKeyb; -- varchar(11)	            
 	         END;
          END;
       END;      

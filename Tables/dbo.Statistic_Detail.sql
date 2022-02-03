@@ -2,49 +2,117 @@ CREATE TABLE [dbo].[Statistic_Detail]
 (
 [STIS_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
-[STSD_DATE] [date] NULL,
-[USER_NAME] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[REGN_PRVN_CNTY_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[REGN_PRVN_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[REGN_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CLUB_CODE] [bigint] NULL,
-[REGL_YEAR] [smallint] NULL,
-[REGL_CODE] [int] NULL,
-[RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[RQTT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[FGPB_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SUNT_BUNT_DEPT_ORGN_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SUNT_BUNT_DEPT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SUNT_BUNT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SUNT_CODE] [varchar] (4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MTOD_CODE] [bigint] NULL,
-[CTGY_CODE] [bigint] NULL,
-[CONT] [bigint] NULL,
-[AMNT] [bigint] NULL,
-[RCPT_MTOD] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RWNO] [int] NULL,
+[STIS_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SEX_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CONT_NUMB] [bigint] NULL,
+[SUM_EXPN_AMNT] [bigint] NULL,
+[SUM_DSCT_AMNT] [bigint] NULL,
+[SUM_CASH_AMNT] [bigint] NULL,
+[SUM_POS_AMNT] [bigint] NULL,
+[SUM_C2C_AMNT] [bigint] NULL,
+[SUM_DPST_AMNT] [bigint] NULL,
+[SUM_REMN_AMNT] [bigint] NULL,
+[AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RECT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE TRIGGER [dbo].[CG$AINS_STSD]
+   ON  [dbo].[Statistic_Detail]
+   AFTER INSERT
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   -- Insert statements for trigger here
+   MERGE dbo.Statistic_Detail T
+   USING (SELECT * FROM Inserted) S
+   ON (T.STIS_CODE = S.STIS_CODE AND 
+       T.CODE = S.CODE)
+   WHEN MATCHED THEN
+      UPDATE SET
+         T.CRET_BY = UPPER(SUSER_NAME()),
+         T.CRET_DATE = GETDATE(),
+         T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END;
+         --T.RWNO = (SELECT ISNULL(MAX(sd.RWNO), 0) + 1 FROM dbo.Statistic_Detail sd WHERE sd.STIS_CODE = s.STIS_CODE);
+   
+   DECLARE C$STSD CURSOR FOR
+      SELECT sd.CODE, sd.STIS_CODE
+        FROM dbo.Statistic_Detail sd
+       WHERE sd.STIS_CODE IN (
+                SELECT i.STIS_CODE
+                  FROM Inserted i
+             )
+         AND sd.RWNO IS NULL
+       ORDER BY sd.CRET_DATE DESC;
+   
+   DECLARE @Code BIGINT,
+           @StisCode BIGINT;
+   
+   OPEN [C$STSD];
+   L$Loop:
+   FETCH [C$STSD] INTO @Code, @StisCode;
+   
+   IF @@FETCH_STATUS <> 0
+      GOTO L$EndLoop;
+   
+   UPDATE t
+      SET RWNO = (SELECT ISNULL(MAX(sd.RWNO), 0) + 1 FROM dbo.Statistic_Detail sd WHERE sd.STIS_CODE = t.STIS_CODE)
+     FROM dbo.Statistic_Detail t
+    WHERE t.STIS_CODE = @StisCode
+      AND t.CODE = @Code;
+   
+   GOTO L$Loop;
+   L$EndLoop:
+   CLOSE [C$STSD];
+   DEALLOCATE [C$STSD];
+END
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE TRIGGER [dbo].[CG$AUPD_STSD]
+   ON  [dbo].[Statistic_Detail]
+   AFTER UPDATE
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   -- Insert statements for trigger here
+   MERGE dbo.Statistic_Detail T
+   USING (SELECT * FROM Inserted) S
+   ON (T.STIS_CODE = S.STIS_CODE AND 
+       T.CODE = S.CODE)
+   WHEN MATCHED THEN
+      UPDATE SET
+         T.MDFY_BY = UPPER(SUSER_NAME()),
+         T.MDFY_DATE = GETDATE();      
+END
+GO
 ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [PK_STSD] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_REGL] FOREIGN KEY ([REGL_YEAR], [REGL_CODE]) REFERENCES [dbo].[Regulation] ([YEAR], [CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_REGN] FOREIGN KEY ([REGN_PRVN_CNTY_CODE], [REGN_PRVN_CODE], [REGN_CODE]) REFERENCES [dbo].[Region] ([PRVN_CNTY_CODE], [PRVN_CODE], [CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_RQTT] FOREIGN KEY ([RQTT_CODE]) REFERENCES [dbo].[Requester_Type] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_STIS] FOREIGN KEY ([STIS_CODE]) REFERENCES [dbo].[Statistic] ([CODE])
-GO
-ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_SUNT] FOREIGN KEY ([SUNT_BUNT_DEPT_ORGN_CODE], [SUNT_BUNT_DEPT_CODE], [SUNT_BUNT_CODE], [SUNT_CODE]) REFERENCES [dbo].[Sub_Unit] ([BUNT_DEPT_ORGN_CODE], [BUNT_DEPT_CODE], [BUNT_CODE], [CODE])
+ALTER TABLE [dbo].[Statistic_Detail] ADD CONSTRAINT [FK_STSD_STIS] FOREIGN KEY ([STIS_CODE]) REFERENCES [dbo].[Statistic] ([CODE]) ON DELETE CASCADE
 GO

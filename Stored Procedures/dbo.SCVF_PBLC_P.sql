@@ -26,7 +26,8 @@ BEGIN
    	        @InsrDate DATE,
    	        @ChatId BIGINT,
    	        @DadChatId BIGINT,
-   	        @MomChatId BIGINT;
+   	        @MomChatId BIGINT,
+   	        @FngrPrnt VARCHAR(20);
    	
    	-- مقدار دهی متغییر ها
    	SELECT @FileNo = @x.query('//Fighter').value('(Fighter/@fileno)[1]', 'BIGINT'),
@@ -41,11 +42,13 @@ BEGIN
    	       @InsrDate = @x.query('//Fighter').value('(Fighter/@insrdate)[1]', 'DATE'),
    	       @ChatId = @x.query('//Fighter').value('(Fighter/@chatid)[1]', 'BIGINT'),
    	       @DadChatId = @x.query('//Fighter').value('(Fighter/@dadchatid)[1]', 'BIGINT'),
-   	       @MomChatId = @x.query('//Fighter').value('(Fighter/@momchatid)[1]', 'BIGINT');
+   	       @MomChatId = @x.query('//Fighter').value('(Fighter/@momchatid)[1]', 'BIGINT'),
+   	       @FngrPrnt = @x.query('//Fighter').value('(Fighter/@fngrprnt)[1]', 'VARCHAR(20)');
    	
    	IF @ChatId = 0 SET @ChatId = NULL;
    	IF @DadChatId = 0 SET @DadChatId = NULL;
    	IF @MomChatId = 0 SET @MomChatId = NULL;
+   	IF LEN(@FngrPrnt) = 0 SET @FngrPrnt = NULL;
    	
    	-- Local Var
    	DECLARE @Rqid BIGINT,
@@ -94,7 +97,8 @@ BEGIN
              INSR_NUMB = @NatlCode,
              CHAT_ID = @ChatId,
              DAD_CHAT_ID = @DadChatId,
-             MOM_CHAT_ID = @MomChatId
+             MOM_CHAT_ID = @MomChatId,
+             FNGR_PRNT = ISNULL(@FngrPrnt, FNGR_PRNT)
        WHERE FIGH_FILE_NO = @FileNo
          AND RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '001';

@@ -74,6 +74,7 @@ CREATE TABLE [dbo].[Fighter]
 [DAD_CHAT_ID_DNRM] [bigint] NULL,
 [DPST_ACNT_SLRY_BANK_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DPST_ACNT_SLRY_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RTNG_NUMB_DNRM] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -172,4 +173,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف جلسه خصوصی با مربی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'MBCO_RWNO_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد ملی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'NATL_CODE_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'میزان رضایتمندی مشتریان', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'RTNG_NUMB_DNRM'
 GO

@@ -39,9 +39,9 @@ AS
     BEGIN
         IF @Strt_Time > @End_Time
             BEGIN
-                RAISERROR(N'ساعت پایانه بازی نمی تواند از ساعت شروع کتر باشد. "اگر تاریخ عوض شده لطفا تاریخ پایان هم تنظیم کنید"', 16, 1);
-            END;
-   
+                RAISERROR(N'ساعت پایانی نمی تواند از ساعت شروع کمتر باشد. "اگر تاریخ عوض شده لطفا تاریخ پایان هم تنظیم کنید"', 16, 1);
+            END;        
+        
         UPDATE  dbo.Aggregation_Operation_Detail
         SET     FIGH_FILE_NO = @Figh_File_No ,
                 RQST_RQID = @Rqst_Rqid ,

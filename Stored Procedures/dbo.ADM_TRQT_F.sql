@@ -357,7 +357,9 @@ BEGIN
       IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" اطلاعات وارد نشده' , 16, 1);
       IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" اطلاعات وارد نشده' , 16, 1);
       --IF LEN(@FathName)        = 0 RAISERROR (N'برای فیلد "نام پدر" درخواست اطلاعات وارد نشده' , 16, 1);
-      IF LEN(@SexType)         = 0 RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
+      --IF LEN(@SexType)         = 0 SET @SexType = '001';--RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@SexType)         = 0 RAISERROR (N'برای فیلد "جنسیت" اطلاعات وارد نشده' , 16, 1);      
+
       IF @BrthDate             = '1900-01-01' SET @BrthDate = GETDATE()--RAISERROR (N'برای فیلد "تاریخ تولد" درخواست اطلاعات وارد نشده' , 16, 1);
       IF ISNULL(@DiseCode, 0)  = 0 SET @DiseCode = NULL;
       --IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "گروه" اطلاعات وارد نشده' , 16, 1);
@@ -405,6 +407,12 @@ BEGIN
       BEGIN
          RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط هنرجوی دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
       END
+      
+      -- 1400/04/25 * چک کردن اینکه شماره کد ملی باید وارد بشود یا نه
+      IF EXISTS(SELECT * FROM dbo.Settings s, dbo.Club_Method cm WHERE s.CLUB_CODE = cm.CLUB_CODE AND cm.CODE = @CbmtCode AND ISNULL(s.INPT_CELL_PHON_STAT, '002') = '002')
+      IF LEN(@CellPhon)        = 0 RAISERROR (N'برای فیلد "موبایل" اطلاعات وارد نشده' , 16, 1);
+      IF EXISTS(SELECT * FROM dbo.Settings s, dbo.Club_Method cm WHERE s.CLUB_CODE = cm.CLUB_CODE AND cm.CODE = @CbmtCode AND ISNULL(s.INPT_NATL_CODE_STAT, '002') = '002')
+		IF LEN(@NatlCode)        = 0 RAISERROR (N'برای فیلد "کد ملی" اطلاعات وارد نشده' , 16, 1);
       
       -- 1399/07/18 * چک کردن اینکه شماره کارت وارد شده معتبر میباشد یا خیر
       DECLARE @RecdNumb BIGINT;

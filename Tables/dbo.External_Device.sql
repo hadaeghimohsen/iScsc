@@ -81,7 +81,7 @@ BEGIN
         ,t.MDFY_DATE = GETDATE();
 END
 GO
-ALTER TABLE [dbo].[External_Device] ADD CONSTRAINT [PK_External_Device] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+ALTER TABLE [dbo].[External_Device] ADD CONSTRAINT [PK_EDEV] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع وضعیت برخورد با داده رسیده از دستگاه
 عملیات حضور و غیاب انجام شود یا 

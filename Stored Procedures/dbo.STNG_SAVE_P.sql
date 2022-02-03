@@ -65,8 +65,9 @@ BEGIN
 	             ,@DebtClngStat VARCHAR(3)
 	             ,@MostDebtClngAmnt BIGINT
 	             ,@ExprDebtDay INT
-                ,@TryValdSbmt VARCHAR(3)
                 ,@DebtChckStat VARCHAR(3)
+                ,@PermmEntrDebtServNumb int
+                ,@TryValdSbmt VARCHAR(3)                
                 ,@GateAttnStat VARCHAR(3)
                 ,@GateCommPortName VARCHAR(30)
                 ,@GateBandRate INT
@@ -84,10 +85,14 @@ BEGIN
                 ,@HldyCont INT
                 ,@DuplNatlCode VARCHAR(3)
                 ,@DuplCellPhon VARCHAR(3)
+                ,@InptNatlCodeStat VARCHAR(3)
+                ,@InptCellPhonStat VARCHAR(3)
                 ,@IPAdr3 VARCHAR(15)
                 ,@PortNum3 INT
 	             ,@AttnCompCnc3 VARCHAR(30)
-	             ,@Atn4EvntActnType VARCHAR(3);
+	             ,@Atn4EvntActnType VARCHAR(3)
+	             ,@AttnGustNumbType VARCHAR(3)
+	             ,@AttnDelyTime SMALLINT;
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -128,6 +133,7 @@ BEGIN
 	             ,@ExprDebtDay = @X.query('//Settings').value('(Settings/@exprdebtday)[1]', 'INT')
 	             ,@TryValdSbmt = @X.query('//Settings').value('(Settings/@tryvaldsbmt)[1]', 'VARCHAR(3)')
 	             ,@DebtChckStat = @X.query('//Settings').value('(Settings/@debtchckstat)[1]', 'VARCHAR(3)')
+	             ,@PermmEntrDebtServNumb = @X.query('//Settings').value('(Settings/@permmentrdebtservnumb)[1]', 'int')
 	             
 	             ,@GateAttnStat = @X.query('//Settings').value('(Settings/@gateattnstat)[1]', 'VARCHAR(3)')
 	             ,@GateCommPortName = @X.query('//Settings').value('(Settings/@gatecommportname)[1]', 'VARCHAR(30)')
@@ -149,11 +155,16 @@ BEGIN
 	             ,@HldyCont = @X.query('//Settings').value('(Settings/@hldycont)[1]', 'INT')
 	             ,@DuplNatlCode = @X.query('//Settings').value('(Settings/@duplnatlcode)[1]', 'VARCHAR(3)')
 	             ,@DuplCellPhon = @X.query('//Settings').value('(Settings/@duplcellphon)[1]', 'VARCHAR(3)')
+	             ,@InptNatlCodeStat = @X.query('//Settings').value('(Settings/@inptnatlcodestat)[1]', 'VARCHAR(3)')
+	             ,@InptCellPhonStat = @X.query('//Settings').value('(Settings/@inptcellphonstat)[1]', 'VARCHAR(3)')
 	             
 	             ,@IPAdr3 = @X.query('//Settings').value('(Settings/@ipadr3)[1]', 'VARCHAR(15)')
 	             ,@PortNum3 = @X.query('//Settings').value('(Settings/@portnum3)[1]', 'INT')
 	             ,@AttnCompCnc3 = @X.query('//Settings').value('(Settings/@attncompcnc3)[1]', 'VARCHAR(30)')
-	             ,@Atn4EvntActnType = @X.query('//Settings').value('(Settings/@atn4evntactntype)[1]', 'VARCHAR(3)');
+	             ,@Atn4EvntActnType = @X.query('//Settings').value('(Settings/@atn4evntactntype)[1]', 'VARCHAR(3)')
+	             
+	             ,@AttnGustNumbType = @X.query('//Settings').value('(Settings/@attngustnumbtype)[1]', 'VARCHAR(3)')
+	             ,@AttnDelyTime = @X.query('//Settings').value('(Settings/@attndelytime)[1]', 'SMALLINT');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -207,6 +218,7 @@ BEGIN
                   ,EXPR_DEBT_DAY = @ExprDebtDay
                   ,TRY_VALD_SBMT = @TryValdSbmt
                   ,DEBT_CHCK_STAT = @DebtChckStat
+                  ,PERM_ENTR_DEBT_SERV_NUMB = @PermmEntrDebtServNumb
                   
                   ,GATE_ATTN_STAT = @GateAttnStat
                   ,GATE_COMM_PORT_NAME = @GateCommPortName
@@ -228,11 +240,16 @@ BEGIN
                   ,CLER_ZERO = @ClerZero
                   ,DUPL_NATL_CODE = @DuplNatlCode
                   ,DUPL_CELL_PHON = @DuplCellPhon
+                  ,INPT_NATL_CODE_STAT = @InptNatlCodeStat
+                  ,INPT_CELL_PHON_STAT = @InptCellPhonStat
                   
                   ,IP_ADR3 = @IPAdr3
                   ,PORT_NUM3 = @PortNum3
                   ,ATTN_COMP_CNC3 = @AttnCompCnc3
                   ,ATN4_EVNT_ACTN_TYPE = @Atn4EvntActnType
+                  
+                  ,ATTN_GUST_NUMB_TYPE = @AttnGustNumbType
+                  ,ATTN_DELY_TIME = @AttnDelyTime
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

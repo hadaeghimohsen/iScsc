@@ -12,9 +12,6 @@ CREATE PROCEDURE [dbo].[ADM_TSAV_F]
 	@X XML
 AS
 BEGIN
-   /*RAISERROR(N'گوه خوردی', 16, 1);
-   RETURN;*/
-   
    DECLARE @AP BIT
           ,@AccessString VARCHAR(250);
    SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>68</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
@@ -57,12 +54,27 @@ BEGIN
 	          ,@OrgnRqid BIGINT
 	          ,@FileNo   BIGINT
 	          ,@PrvnCode VARCHAR(3)
-	          ,@RegnCode VARCHAR(3);   	
+	          ,@RegnCode VARCHAR(3)
+	          ,@xTemp xml;   	
 	          
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@OrgnRqid = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)');
+
+      -- 1400/01/21 * اگر سیستم نیاز به ثبت کارمزد از جانب سیستم داشته باشد
+      SET @xTemp = (
+          SELECT @Rqid AS '@rqid'
+             FOR XML PATH('Request')
+      );
+      EXEC dbo.CALC_TXFE_P @X = @xTemp, @xRet = @xTemp OUTPUT;
+      
+      IF @xTemp.query('//Result').value('(Result/@rsltcode)[1]', 'VARCHAR(3)') = '001'
+      BEGIN
+         RAISERROR(N'کاربر گرامی میزان شارژ کیف اعتباری شما کافی نمیباشد لطفا جهت شارژ کیف پول خوب اقدام فرمایید', 16, 1);
+         RETURN;         
+      END 
+
 	         
       SELECT @FileNo = File_No, @PrvnCode = REGN_PRVN_CODE, @RegnCode = REGN_CODE
         FROM Fighter
@@ -483,45 +495,6 @@ BEGIN
          AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
 		   --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
          AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
-
-      
-      --IF EXISTS(
-      --   SELECT *
-      --     FROM dbo.Request R, dbo.Request_Row Rr, dbo.Payment P, dbo.Payment_Detail Pd, dbo.Expense E
-      --    WHERE R.RQID = Rr.RQST_RQID
-      --      AND R.RQID = P.RQST_RQID
-      --      AND Rr.RQST_RQID = Pd.PYMT_RQST_RQID
-      --      AND Rr.RWNO = Pd.RQRO_RWNO
-      --      AND Pd.EXPN_CODE = E.CODE
-      --      AND R.RQID = @OrgnRqid -- درخواست ثبت نام هنرجو
-      --      AND E.PRVT_COCH_EXPN = '002' -- هزینه مربی خصوصی            
-      --)
-      --BEGIN
-      --   -- ثبت درخواست جلسه خصوصی با مربی
-      --   SET @X = '<Process><Request rqstrqid="" rqtpcode="021" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
-      --   SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
-      --   SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-      --   SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
-      --   EXEC MBC_TRQT_P @X;
-         
-      --   SELECT @Rqid = R.RQID
-      --     FROM Request R
-      --    WHERE R.RQST_RQID = @Rqid
-      --      AND R.RQST_STAT = '001'
-      --      AND R.RQTP_CODE = '021'
-      --      AND R.RQTT_CODE = '004';
-
-      --   SET @X = '<Process><Request rqid=""></Request></Process>';
-      --   SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
-      --   EXEC MBC_TSAV_P @X;
-      --END
       
       -- 1396/10/05 * ثبت پیامک       
       IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND EXISTS(SELECT * FROM dbo.Request WHERE RQID = @OrgnRqid AND RQTT_CODE = '001')

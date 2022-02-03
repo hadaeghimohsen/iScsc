@@ -46,14 +46,25 @@ BEGIN
         DECLARE @Rqid BIGINT ,
             @FileNo BIGINT ,
             @PrvnCode VARCHAR(3) ,
-            @RegnCode VARCHAR(3);   	
+            @RegnCode VARCHAR(3),
+            @xTemp XML;
 	          
-        SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]',
-                                                    'BIGINT') ,
-                @PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]',
-                                                        'VARCHAR(3)') ,
-                @RegnCode = @X.query('//Request').value('(Request/@regncode)[1]',
-                                                        'VARCHAR(3)');
+        SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]','BIGINT') ,
+                @PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]','VARCHAR(3)') ,
+                @RegnCode = @X.query('//Request').value('(Request/@regncode)[1]','VARCHAR(3)');
+        
+      -- 1400/01/21 * اگر سیستم نیاز به ثبت کارمزد از جانب سیستم داشته باشد
+      SET @xTemp = (
+          SELECT @Rqid AS '@rqid'
+             FOR XML PATH('Request')
+      );
+      EXEC dbo.CALC_TXFE_P @X = @xTemp, @xRet = @xTemp OUTPUT;
+      
+      IF @xTemp.query('//Result').value('(Result/@rsltcode)[1]', 'VARCHAR(3)') = '001'
+      BEGIN
+         RAISERROR(N'کاربر گرامی میزان شارژ کیف اعتباری شما کافی نمیباشد لطفا جهت شارژ کیف پول خوب اقدام فرمایید', 16, 1);
+         RETURN;         
+      END 
 	         
         SELECT  @FileNo = FILE_NO
         FROM    Fighter
@@ -79,7 +90,8 @@ BEGIN
         UPDATE  Request
         SET     RQST_STAT = '002'
         WHERE   RQID = @Rqid;
-      
+        
+       
       -- 1398/06/30 * ثبت پیامک
         IF EXISTS ( SELECT  *
                     FROM    dbo.Message_Broadcast

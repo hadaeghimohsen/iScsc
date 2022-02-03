@@ -14,7 +14,7 @@ CREATE PROCEDURE [dbo].[CALC_APDT_P]
 AS
 BEGIN
     UPDATE  T
-    SET     T.END_TIME = GETDATE()
+    SET     T.END_TIME = ISNULL(END_TIME, GETDATE())
     FROM    dbo.Aggregation_Operation_Detail T ,
             dbo.Expense E
     WHERE   T.AGOP_CODE = @Agop_Code

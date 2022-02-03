@@ -40,6 +40,7 @@ CREATE TABLE [dbo].[Attendance]
 [ATTN_SYS_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SEX_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SEND_MESG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RTNG_NUMB] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -340,7 +341,7 @@ AS
                                                         + N'تاریخ : '
                                                         + dbo.GET_MTST_U(GETDATE())
                                               FROM      dbo.Attendance a ,
-                                                        Inserted i
+                    Inserted i
                                               WHERE     i.CODE = a.CODE
                                             );          
                
@@ -397,7 +398,7 @@ AS
                                                               @Cel4Phon AS '@phonnumb' ,
                                                               ( SELECT
                                                               '022' AS '@type' ,
-                                                              @MsgbText
+                                                               @MsgbText
                                                               FOR
                                                               XML
                                                               PATH('Message') ,
@@ -626,6 +627,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف شماره تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RWNO_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت محاسبه هزینه مربی', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'RCPT_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'میزان رضایتمندی مشتریان', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'RTNG_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ارسال پیامک انجام شده', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'SEND_MESG_STAT'
 GO

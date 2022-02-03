@@ -29,6 +29,8 @@ CREATE PROCEDURE [dbo].[UPD_CEXC_P]
   ,@Cbmt_Code BIGINT
   ,@Efct_Date_Type VARCHAR(3)
   ,@Expr_Pay_Day INT
+  ,@Tax_Prct_Valu INT
+  ,@Fore_Givn_Attn_Numb INT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -102,6 +104,8 @@ BEGIN
          ,CBMT_CODE = @Cbmt_Code
          ,EFCT_DATE_TYPE = @Efct_Date_Type
          ,EXPR_PAY_DAY = @Expr_Pay_Day
+         ,TAX_PRCT_VALU = @Tax_Prct_Valu
+         ,FORE_GIVN_ATTN_NUMB = @Fore_Givn_Attn_Numb
     WHERE CODE = @Code;
 END
 

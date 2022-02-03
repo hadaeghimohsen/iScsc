@@ -35,8 +35,9 @@ CREATE TABLE [dbo].[Settings]
 [DEBT_CLNG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MOST_DEBT_CLNG_AMNT] [bigint] NULL,
 [EXPR_DEBT_DAY] [int] NULL,
-[TRY_VALD_SBMT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_CHCK_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PERM_ENTR_DEBT_SERV_NUMB] [int] NULL,
+[TRY_VALD_SBMT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GATE_ATTN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GATE_COMM_PORT_NAME] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GATE_BAND_RATE] [int] NULL,
@@ -54,11 +55,15 @@ CREATE TABLE [dbo].[Settings]
 [CLER_ZERO] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DUPL_NATL_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DUPL_CELL_PHON] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INPT_NATL_CODE_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INPT_CELL_PHON_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [IP_ADR3] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_NUM3] [int] NULL,
 [ATTN_COMP_CNC3] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ATN4_EVNT_ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[LEN_FNGR_PRNT] [smallint] NULL
+[LEN_FNGR_PRNT] [smallint] NULL,
+[ATTN_GUST_NUMB_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ATTN_DELY_TIME] [smallint] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -93,6 +98,10 @@ ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [FK_STNG_CLUB] FOREIGN KEY ([CLUB_CO
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'سیستمی که به دستگاه حضور غیاب متصل می باشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_COMP_CONCT'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان تاخیر زمانی بعدی از حضور و غیاب مشتریان', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_DELY_TIME'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'ورود و خروج افراد مهمان در طول دوره باشد یا محدود به همان روز باشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_GUST_NUMB_TYPE'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'چاپ ژتون تردد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_PRNT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع ورودی داده بارکد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'BAR_CODE_DATA_TYPE'
@@ -115,9 +124,15 @@ EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان بسته شدن
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'به ازای تعداد تعطیلات چه ضریبی اضاقه شود', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'HLDY_CONT'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'ورود شماره تلفن اجباری میباشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'INPT_CELL_PHON_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'ورود اطلاعات کد ملی اجباری میباشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'INPT_NATL_CODE_STAT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'طول کدهای کارت های عضویت', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'LEN_FNGR_PRNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مجوز تعداد ورود جلسات مشتریان بدهکار', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'PERM_ENTR_DEBT_SERV_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'اجرا کردن کوئری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'RUN_QURY'
 GO

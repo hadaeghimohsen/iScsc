@@ -27,6 +27,51 @@ BEGIN
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)');
       
+      -- Local Var
+      /*DECLARE @ExstCellPhon VARCHAR(11) = @X.query('//Cell_Phon').value('.', 'VARCHAR(11)'),
+              @ExstFngrPrnt VARCHAR(20) = @X.query('//Fngr_Prnt').value('.', 'VARCHAR(20)'),
+              @ExstFileNo BIGINT,              
+              @xTemp XML;
+      
+      -- پیدا کردن شماره پرونده مشتری بر اساس شماره تلفن همراه
+      SELECT @ExstFileNo = f.FILE_NO
+        FROM dbo.Fighter f
+       WHERE f.CELL_PHON_DNRM = @ExstCellPhon
+         AND f.CONF_STAT = '002'
+         AND f.ACTV_TAG_DNRM >= '101';
+      
+      IF @ExstFileNo IS NOT NULL
+      BEGIN
+         IF LEN(@ExstFngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE CONF_STAT = '002' AND ACTV_TAG_DNRM >= '101' AND FNGR_PRNT_DNRM = @ExstFngrPrnt AND FILE_NO <> @ExstFileNo)
+         BEGIN
+            RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط مشتری دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
+         END
+         SET @xTemp = (
+             SELECT @ExstFileNo AS '@fileno',
+                    @X.query('//Fngr_Prnt').value('.', 'VARCHAR(20)') AS '@fngrprnt',
+                    CELL_PHON_DNRM AS '@cellphon',
+                    TELL_PHON_DNRM AS '@tellphon',
+                    DAD_CELL_PHON_DNRM AS '@dadcellphon',
+                    MOM_CELL_PHON_DNRM AS '@momcellphon',
+                    SUNT_CODE_DNRM AS '@suntcode',
+                    GLOB_CODE_DNRM AS '@globcode',
+                    SERV_NO_DNRM AS '@servno',
+                    NATL_CODE_DNRM AS '@natlcode',
+                    INSR_DATE_DNRM AS '@insrdate',
+                    CHAT_ID_DNRM AS '@chatid',
+                    DAD_CHAT_ID_DNRM AS '@dadchatid',
+                    MOM_CHAT_ID_DNRM AS '@momchatid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @ExstFileNo
+                FOR XML PATH('Fighter')
+         );
+         EXEC dbo.SCVF_PBLC_P @X = @xTemp -- xml
+         GOTO L$EndSp;                        
+      END*/   
+      
+      -- 1400/05/02 * اگر مشتری قبلا درون سیستم ثبت شده و حالا میخواهیم کد انگشتی جدید به ان اختصاص دهیم
+      
+      
       -- ثبت شماره درخواست 
       IF @Rqid IS NULL OR @Rqid = 0
       BEGIN
@@ -170,13 +215,15 @@ BEGIN
             ,@NumbOfAttnWeek = @x.query('//Member_Ship').value('(Member_Ship/@numbofattnweek)[1]', 'INT')
             ,@AttnDayType = @x.query('//Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)');
             
-            --,@CochCrtfDate = @X.query('//Coch_Crtf_Date').value('.', 'DATE');
+      --,@CochCrtfDate = @X.query('//Coch_Crtf_Date').value('.', 'DATE');
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
       -- Begin Check Validate
       IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" اطلاعات وارد نشده' , 16, 1);
       IF LEN(@LastName)        = 0 RAISERROR (N'برای فیلد "نام خانوداگی" اطلاعات وارد نشده' , 16, 1);
       --IF LEN(@FathName)        = 0 RAISERROR (N'برای فیلد "نام پدر" درخواست اطلاعات وارد نشده' , 16, 1);
-      IF LEN(@SexType)         = 0 SET @SexType = '001';--RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
+      --IF LEN(@SexType)         = 0 SET @SexType = '001';--RAISERROR (N'برای فیلد "جنسیت" درخواست اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@SexType)         = 0 RAISERROR (N'برای فیلد "جنسیت" اطلاعات وارد نشده' , 16, 1);
+      IF LEN(@CellPhon)        = 0 RAISERROR (N'برای فیلد "موبایل" اطلاعات وارد نشده' , 16, 1);
       IF @BrthDate             = '1900-01-01' SET @BrthDate = GETDATE()--RAISERROR (N'برای فیلد "تاریخ تولد" درخواست اطلاعات وارد نشده' , 16, 1);
       IF ISNULL(@DiseCode, 0)  = 0 SET @DiseCode = NULL;
       --IF ISNULL(@MtodCode, 0)  = 0 RAISERROR (N'برای فیلد "سبک" درخواست اطلاعات وارد نشده' , 16, 1);
@@ -212,8 +259,12 @@ BEGIN
       
       IF LEN(@FngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE FNGR_PRNT_DNRM = @FngrPrnt AND FILE_NO <> @FileNo )
       BEGIN
-         RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط هنرجوی دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
+         RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط مشتری دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
       END
+
+      -- 1400/04/25 * چک کردن اینکه شماره کد ملی باید وارد بشود یا نه
+      IF EXISTS(SELECT * FROM dbo.Settings s, dbo.Club_Method cm WHERE s.CLUB_CODE = cm.CLUB_CODE AND cm.CODE = @CbmtCode AND ISNULL(s.INPT_NATL_CODE_STAT, '002') = '002')
+		   IF LEN(@NatlCode)        = 0 RAISERROR (N'برای فیلد "کد ملی" اطلاعات وارد نشده' , 16, 1);
       
       -- 1399/07/18 * چک کردن اینکه شماره کارت وارد شده معتبر میباشد یا خیر
       DECLARE @RecdNumb BIGINT;
@@ -461,6 +512,7 @@ BEGIN
            ,@CMNT = NULL
            ,@Pass_Word = NULL;
       END
+      L$EndSp:
       COMMIT TRAN T1;
    END TRY
    BEGIN CATCH

@@ -32,9 +32,9 @@ BEGIN
 	SELECT @TotlBufeAmntDnrm = SUM((E.PRIC + ISNULL(E.EXTR_PRCT, 0)) * B.QNTY) 
 	  FROM dbo.Buffet B, dbo.Expense E, DELETED S
 	 WHERE B.APDT_AGOP_CODE = S.APDT_AGOP_CODE 
-	   AND B.APDT_RWNO      = S.APDT_RWNO 
-	   /*AND B.CODE           = S.CODE
-	   AND B.EXPN_CODE      = E.CODE*/;
+	   AND B.APDT_RWNO      = S.APDT_RWNO
+	   /*AND B.CODE           = S.CODE*/
+	   AND B.EXPN_CODE      = E.CODE;
 	
 	UPDATE T
 	   SET T.TOTL_BUFE_AMNT_DNRM = ISNULL(@TotlBufeAmntDnrm, 0)

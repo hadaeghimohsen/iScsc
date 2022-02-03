@@ -20,10 +20,24 @@ BEGIN
 	           @OrgnRqid BIGINT,
 	           @FileNo   BIGINT,
 	           @RqroRwno SMALLINT,
-	           @FgpbRwno INT;
+	           @FgpbRwno INT,
+	           @xTemp XML;
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@OrgnRqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT');
+
+      -- 1400/01/21 * اگر سیستم نیاز به ثبت کارمزد از جانب سیستم داشته باشد
+      SET @xTemp = (
+          SELECT @Rqid AS '@rqid'
+             FOR XML PATH('Request')
+      );
+      EXEC dbo.CALC_TXFE_P @X = @xTemp, @xRet = @xTemp OUTPUT;
+      
+      IF @xTemp.query('//Result').value('(Result/@rsltcode)[1]', 'VARCHAR(3)') = '001'
+      BEGIN
+         RAISERROR(N'کاربر گرامی میزان شارژ کیف اعتباری شما کافی نمیباشد لطفا جهت شارژ کیف پول خوب اقدام فرمایید', 16, 1);
+         RETURN;         
+      END 
 
    	SELECT @RqroRwno = RWNO
    	      ,@FileNo   = FIGH_FILE_NO
@@ -166,7 +180,6 @@ BEGIN
             ,CBMT_CODE_DNRM = @CbmtCode
        WHERE PYMT_RQST_RQID = @Rqid;
       
-      
       -- آیا سبک و رسته تغییر کرده است 
       IF EXISTS(
          SELECT *
@@ -207,22 +220,21 @@ BEGIN
       END
       
       IF @ExistsNewPublic = 1
-      BEGIN         
+      BEGIN
          UPDATE dbo.Fighter_Public
             SET CBMT_CODE = @CbmtCode
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
                ,TYPE = CASE [TYPE] WHEN '009' THEN '001' ELSE [TYPE] END
                ,FNGR_PRNT = CASE WHEN ISNULL(@NewFngrPrnt, '') != '' THEN @NewFngrPrnt ELSE FNGR_PRNT END
           WHERE RQRO_RQST_RQID = @Rqid
-            AND RECT_CODE = '004';
+            AND RECT_CODE IN ( '001', '004' );
          
          -- 1396/10/13 * بدست آوردن ردیف عمومی در جدول تمدید
          SELECT @FgpbRwno = RWNO
            FROM dbo.Fighter_Public
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004';
-      END
-      
+      END      
       ELSE IF EXISTS(
          SELECT *
            FROM dbo.Fighter_Public
@@ -269,6 +281,23 @@ BEGIN
           WHERE RQRO_RQST_RQID = @Rqid
             AND RECT_CODE = '004';           
       END
+      -- 1400/05/08 * new update ;) Thanks God
+      ELSE IF EXISTS(
+         SELECT *
+           FROM dbo.Fighter_Public fp
+          WHERE fp.FIGH_FILE_NO = @FileNo
+            AND fp.RWNO = @FgpbRwnoDnrm
+            AND fp.RECT_CODE = '004'
+            AND ISNULL(fp.CBMT_CODE, 0) = @CbmtCode
+            AND fp.COCH_FILE_NO IS NULL
+      )
+      BEGIN
+         UPDATE dbo.Fighter_Public
+            SET COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
+          WHERE FIGH_FILE_NO = @FileNo
+            AND RWNO = @FgpbRwnoDnrm
+            AND RECT_CODE = '004';
+      END 
       
       IF @FgpbRwno IS NULL OR @FgpbRwno = 0
          SELECT @FgpbRwno = FGPB_RWNO_DNRM
@@ -354,45 +383,6 @@ BEGIN
          AND ISNULL(ms.NUMB_OF_ATTN_MONT, 0) > 0
 		   --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
          AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
-      
-      -- 1395/07/26 ** اگر جلسه خصوصی با مربی در نظر گرفته شده باشد باید درخواست تمدید جلسه خصوصی هم درج گردد 
-      --IF EXISTS(
-      --   SELECT *
-      --     FROM dbo.Request R, dbo.Request_Row Rr, dbo.Payment P, dbo.Payment_Detail Pd, dbo.Expense E
-      --    WHERE R.RQID = Rr.RQST_RQID
-      --      AND R.RQID = P.RQST_RQID
-      --      AND Rr.RQST_RQID = Pd.PYMT_RQST_RQID
-      --      AND Rr.RWNO = Pd.RQRO_RWNO
-      --      AND Pd.EXPN_CODE = E.CODE
-      --      AND R.RQID = @OrgnRqid -- درخواست ثبت نام هنرجو
-      --      AND E.PRVT_COCH_EXPN = '002' -- هزینه مربی خصوصی            
-      --)
-      --BEGIN
-      --   -- ثبت درخواست جلسه خصوصی با مربی
-      --   SET @X = N'<Process><Request rqstrqid="" rqtpcode="021" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست کلاس خصوصی اعضا پیرو تمدید اعضا بخاطر استفاده از هزینه جلسه خصوصی"><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
-      --   SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
-      --   SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-      --   SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
-      --   SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
-      --   EXEC MBC_TRQT_P @X;
-         
-      --   SELECT @Rqid = R.RQID
-      --     FROM Request R
-      --    WHERE R.RQST_RQID = @Rqid
-      --      AND R.RQST_STAT = '001'
-      --      AND R.RQTP_CODE = '021'
-      --      AND R.RQTT_CODE = '004';
-
-      --   SET @X = '<Process><Request rqid=""></Request></Process>';
-      --   SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
-      --   EXEC MBC_TSAV_P @X;
-      --END 
       
       DECLARE @CellPhon VARCHAR(11)
              ,@MomCellPhon VARCHAR(11)

@@ -24,6 +24,7 @@ CREATE TABLE [dbo].[Member_Ship]
 [SMS_SEND] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NEW_FNGR_PRNT] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RTNG_NUMB_DNRM] [smallint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -354,7 +355,7 @@ BEGIN
                                 SELECT '009' AS '@type' 
                                        ,@MsgbText
                                    FOR XML PATH('Message'), TYPE 
-                            ) 
+) 
                         FOR XML PATH('Contact'), TYPE
                    ),
                    (
@@ -450,7 +451,7 @@ BEGIN
                    ),
                    (
                      SELECT @Cel2Phon AS '@phonnumb',
-                            (
+  (
                                 SELECT '019' AS '@type' 
                                        ,@MsgbText
                                    FOR XML PATH('Message'), TYPE 
@@ -541,7 +542,7 @@ BEGIN
                    @LAT = NULL, -- float
                    @LON = NULL, -- float
                    @CONT_CELL_PHON = NULL; -- varchar(11)
-            
+        
             SET @RoboServFileNo = NULL;            
             SELECT @RoboServFileNo = SERV_FILE_NO
               FROM iRoboTech.dbo.Service_Robot
@@ -611,6 +612,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد روز دوره', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'NUMB_OF_DAYS_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'محاسبه تعداد ماه های بازه تاریخی شروع و پایان', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'NUMB_OF_MONT_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'میزان رضایتمندی مشتریان', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'RTNG_NUMB_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'زمان و تاریخ برای جلسه مشاوره', 'SCHEMA', N'dbo', 'TABLE', N'Member_Ship', 'COLUMN', N'SESN_MEET_DATE'
 GO

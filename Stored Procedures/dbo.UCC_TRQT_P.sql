@@ -278,7 +278,7 @@ BEGIN
                         ,@PrvnCode '@prvncode'
                   FOR XML PATH('Request'), ROOT('Process')
                );
-               EXEC INS_SEXP_P @X;             
+               EXEC INS_SEXP_P @X;
 
                UPDATE Request
                   SET SEND_EXPN = '002'
@@ -312,23 +312,23 @@ BEGIN
                   WHERE RQID = @Rqid;            
                 --          
                 
-                DECLARE @Qnty SMALLINT;
+                --DECLARE @Qnty SMALLINT;
              
-                SELECT @Qnty = NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
-                  FROM dbo.Member_Ship
-                 WHERE RQRO_RQST_RQID = @Rqid
-                   AND RQRO_RWNO = @RqroRwno;
+                --SELECT @Qnty = NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
+                --  FROM dbo.Member_Ship
+                -- WHERE RQRO_RQST_RQID = @Rqid
+                --   AND RQRO_RWNO = @RqroRwno;
                 
-                IF @Qnty <= 0
-                BEGIN
-                   RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);
-                END
+                --IF @Qnty <= 0
+                --BEGIN
+                --   RAISERROR(N'تعداد ماه های تخفیف بیشتر از حد مجاز می باشد، لطفا اصلاح و دوباره امتحان کنید.', 16, 1);
+                --END
                 
-                UPDATE dbo.Payment_Detail
-                   SET QNTY = @Qnty
-                 WHERE PYMT_RQST_RQID = @Rqid
-                   AND RQRO_RWNO = @RqroRwno
-                   AND ISNULL(ADD_QUTS, '001') = '001';               
+                --UPDATE dbo.Payment_Detail
+                --   SET QNTY = @Qnty
+                -- WHERE PYMT_RQST_RQID = @Rqid
+                --   AND RQRO_RWNO = @RqroRwno
+                --   AND ISNULL(ADD_QUTS, '001') = '001';               
             END
           END
           ELSE

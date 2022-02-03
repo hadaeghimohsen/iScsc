@@ -33,7 +33,10 @@ BEGIN
              ,@TranMtodCode BIGINT
              ,@TranCtgyCode BIGINT
              ,@TranExpnCode BIGINT
-             ,@ExprDate DATE;
+             ,@ExprDate DATE
+             ,@MbspFighFileNo BIGINT
+             ,@MbspRwno SMALLINT
+             ,@MbspRectCode VARCHAR(3) = '004';
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -53,7 +56,20 @@ BEGIN
             ,@TranMtodCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranmtodcode)[1]', 'BIGINT')
             ,@TranCtgyCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranctgycode)[1]', 'BIGINT')
             ,@TranExpnCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranexpncode)[1]', 'BIGINT')
-            ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE');
+            ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE')
+            ,@MbspFighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbspfighfileno)[1]', 'BIGINT')
+            ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
+            ,@MbspRectCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprectcode)[1]', 'VARCHAR(3)');
+      
+      IF @MbspRwno = 0 OR @MbspRwno IS NULL
+         SELECT @MbspFighFileNo = NULL, 
+                @MbspRectCode = NULL,
+                @MbspRwno = NULL;
+      ELSE
+         SELECT @MbspFighFileNo = rr.FIGH_FILE_NO,
+                @MbspRectCode = '004'
+           FROM dbo.Request_Row rr
+          WHERE rr.RQST_RQID = @Rqid;
       
       IF @ExprDate = '1900-01-01'
          SET @ExprDate = NULL;
@@ -159,6 +175,9 @@ BEGIN
             ,TRAN_CTGY_CODE = @TranCtgyCode
             ,TRAN_EXPN_CODE = @TranExpnCode
             ,EXPR_DATE = @ExprDate
+            ,MBSP_FIGH_FILE_NO = @MbspFighFileNo
+            ,MBSP_RWNO = @MbspRwno
+            ,MBSP_RECT_CODE = @MbspRectCode
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

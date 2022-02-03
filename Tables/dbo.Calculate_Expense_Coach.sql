@@ -20,6 +20,8 @@ CREATE TABLE [dbo].[Calculate_Expense_Coach]
 [CBMT_CODE] [bigint] NULL,
 [EFCT_DATE_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPR_PAY_DAY] [int] NULL,
+[TAX_PRCT_VALU] [int] NULL,
+[FORE_GIVN_ATTN_NUMB] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -121,10 +123,18 @@ EXEC sp_addextendedproperty N'MS_Description', N'تعداد روز تاخیر د
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع آیتم درآمدی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'EXTP_CODE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد جلسات بخشش از جانب باشگاه برای مربی', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'FORE_GIVN_ATTN_NUMB'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'سبک', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'MTOD_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'درصد محاسبه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'PRCT_VALU'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت پرداخت صورتحساب', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'PYMT_STAT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ کاهش
 این گزینه بیشتر برای برنامه های خصوصی می باشد که بخواهیم با مربی حساب کنیم این گزینه ابتدا میگیم که مبلغ شهریه باشگاه کسر شود و بعد مبلغ باقیمانده درصد آن را محاسبه میکنیم', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'RDUC_AMNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'وضعیت', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'محاسبه ارزش افزوده برای کسر مبلغ از درآمد باشگاه', 'SCHEMA', N'dbo', 'TABLE', N'Calculate_Expense_Coach', 'COLUMN', N'TAX_PRCT_VALU'
 GO

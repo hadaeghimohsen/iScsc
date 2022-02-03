@@ -107,6 +107,7 @@ BEGIN
       DECLARE @ChngType VARCHAR(3),
               @DebtType VARCHAR(3),
               @Amnt INT,
+              @Prct INT,
               @AgreDate DATETIME,
               @PaidDate DATETIME,
               @ChngResn VARCHAR(3),
@@ -120,6 +121,7 @@ BEGIN
       SELECT @ChngType = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@chngtype)[1]', 'VARCHAR(3)')
 	         ,@DebtType = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@debttype)[1]', 'VARCHAR(3)')
 	         ,@Amnt     = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@amnt)[1]', 'INT')
+	         ,@Prct     = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@prct)[1]', 'INT')
 	         --,@AgreDate = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@agredate)[1]', 'DATETIME')
 	         ,@PaidDate = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@paiddate)[1]', 'DATETIME')
 	         ,@ChngResn = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@chngresn)[1]', 'VARCHAR(3)')
@@ -169,6 +171,7 @@ BEGIN
                       CHNG_TYPE ,
                       DEBT_TYPE ,
                       AMNT ,
+                      PRCT,
                       PAID_DATE ,
                       CHNG_RESN ,
                       RESN_DESC ,
@@ -183,6 +186,7 @@ BEGIN
                       @ChngType , -- CHNG_TYPE - varchar(3)
                       @DebtType , -- DEBT_TYPE - varchar(3)
                       @Amnt , -- AMNT - int
+                      @Prct,
                       @PaidDate , -- PAID_DATE - datetime
                       @ChngResn , -- CHNG_RESN - varchar(3)
                       @ResnDesc , -- RESN_DESC - nvarchar(250)
@@ -196,6 +200,7 @@ BEGIN
                SET CHNG_TYPE = @ChngType
                   ,DEBT_TYPE = @DebtType
                   ,AMNT = @Amnt
+                  ,PRCT = @Prct
                   ,PAID_DATE = @PaidDate
                   ,CHNG_RESN = @ChngResn
                   ,RESN_DESC = @ResnDesc
@@ -234,6 +239,7 @@ BEGIN
 	                   RWNO ,
 	                   CONF_STAT ,
 	                   AMNT ,
+	                   PRCT,
 	                   PAID_DATE ,
 	                   RESN_DESC ,
 	                   DPST_STAT 	                   
@@ -245,6 +251,7 @@ BEGIN
 	                   0 , -- RWNO - bigint
 	                   '001' , -- CONF_STAT - varchar(3)
 	                   ISNULL(@Amnt, 0) , -- AMNT - int	                   
+	                   @Prct,
 	                   @PaidDate , -- PAID_DATE - datetime	                   
 	                   @ResnDesc , -- RESN_DESC - nvarchar(250)
 	                   @DpstStat   -- DPST_STAT - varchar(3)
@@ -261,6 +268,7 @@ BEGIN
 	      BEGIN
 	         UPDATE dbo.Gain_Loss_Rial
 	            SET AMNT = @Amnt
+	               ,PRCT = @Prct
 	               ,PAID_DATE = @PaidDate
 	               ,DPST_STAT = @DpstStat
 	               ,RESN_DESC = @ResnDesc

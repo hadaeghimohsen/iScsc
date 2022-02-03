@@ -166,7 +166,7 @@ BEGIN
          AND R.RQTP_CODE = @RqtpCode;
     
     IF @RqtpCode = '009'
-      SELECT @Qnty = NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
+      SELECT @Qnty = 1--NUMB_OF_MONT_DNRM - ISNULL(NUMB_MONT_OFER, 0)
          FROM dbo.Member_Ship
         WHERE RQRO_RQST_RQID = @Rqid
           AND RQRO_RWNO = @RqroRwno;

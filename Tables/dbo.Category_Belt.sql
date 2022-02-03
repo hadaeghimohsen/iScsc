@@ -97,7 +97,9 @@ BEGIN
             ,CRET_DATE = GETDATE()
             ,CODE      = CASE s.code WHEN 0 THEN dbo.Gnrt_Nvid_U() ELSE s.CODE END
             ,ORDR      = CASE WHEN S.Ordr IS NULL THEN (SELECT COUNT(*) FROM dbo.Category_Belt c WHERE c.MTOD_CODE = S.Mtod_Code) ELSE S.Ordr END
-            ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END;
+            ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
+            ,T.GUST_NUMB = 0
+            ,T.NUMB_MONT_OFER = 0;
    
    
    DECLARE C$NewCategory CURSOR FOR

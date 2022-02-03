@@ -10,8 +10,8 @@ BEGIN
    BEGIN TRAN PAY_MSAV_P_T1
    DECLARE @ErrorMessage NVARCHAR(MAX);
    
-   DECLARE @ActnType VARCHAR(20);
-   SELECT @ActnType = @X.query('Payment').value('(Payment/@actntype)[1]', 'VARCHAR(20)');
+   DECLARE @ActnType VARCHAR(30);
+   SELECT @ActnType = @X.query('Payment').value('(Payment/@actntype)[1]', 'VARCHAR(30)');
    
    IF @ActnType = 'Delete'
       DELETE Payment_Method
@@ -105,7 +105,7 @@ BEGIN
          SET Conf_Stat = Conf_Stat
        WHERE File_No = @X.query('//Insert/Payment_Method').value('(Payment_Method/@fileno)[1]', 'BIGINT')
          AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
-   END      
+   END
    ELSE IF @ActnType = 'CheckoutWithPOS'
    BEGIN
       INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE)
@@ -114,11 +114,16 @@ BEGIN
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1
             ,0
-            ,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
-             - ( 
-                  COALESCE((SELECT SUM(AMNT) FROM Payment_Method WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
-               +  COALESCE((SELECT SUM(AMNT) FROM dbo.Payment_Discount WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
-               )
+            ,CASE ISNULL(pm.query('.').value('(Payment_Method/@amnt)[1]', 'BIGINT'), 0)
+                 WHEN 0 THEN 
+                  (SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
+                   - ( 
+                        COALESCE((SELECT SUM(AMNT) FROM Payment_Method WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+                     +  COALESCE((SELECT SUM(AMNT) FROM dbo.Payment_Discount WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+                     )
+                  ELSE 
+                   pm.query('.').value('(Payment_Method/@amnt)[1]', 'BIGINT')
+            END  AS Amnt            
             ,'003'--pm.query('.').value('(Payment_Method/@rcptmtod)[1]', 'VARCHAR(3)') AS RcptMtod
             ,pm.query('.').value('(Payment_Method/@termno)[1]',   'BIGINT') AS TermNo
             ,pm.query('.').value('(Payment_Method/@tranno)[1]',   'BIGINT') AS TranNo
@@ -143,7 +148,7 @@ BEGIN
        WHERE File_No = @X.query('//Insert/Payment_Method').value('(Payment_Method/@fileno)[1]', 'BIGINT')
          AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
          
-   END    
+   END
    ELSE IF @ActnType = 'CheckoutWithPOS4Agop'
    BEGIN
       INSERT INTO Payment_Row_Type (APDT_AGOP_CODE, APDT_RWNO, CODE, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE)
@@ -161,6 +166,71 @@ BEGIN
             ,GETDATE()
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
    END
+   ELSE IF @ActnType = 'CheckoutWithDeposit'
+   BEGIN
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
+      SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
+            ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
+            ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
+            ,1 AS RqroRwno
+            ,0 AS Rwno
+            ,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
+            --,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
+            -- - ( 
+            --      COALESCE((SELECT SUM(AMNT) FROM Payment_Method WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+            --   +  COALESCE((SELECT SUM(AMNT) FROM dbo.Payment_Discount WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+            --   ) AS Amnt
+            ,'005' AS RcptMtod
+            ,GETDATE() AS ActnDate
+            ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+       FROM @X.nodes('//Insert/Payment_Method') T(pm);
+      
+      -- تایید پرداخت بعد از بدهکاری وتسویه حساب
+      UPDATE dbo.Payment_Detail
+         SET PAY_STAT = '002'
+       WHERE PYMT_RQST_RQID = @X.query('//Insert/Payment_Method').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')
+         AND PYMT_CASH_CODE = @X.query('//Insert/Payment_Method').value('(Payment_Method/@cashcode)[1]', 'BIGINT')
+         AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
+      
+      -- فراخوانی و بروزرسانی جداول اصلی
+      UPDATE dbo.Fighter
+         SET Conf_Stat = Conf_Stat
+       WHERE File_No = @X.query('//Insert/Payment_Method').value('(Payment_Method/@fileno)[1]', 'BIGINT')
+         AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
+   END
+   ELSE IF @ActnType = 'CheckoutWithCard2Card'
+   BEGIN
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
+      SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
+            ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
+            ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
+            ,1 AS RqroRwno
+            ,0 AS Rwno
+            --,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
+            ,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
+             - ( 
+                  COALESCE((SELECT SUM(AMNT) FROM Payment_Method WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+               +  COALESCE((SELECT SUM(AMNT) FROM dbo.Payment_Discount WHERE PYMT_CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND PYMT_RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')), 0)
+               ) AS Amnt
+            ,'009' AS RcptMtod
+            ,GETDATE() AS ActnDate
+            ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+       FROM @X.nodes('//Insert/Payment_Method') T(pm);
+      
+      -- تایید پرداخت بعد از بدهکاری وتسویه حساب
+      UPDATE dbo.Payment_Detail
+         SET PAY_STAT = '002'
+       WHERE PYMT_RQST_RQID = @X.query('//Insert/Payment_Method').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')
+         AND PYMT_CASH_CODE = @X.query('//Insert/Payment_Method').value('(Payment_Method/@cashcode)[1]', 'BIGINT')
+         AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
+      
+      -- فراخوانی و بروزرسانی جداول اصلی
+      UPDATE dbo.Fighter
+         SET Conf_Stat = Conf_Stat
+       WHERE File_No = @X.query('//Insert/Payment_Method').value('(Payment_Method/@fileno)[1]', 'BIGINT')
+         AND @X.query('//Insert/Payment_Method').value('(Payment_Method/@paystat)[1]', 'VARCHAR(3)') = '002';
+   END
+
    COMMIT TRAN PAY_MSAV_P_T1
    END TRY
    BEGIN CATCH

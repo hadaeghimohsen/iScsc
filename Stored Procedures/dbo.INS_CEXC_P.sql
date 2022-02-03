@@ -27,7 +27,9 @@ CREATE PROCEDURE [dbo].[INS_CEXC_P]
     @Rduc_Amnt BIGINT,
     @Cbmt_Code BIGINT,
     @Efct_Date_Type VARCHAR(3),
-    @Expr_Pay_Day INT
+    @Expr_Pay_Day INT,
+    @Tax_Prct_Valu INT,
+    @Fore_Givn_Attn_Numb INT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -101,7 +103,9 @@ BEGIN
               RDUC_AMNT,
               CBMT_CODE,
               EFCT_DATE_TYPE,
-              EXPR_PAY_DAY
+              EXPR_PAY_DAY,
+              TAX_PRCT_VALU,
+              FORE_GIVN_ATTN_NUMB
             )
     VALUES  ( dbo.GNRT_NVID_U() ,
               @Epit_Code ,
@@ -122,7 +126,9 @@ BEGIN
               @Rduc_Amnt,
               @Cbmt_Code,
               @Efct_Date_Type,
-              @Expr_Pay_Day
+              @Expr_Pay_Day,
+              @Tax_Prct_Valu,
+              @Fore_Givn_Attn_Numb
             );
    
     IF @Calc_Expn_Type NOT IN ('003', '004', '005', '006')
@@ -163,7 +169,9 @@ BEGIN
                       RDUC_AMNT,
                       CBMT_CODE,
                       EFCT_DATE_TYPE,
-                      EXPR_PAY_DAY
+                      EXPR_PAY_DAY,
+                      TAX_PRCT_VALU,
+                      FORE_GIVN_ATTN_NUMB
                     )
             VALUES  ( dbo.GNRT_NVID_U() ,
                       @Epit_Code ,
@@ -186,7 +194,9 @@ BEGIN
                       @Rduc_Amnt,
                       @Cbmt_Code,
                       @Efct_Date_Type,
-                      @Expr_Pay_Day
+                      @Expr_Pay_Day,
+                      @Tax_Prct_Valu,
+                      @Fore_Givn_Attn_Numb
                     );
         END; 
 END;

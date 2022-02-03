@@ -405,6 +405,7 @@ BEGIN
       SELECT  *
       FROM    OPENXML(@docHandle, N'//Expense')
       WITH (
+        Crnt_User VARCHAR(250) '../@crntuser',
         Sub_Sys INT '../@subsys',
         Ref_Sub_Sys INT '../@refsubsys',
         Ref_Code BIGINT '../@refcode',
@@ -433,13 +434,13 @@ BEGIN
       )
       ORDER BY Rqtp_Code;
       
-      DECLARE @SubSys INT, @RefSubSys INT, @RefCode BIGINT, @RefNumb VARCHAR(15), @ChatId BIGINT, @PymtMtod VARCHAR(3), @PymtDate DATETIME,
+      DECLARE @CrntUser VARCHAR(250), @SubSys INT, @RefSubSys INT, @RefCode BIGINT, @RefNumb VARCHAR(15), @ChatId BIGINT, @PymtMtod VARCHAR(3), @PymtDate DATETIME,
               @Amnt BIGINT, @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfName NVARCHAR(250), @TarfDate DATE, @ExpnPric BIGINT,
               @ExtrPrct BIGINT, @DscnPric BIGINT, @PydsDesc NVARCHAR(250), @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
       
       OPEN [C$Expns];
       L$Loop$Expns:
-      FETCH [C$Expns] INTO @SubSys, @RefSubSys, @RefCode, @RefNumb, @StrtDate, @EndDate, @Chatid, @FngrPrnt,
+      FETCH [C$Expns] INTO @CrntUser, @SubSys, @RefSubSys, @RefCode, @RefNumb, @StrtDate, @EndDate, @Chatid, @FngrPrnt,
                            @FrstName, @LastName, @NatlCode, @CellPhon, @AmntType, @PymtMtod, @PymtDate, @Amnt,
                            @Txid, @TarfCode, @TarfDate, @ExpnPric, @ExtrPrct, @DscnPric, @RqtpCode, @Numb, @ExpnDesc;
       
@@ -482,7 +483,9 @@ BEGIN
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
-       WHERE CHAT_ID_DNRM = @ChatId;
+       WHERE CHAT_ID_DNRM = @ChatId
+         AND CONF_STAT = '002'
+         AND ACTV_TAG_DNRM >= '101';
       
       IF @FileNo IS NULL
          SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
@@ -872,10 +875,22 @@ BEGIN
                '002' AS 'Gain_Loss_Rials/@dpststat',
                N'افزایش سپرده به صورت انلاین' AS 'Gain_Loss_Rials/@resndesc',
                (
-                  SELECT 1 AS '@rwno',
-                         @Amnt AS '@amnt',
-                         @PymtMtod AS '@rcptmtod'
-                     FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
+                  CASE 
+                     WHEN EXISTS(SELECT * FROM iRoboTech.dbo.[Order] o WHERE o.CODE = @RefCode AND o.ORDR_CODE IS NULL) THEN 
+                          (SELECT 1 AS '@rwno',
+                                 @Amnt AS '@amnt',
+                                 @PymtMtod AS '@rcptmtod'
+                             FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE)
+                     ELSE
+                         (SELECT ROW_NUMBER() OVER(ORDER BY os.CODE) AS '@rwno',
+                                 os.AMNT AS '@amnt',
+                                 os.RCPT_MTOD AS '@rcptmtod'
+                            FROM iRoboTech.dbo.Order_State os, iRoboTech.dbo.[Order] o
+                           WHERE o.CODE = @RefCode
+                             AND o.ORDR_CODE = os.ORDR_CODE
+                             AND os.RCPT_MTOD NOT IN ('005')
+                             FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE)
+                  END
                )
                FOR XML PATH('Request'), ROOT('Process')
          );
@@ -902,7 +917,7 @@ BEGIN
       ELSE IF @RqtpCode = '025'
       BEGIN
          -- 1399/12/21 * اگر کد شناسایی وارد شده باشد
-         if isnull(@FngrPrnt, '') = ''
+         IF ISNULL(@FngrPrnt, '') = ''
             SELECT @FngrPrnt = MAX(CONVERT(BIGINT, f.FNGR_PRNT_DNRM)) + 1
               FROM dbo.Fighter f
              WHERE f.FNGR_PRNT_DNRM IS NOT NULL
@@ -919,13 +934,14 @@ BEGIN
                    'BYR_MOBL_F' AS '@mdulname',
                    'BYR_MOBL_F' AS '@sctnname',                   
                    (
-                     SELECT 0 AS '@fileno'
+                     SELECT TOP 1 0 AS '@fileno'
                            ,@FrstName AS 'Frst_Name'
                            ,@LastName AS 'Last_Name'
                            ,@CellPhon AS 'Cell_Phon'
                            ,@NatlCode AS 'Natl_Code'                           
                            ,@ChatId AS 'Chat_Id'
                            ,@FngrPrnt AS 'Fngr_Prnt'
+                           ,'001' AS 'Sex_Type'
                            ,'001' AS 'Type'
                            ,c.Code AS 'Club_Code'
                            ,(
@@ -935,7 +951,9 @@ BEGIN
                             )
                         FOR XML PATH('Fighter'), TYPE
                    )
-              FROM dbo.Club c
+              FROM dbo.Club c, dbo.V#UCFGA uc
+             WHERE uc.CLUB_CODE = c.CODE
+               AND uc.SYS_USER = @CrntUser
                FOR XML PATH('Request'), ROOT('Process')
          );         
          EXEC dbo.BYR_TRQT_P @X = @xTemp -- xml
@@ -964,7 +982,9 @@ BEGIN
              WHERE f.FILE_NO = fp.FIGH_FILE_NO
                AND f.CHAT_ID_DNRM = @ChatId
                AND f.FGPB_RWNO_DNRM = fp.RWNO
-               AND fp.RECT_CODE = '004';
+               AND fp.RECT_CODE = '004'
+               AND f.CONF_STAT = '002'
+               AND f.ACTV_TAG_DNRM >= '101';
       END 
       
       GOTO L$Loop$Expns;
@@ -997,6 +1017,8 @@ BEGIN
          SELECT File_No
            FROM Fighter f
           WHERE @ChatId IN (f.CHAT_ID_DNRM , f.DAD_CHAT_ID_DNRM, f.MOM_CHAT_ID_DNRM) 
+            AND f.CONF_STAT = '002'
+            AND f.ACTV_TAG_DNRM >= '101'
       )
       BEGIN
          Print 'Send Error';
@@ -1005,7 +1027,9 @@ BEGIN
       
       SELECT @FileNo = f.FILE_NO
         FROM Fighter f
-       WHERE @ChatId IN (f.CHAT_ID_DNRM , f.DAD_CHAT_ID_DNRM, f.MOM_CHAT_ID_DNRM);
+       WHERE @ChatId IN (f.CHAT_ID_DNRM , f.DAD_CHAT_ID_DNRM, f.MOM_CHAT_ID_DNRM)
+         AND f.CONF_STAT = '002'
+         AND f.ACTV_TAG_DNRM >= '101';
       
       -- Update Xml with fileno
       SET @X.modify('insert attribute fileno {sql:variable("@fileno")} into (//Image)[1]');
@@ -1048,7 +1072,9 @@ BEGIN
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
-       WHERE CHAT_ID_DNRM = @ChatId;
+       WHERE CHAT_ID_DNRM = @ChatId
+         AND CONF_STAT = '002'
+         AND ACTV_TAG_DNRM >= '101';
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
       IF @FileNo IS NOT NULL AND @FighStat = '001'
@@ -1623,7 +1649,9 @@ BEGIN
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
-       WHERE CHAT_ID_DNRM = @ChatId;
+       WHERE CHAT_ID_DNRM = @ChatId
+         AND CONF_STAT = '002'
+         AND ACTV_TAG_DNRM >= '101';
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
       IF @FileNo IS NOT NULL AND @FighStat = '001'
@@ -1742,7 +1770,9 @@ BEGIN
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
-       WHERE CHAT_ID_DNRM = @ChatId;
+       WHERE CHAT_ID_DNRM = @ChatId
+         AND CONF_STAT = '002'
+         AND ACTV_TAG_DNRM >= '101';
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
       IF @FileNo IS NULL OR ( @FileNo IS NOT NULL AND @FighStat = '001' )
@@ -1848,7 +1878,9 @@ BEGIN
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
         FROM dbo.Fighter
-       WHERE CHAT_ID_DNRM = @ChatId;
+       WHERE CHAT_ID_DNRM = @ChatId
+         AND CONF_STAT = '002'
+         AND ACTV_TAG_DNRM >= '101';
       
       -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
       IF @FileNo IS NULL OR ( @FileNo IS NOT NULL AND @FighStat = '001' )

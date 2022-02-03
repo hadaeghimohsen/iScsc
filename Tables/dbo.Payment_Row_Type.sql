@@ -27,6 +27,33 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
+CREATE TRIGGER [dbo].[CG$ADEL_PYRT]
+   ON  [dbo].[Payment_Row_Type]
+   AFTER DELETE
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   -- Insert statements for trigger here
+   -- 1400/05/24 * پر کردن مبلغ دینرمال کارت خوان
+	UPDATE a
+	   SET a.POS_AMNT = (SELECT ISNULL(SUM(p.AMNT), 0) FROM dbo.Payment_Row_Type p, Inserted i WHERE p.APDT_AGOP_CODE = i.APDT_AGOP_CODE AND p.APDT_RWNO = i.APDT_RWNO AND p.RCPT_MTOD = '003')
+	  FROM dbo.Aggregation_Operation_Detail a, Deleted i
+	 WHERE a.AGOP_CODE = i.APDT_AGOP_CODE
+	   AND a.RWNO = i.APDT_RWNO;
+END
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
 CREATE TRIGGER [dbo].[CG$AINS_PYRT]
    ON  [dbo].[Payment_Row_Type]
    AFTER INSERT
@@ -35,7 +62,7 @@ BEGIN
 	MERGE dbo.Payment_Row_Type T
 	USING (SELECT * FROM INSERTED) S
 	ON (T.APDT_AGOP_CODE = S.APDT_AGOP_CODE AND
-	    T.APDT_RWNO      = S.APDT_RWNO AND
+	    ISNULL(T.APDT_RWNO, 0) = ISNULL(S.APDT_RWNO, 0) AND
 	    T.CODE           = S.CODE)
 	WHEN MATCHED THEN
 	   UPDATE

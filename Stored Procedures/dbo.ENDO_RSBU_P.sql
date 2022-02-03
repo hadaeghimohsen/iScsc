@@ -31,6 +31,10 @@ BEGIN
                     @DpstAmnt BIGINT,
                     @ExpnAmnt BIGINT;
             
+            -- 1400/04/27 * اگر میز هیچ گونه هزینه نداشته باشد هیچ عملیاتی نمیخواهد انجام شود
+            IF EXISTS(SELECT * FROM dbo.Aggregation_Operation_Detail WHERE AGOP_CODE = @AgopCode AND RWNO = @Rwno AND TOTL_AMNT_DNRM = 0)
+               GOTO L$EndSp;
+            
             -- 1398/08/27 * اگر هزینه میز بدهکار باشد
             IF @SetOnDebt IS NULL OR @SetOnDebt = ''
             BEGIN
@@ -504,7 +508,8 @@ BEGIN
                              );
   
             EXEC dbo.OIC_ESAV_F @X = @X; -- xml
-  
+            
+            L$EndSp:
             UPDATE  dbo.Aggregation_Operation_Detail
             SET     STAT = '002' ,
                     RQST_RQID = @Rqid

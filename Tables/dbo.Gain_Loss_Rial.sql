@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Gain_Loss_Rial]
 [CHNG_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [AMNT] [int] NULL,
+[PRCT] [int] NULL,
 [AGRE_DATE] [datetime] NULL,
 [PAID_DATE] [datetime] NULL,
 [CHNG_RESN] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -176,4 +177,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع سپرده گذاری
 افزایش سپرده گذاری
 برداشت سپرده گذاری', 'SCHEMA', N'dbo', 'TABLE', N'Gain_Loss_Rial', 'COLUMN', N'DPST_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'درصد تغییراتی ریالی', 'SCHEMA', N'dbo', 'TABLE', N'Gain_Loss_Rial', 'COLUMN', N'PRCT'
 GO

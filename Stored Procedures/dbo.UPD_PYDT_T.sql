@@ -23,6 +23,7 @@ CREATE PROCEDURE [dbo].[UPD_PYDT_T]
   ,@Figh_File_No BIGINT
   ,@Pre_Expn_Stat VARCHAR(3)
   ,@Cbmt_Code_Dnrm BIGINT
+  ,@EXPR_DATE DATETIME
 AS
 BEGIN
 
@@ -40,6 +41,7 @@ UPDATE [dbo].[Payment_Detail]
         ,[FIGH_FILE_NO] = @Figh_File_No
         ,PRE_EXPN_STAT = @Pre_Expn_Stat
         ,CBMT_CODE_DNRM = @Cbmt_Code_Dnrm
+        ,EXPR_DATE = @EXPR_DATE
  WHERE PYMT_RQST_RQID = @PYMT_RQST_RQID
    AND PYMT_CASH_CODE = @PYMT_CASH_CODE
    AND RQRO_RWNO = @RQRO_RWNO

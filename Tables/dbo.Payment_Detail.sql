@@ -29,7 +29,10 @@ CREATE TABLE [dbo].[Payment_Detail]
 [TRAN_MTOD_CODE] [bigint] NULL,
 [TRAN_CTGY_CODE] [bigint] NULL,
 [TRAN_EXPN_CODE] [bigint] NULL,
-[EXPR_DATE] [date] NULL,
+[EXPR_DATE] [datetime] NULL,
+[MBSP_FIGH_FILE_NO] [bigint] NULL,
+[MBSP_RWNO] [smallint] NULL,
+[MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -423,7 +426,7 @@ WHERE RQST_RQID = @RqstRqid
       --PRINT @ExpnCode;
       
       SELECT @Rslt = (
-         SELECT @Rqid AS '@rqid'
+    SELECT @Rqid AS '@rqid'
                ,@RqroRwno AS 'Request_Row/@rwno'
                ,@ExpnCode AS 'Request_Row/Expense/@code'
                ,@Qnty AS 'Request_Row/Expense/@qnty'
