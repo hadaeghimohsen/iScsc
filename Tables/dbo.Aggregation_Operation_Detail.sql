@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [ATTN_CODE] [bigint] NULL,
 [COCH_FILE_NO] [bigint] NULL,
 [MBSP_RWNO] [smallint] NULL,
+[GROP_APBS_CODE] [bigint] NULL,
 [ATTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_AMNT] [bigint] NULL,
 [FNGR_PRNT] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -231,6 +232,8 @@ ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [PK_AODT] PRIMAR
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_AGOP] FOREIGN KEY ([AGOP_CODE]) REFERENCES [dbo].[Aggregation_Operation] ([CODE]) ON DELETE CASCADE
 GO
+ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_AGRP] FOREIGN KEY ([GROP_APBS_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
+GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_AODT] FOREIGN KEY ([AODT_AGOP_CODE], [AODT_RWNO]) REFERENCES [dbo].[Aggregation_Operation_Detail] ([AGOP_CODE], [RWNO])
 GO
 ALTER TABLE [dbo].[Aggregation_Operation_Detail] ADD CONSTRAINT [FK_AODT_ATTN] FOREIGN KEY ([ATTN_CODE]) REFERENCES [dbo].[Attendance] ([CODE])
@@ -256,6 +259,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ارزش افزوده قیمت میز', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'EXPN_EXTR_PRCT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ قیمت میز', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'EXPN_PRIC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'گروه بندی سانس', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'GROP_APBS_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'حداقل میزان زمان برای بازی', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'MIN_MINT_STEP'
 GO

@@ -37,9 +37,12 @@ BEGIN
       );
       
       DELETE Aggregation_Operation_Detail WHERE FIGH_FILE_NO = @fileno;
+      DELETE dbo.Payment_Discount WHERE FIGH_FILE_NO_DNRM = @FileNo;
       DELETE Payment_Method WHERE FIGH_FILE_NO_DNRM = @fileno;
+      DELETE dbo.Payment_Expense WHERE PYDT_CODE IN (SELECT pd.CODE FROM dbo.Payment_Detail pd WHERE pd.PYMT_RQST_RQID IN (SELECT rr.RQST_RQID FROM dbo.Request_Row rr WHERE rr.FIGH_FILE_NO = @FileNo));
       DELETE Gain_Loss_Rial WHERE FIGH_FILE_NO = @fileno;
       DELETE Payment_Detail WHERE PYMT_RQST_RQID in (SELECT RQST_RQID FROM Request_Row rr WHERE FIGH_FILE_NO = @fileno);
+      DELETE dbo.Attendance WHERE FIGH_FILE_NO = @FileNo;
       DELETE Request_Row WHERE FIGH_FILE_NO = @fileno;
       DELETE Fighter WHERE file_no = @fileno;
       

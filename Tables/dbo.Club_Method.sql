@@ -151,7 +151,10 @@ BEGIN
             ,t.STRT_TIME = CAST(s.STRT_TIME AS TIME(0))
             ,t.END_TIME = CAST(s.END_TIME AS TIME(0))
             ,t.CPCT_STAT = ISNULL(s.CPCT_STAT, '001')
+            ,t.CPCT_NUMB = ISNULL(s.CPCT_NUMB, 0)
             ,t.CBMT_TIME_STAT = ISNULL(s.CBMT_TIME_STAT, '001')
+            ,t.CBMT_TIME = ISNULL(s.CBMT_TIME, 0)
+            ,t.CLAS_TIME = ISNULL(s.CLAS_TIME, 90)
             ,T.NATL_CODE = CASE WHEN LEN(s.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '000'), 3, '0') END;
 END
 ;

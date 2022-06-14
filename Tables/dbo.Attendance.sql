@@ -10,6 +10,7 @@ CREATE TABLE [dbo].[Attendance]
 [ATTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_ATTN_TYPE] DEFAULT ('001'),
 [ENTR_TIME] [time] (0) NULL,
 [EXIT_TIME] [time] (0) NULL,
+[MUST_EXIT_TIME_DNRM] [time] (0) NULL,
 [TOTL_SESN] [smallint] NULL CONSTRAINT [DF_Attendance_TOTL_SESN] DEFAULT ((1)),
 [ATTN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_ATTN_STAT] DEFAULT ('002'),
 [DERS_NUMB] [int] NULL,
@@ -41,6 +42,7 @@ CREATE TABLE [dbo].[Attendance]
 [SEX_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SEND_MESG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RTNG_NUMB] [smallint] NULL,
+[OWNR_CBMT_CODE_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -92,17 +94,20 @@ AS
                         fp.GLOB_CODE ,
                         --fp.FMLY_NUMB ,
                         f.SEX_TYPE_DNRM
+                        --DATEADD(MINUTE, cm.CLAS_TIME, GETDATE()) AS MUST_EXIT_TIME_DNRM
               FROM      INSERTED i ,
                         dbo.Fighter f ,
+                        --dbo.Club_Method cm,
                         dbo.Fighter_Public fp
                         LEFT OUTER JOIN dbo.Member_Ship m ON m.FIGH_FILE_NO = fp.FIGH_FILE_NO
                                                              AND m.FGPB_RWNO_DNRM = fp.RWNO
                                                              AND m.FGPB_RECT_CODE_DNRM = '004'
-                                                             AND m.RECT_CODE = '004'
+                                                             AND m.RECT_CODE = '004'                        
               WHERE     i.FIGH_FILE_NO = f.FILE_NO
                         AND f.FILE_NO = fp.FIGH_FILE_NO
                         AND m.RWNO = i.MBSP_RWNO_DNRM
                         AND fp.RECT_CODE = '004'
+                        --AND fp.CBMT_CODE = cm.CODE
             ) S
         ON ( T.CLUB_CODE = S.CLUB_CODE
              AND T.FIGH_FILE_NO = S.FIGH_FILE_NO
@@ -112,9 +117,7 @@ AS
         WHEN MATCHED THEN
             UPDATE SET
                     T.CRET_BY = UPPER(SUSER_NAME()) ,
-                    T.CRET_DATE = GETDATE()
-            --,CODE      = dbo.Gnrt_Nvid_U()
-                    ,
+                    T.CRET_DATE = GETDATE(),
                     T.ENTR_TIME = CAST(GETDATE() AS TIME(0)) ,
                     /*T.MBSP_RECT_CODE_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN ( '002' )
                                                  THEN '004'
@@ -129,7 +132,7 @@ AS
                     T.IMAG_RCDC_RCID_DNRM = S.IMAG_RCDC_RCID_DNRM ,
                     T.IMAG_RWNO_DNRM = S.IMAG_RWNO_DNRM ,
                     T.FNGR_PRNT_DNRM = S.FNGR_PRNT_DNRM ,
-                    T.DEBT_DNRM = S.DEBT_DNRM ,
+                  T.DEBT_DNRM = S.DEBT_DNRM ,
                     T.BUFE_DEBT_DNRM = S.BUFE_DEBT_DNTM ,
                     T.MBSP_STRT_DATE_DNRM = S.MBSP_STRT_DATE ,
                     T.MBSP_END_DATE_DNRM = S.MBSP_END_DATE ,
@@ -152,6 +155,7 @@ AS
                     T.GLOB_CODE_DNRM = S.GLOB_CODE ,
                     --T.FMLY_NUMB_DNRM = S.FMLY_NUMB ,
                     T.SEX_TYPE_DNRM = S.SEX_TYPE_DNRM ,
+                    --T.MUST_EXIT_TIME_DNRM = S.MUST_EXIT_TIME_DNRM,
                     T.ATTN_DESC = CASE WHEN S.ATTN_TYPE = '007'
                                        THEN N'ثبت جلسه حضوری با همراه با کسر جلسه از اعضا'
                                        WHEN S.ATTN_TYPE = '008'
@@ -195,7 +199,7 @@ AS
                                         ) )
                     BEGIN         
                         UPDATE  dbo.Member_Ship
-                        SET     SUM_ATTN_MONT_DNRM = ISNULL(SUM_ATTN_MONT_DNRM, 0) + 1
+       SET     SUM_ATTN_MONT_DNRM = ISNULL(SUM_ATTN_MONT_DNRM, 0) + 1
                         WHERE   RWNO = @MbspRwno
                                 AND RECT_CODE = '004'
                                 AND EXISTS ( SELECT *
@@ -342,7 +346,7 @@ AS
                                                         + dbo.GET_MTST_U(GETDATE())
                                               FROM      dbo.Attendance a ,
                     Inserted i
-                                              WHERE     i.CODE = a.CODE
+                                  WHERE     i.CODE = a.CODE
                                             );          
                
                         IF @MsgbStat = '002'
@@ -398,8 +402,8 @@ AS
                                                               @Cel4Phon AS '@phonnumb' ,
                                                               ( SELECT
                                                               '022' AS '@type' ,
-                                                               @MsgbText
-                                                              FOR
+                 @MsgbText
+                                    FOR
                                                               XML
                                                               PATH('Message') ,
                                                               TYPE
@@ -460,8 +464,8 @@ AS
                         WHERE   EXISTS ( SELECT *
                                          FROM   INSERTED I ,
                                                 Attendance A ,
-                                                DELETED D
-                                         WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
+                                            DELETED D
+                                      WHERE  dbo.Member_Ship.FIGH_FILE_NO = A.FIGH_FILE_NO
                                                 AND dbo.Member_Ship.RWNO = A.MBSP_RWNO_DNRM
                                                 AND dbo.Member_Ship.RECT_CODE = A.MBSP_RECT_CODE_DNRM
                                                 AND A.FIGH_FILE_NO = I.FIGH_FILE_NO
@@ -511,11 +515,11 @@ AS
                                         AND CAST(A.ATTN_DATE AS DATE) BETWEEN CAST(STRT_DATE AS DATE)
                                                               AND
                                                               CAST(END_DATE AS DATE);
-                            END;                    
+     END;                    
                     END;
             END;
    
-   --SELECT * FROM Inserted
+  --SELECT * FROM Inserted
    -- چک کردن ثبت شماره کمد که برای دونفر که در باشگاه هستن ثبت نشود
         IF EXISTS ( SELECT  *
                     FROM    dbo.Fighter f ,
@@ -625,6 +629,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RECT_CODE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف شماره تمدید', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'MBSP_RWNO_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'سهم خدمات نیرو', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'OWNR_CBMT_CODE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت محاسبه هزینه مربی', 'SCHEMA', N'dbo', 'TABLE', N'Attendance', 'COLUMN', N'RCPT_STAT'
 GO

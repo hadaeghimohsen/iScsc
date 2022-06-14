@@ -213,6 +213,17 @@ BEGIN
       END -- IF @TYPE = '001' 
       ELSE IF @Type = '002'
       BEGIN
+         --SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>258</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+         --EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+         --IF @AP = 0 
+         --BEGIN
+         --   RAISERROR ( N'خطا - عدم دسترسی به ردیف 258 سطوح امینتی', -- Message text.
+         --            16, -- Severity.
+         --            1 -- State.
+         --            );
+         --   RETURN;
+         --END
+         
          IF @Amnt IS NULL /*OR @Amnt = 0*/ BEGIN RAISERROR(N'مبلغ وارد نشده', 16, 1); RETURN; END
 	      IF @PaidDate = '1900-01-01' BEGIN SET @PaidDate = GETDATE(); END
 	      
@@ -225,7 +236,7 @@ BEGIN
 	               AND DPST_AMNT_DNRM < @Amnt
 	         )
 	      BEGIN
-	         RAISERROR(N'مبلغ برداشت سپرده از میران سپرده موجود بیشتر می باشد، لطفا اصلاح کتید', 16, 1);
+	         RAISERROR(N'مبلغ برداشت سپرده از میزان سپرده موجود بیشتر می باشد، لطفا اصلاح کتید', 16, 1);
 	         RETURN;	         
 	      END
 	      

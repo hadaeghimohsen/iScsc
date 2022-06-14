@@ -18,12 +18,17 @@ BEGIN
    -- Base Variable
    DECLARE @FileNo BIGINT          ,@NatlCode VARCHAR(10)         ,@CellPhon VARCHAR(11)   ,@Password VARCHAR(250)
           ,@Rqid BIGINT            ,@CashCode BIGINT               ,@PymtAmnt BIGINT        ,@AmntType VARCHAR(3)
-          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)      ,@LastName NVARCHAR(250) ,@BrthDate DATE
+          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)       ,@LastName NVARCHAR(250) ,@BrthDate DATE
           ,@SexType VARCHAR(3)     ,@CbmtCode BIGINT               ,@MtodCode BIGINT        ,@CtgyCode BIGINT          
           ,@StrtDate DATE          ,@EndDate  DATE                 ,@NumAttnMont INT        ,@FighStat VARCHAR(3)
           ,@ExpnCode BIGINT        ,@ExprDate DATETIME            ,@TarfExtrPrct BIGINT     ,@BrndCode BIGINT
-          ,@GropCode BIGINT,       @GropJoin VARCHAR(50)         ,@ProdType VARCHAR(3);
-          
+          ,@GropCode BIGINT        ,@GropJoin VARCHAR(50)         ,@ProdType VARCHAR(3)     ,@Code BIGINT
+          ,@ServNo NVARCHAR(50)    ,@SuntCode VARCHAR(4)          ,@Rwno SMALLINT           ,@FromNumb BIGINT
+          ,@ToNumb BIGINT;
+   
+   -- AccessControl
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);       
    
    -- Temp Variable
    DECLARE @Cont BIGINT,
@@ -1959,6 +1964,304 @@ BEGIN
          );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
       END
+   END
+   ELSE IF @CmndCode = '109' /* ثبت صاحب هزینه برای آیتم های درآمدی متفرقه */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="108" >        
+        <Payment_Detial @code="14015245211552" @cbmtcode="1402515245521" />
+      </Router_Command>
+      */ 
+      
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>224</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 224 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+      
+      --DECLARE @docHandle INT;	
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pydts CURSOR
+      FOR
+      SELECT  *
+      FROM    OPENXML(@docHandle, N'//Payment_Detail')
+      WITH (
+        Code BIGINT './@code',
+        Cbmt_Code BIGINT './@cbmtcode'
+      );
+      
+      OPEN [C$Pydts];
+      L$Loop$Pydts:
+      FETCH [C$Pydts] INTO @Code, @CbmtCode;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop$Pydts;
+      
+      -- چک کردن اینکه گروه بندی که انتخاب شده با نوع هزینه تناسب دارد یا خیر
+      IF NOT EXISTS(
+         SELECT *
+           FROM dbo.Payment_Detail pd, dbo.Club_Method cm
+          WHERE pd.CODE = @Code
+            AND cm.CODE = @CbmtCode
+            AND pd.MTOD_CODE_DNRM = cm.MTOD_CODE
+      ) 
+      BEGIN
+         CLOSE [C$Pydts];
+         DEALLOCATE [C$Pydts];
+         RAISERROR(N'برنامه گروه بندی انتخابی شما با گروه آیتم هزینه تطابق ندارد، لطفا اصلاح فرمایید', 16, 1);
+         RETURN;
+      END 
+      
+      UPDATE pd
+         SET pd.CBMT_CODE_DNRM = @CbmtCode,
+             pd.FIGH_FILE_NO = cm.COCH_FILE_NO
+        FROM dbo.Payment_Detail pd, dbo.Request_Row rr, dbo.Club_Method cm
+       WHERE pd.CODE = @Code
+         AND cm.CODE = @CbmtCode
+         AND pd.PYMT_RQST_RQID = rr.RQST_RQID
+         AND pd.RQRO_RWNO = rr.RWNO
+         AND rr.RQTP_CODE = '016';
+      
+      GOTO L$Loop$Pydts;
+      L$EndLoop$Pydts:
+      CLOSE [C$Pydts];
+      DEALLOCATE [C$Pydts];
+   END
+   ELSE IF @CmndCode = '110' /* ثبت اطلاعات مشتریان مهمان */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode=109 >        
+        <Fighter_Public @rqid="" @frstname="" @lastname="" @cellphon="" @natlcode="" @suntcode="" @servno="" />
+      </Router_Command>
+      */ 
+      
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>259</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 259 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+      
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Fgpbs CURSOR
+      FOR
+      SELECT  *
+      FROM    OPENXML(@docHandle, N'//Fighter_Public')
+      WITH (
+        Rqid      BIGINT './@rqid',
+        Frst_Name NVARCHAR(250) './@frstname',
+        Last_Name NVARCHAR(250) './@lastname',
+        Cell_Phon VARCHAR(11) './@cellphon',
+        Natl_Code VARCHAR(10) './@natlcode',
+        Serv_No NVARCHAR(50) './@servno',
+        Sunt_Code VARCHAR(4) './@suntcode'
+      );
+      
+      OPEN [C$Fgpbs];
+      L$Loop$Fgpbs:
+      FETCH [C$Fgpbs] INTO @Rqid, @FrstName, @LastName, @CellPhon, @NatlCode, @ServNo, @SuntCode;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop$Fgpbs;
+      
+      SELECT @SuntCode = ISNULL(@SuntCode, '0000');
+      IF(LEN(@SuntCode) = 0) SET @SuntCode = '0000';
+      
+      UPDATE fp
+         SET fp.FRST_NAME = @FrstName,
+             fp.LAST_NAME = @LastName,
+             fp.CELL_PHON = @CellPhon,
+             fp.NATL_CODE = @NatlCode,
+             fp.SERV_NO = @ServNo,
+             fp.SUNT_CODE = su.CODE,
+             fp.SUNT_BUNT_CODE = su.BUNT_CODE,
+             fp.SUNT_BUNT_DEPT_CODE = su.BUNT_DEPT_CODE,
+             fp.SUNT_BUNT_DEPT_ORGN_CODE = su.BUNT_DEPT_ORGN_CODE
+        FROM dbo.Fighter_Public fp , dbo.Sub_Unit su
+       WHERE fp.RQRO_RQST_RQID = @Rqid
+         AND su.CODE = @SuntCode;
+      
+      GOTO L$Loop$Fgpbs;
+      L$EndLoop$Fgpbs:
+      CLOSE [C$Fgpbs];
+      DEALLOCATE [C$Fgpbs];
+   END
+   ELSE IF @CmndCode = '111' /* ثبت تاریخ انقضا هزینه برای آیتم های درآمدی متفرقه */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="108" >        
+        <Payment_Detial @code="14015245211552" @exprdate="1401-02-30" />
+      </Router_Command>
+      */ 
+      
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>224</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 224 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+      
+      --DECLARE @docHandle INT;	
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pydts111 CURSOR
+      FOR
+      SELECT  *
+      FROM    OPENXML(@docHandle, N'//Payment_Detail')
+      WITH (
+        Code BIGINT './@code',
+        Expr_Date BIGINT './@exprdate'
+      );
+      
+      OPEN [C$Pydts111];
+      L$Loop$Pydts111:
+      FETCH [C$Pydts111] INTO @Code, @ExprDate;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop$Pydts111;
+      
+      UPDATE pd
+         SET pd.EXPR_DATE = @ExprDate
+        FROM dbo.Payment_Detail pd, dbo.Request_Row rr, dbo.Club_Method cm
+       WHERE pd.CODE = @Code
+         AND cm.CODE = @CbmtCode
+         AND pd.PYMT_RQST_RQID = rr.RQST_RQID
+         AND pd.RQRO_RWNO = rr.RWNO
+         AND rr.RQTP_CODE = '016';
+      
+      GOTO L$Loop$Pydts111;
+      L$EndLoop$Pydts111:
+      CLOSE [C$Pydts111];
+      DEALLOCATE [C$Pydts111];
+   END
+   ELSE IF @CmndCode = '112' /* ثبت ردیف تمدید هزینه برای آیتم های درآمدی متفرقه */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="108" >        
+        <Payment_Detial code="14015245211552" mbsprwno="1" />
+      </Router_Command>
+      */ 
+      
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>224</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 224 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+      
+      --DECLARE @docHandle INT;	
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pydts112 CURSOR
+      FOR
+      SELECT  *
+      FROM    OPENXML(@docHandle, N'//Payment_Detail')
+      WITH (
+        Code BIGINT './@code',
+        Mbsp_Rwno SMALLINT './@mbsprwno'
+      );
+      
+      OPEN [C$Pydts112];
+      L$Loop$Pydts112:
+      FETCH [C$Pydts112] INTO @Code, @Rwno;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop$Pydts112;
+      
+      UPDATE pd
+         SET pd.MBSP_FIGH_FILE_NO = rr.FIGH_FILE_NO,
+             pd.MBSP_RWNO = @Rwno,
+             pd.MBSP_RECT_CODE = '004'
+        FROM dbo.Payment_Detail pd, dbo.Request_Row rr
+       WHERE pd.CODE = @Code
+         AND pd.PYMT_RQST_RQID = rr.RQST_RQID
+         AND pd.RQRO_RWNO = rr.RWNO
+         AND rr.RQTP_CODE = '016';
+      
+      GOTO L$Loop$Pydts112;
+      L$EndLoop$Pydts112:
+      CLOSE [C$Pydts112];
+      DEALLOCATE [C$Pydts112];
+   END
+   ELSE IF @CmndCode = '113' /* ثبت شماره بلیط های عمده فروشی هزینه برای آیتم های درآمدی متفرقه */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="113" >        
+        <Payment_Detial code="14015245211552" fromumb="1" tonumb="2000" />
+      </Router_Command>
+      */ 
+      
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>224</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 224 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+      
+      --DECLARE @docHandle INT;	
+      EXEC sp_xml_preparedocument @docHandle OUTPUT, @X;
+      
+      DECLARE C$Pydts113 CURSOR
+      FOR
+      SELECT  *
+      FROM    OPENXML(@docHandle, N'//Payment_Detail')
+      WITH (
+        Code BIGINT './@code',
+        FromNumb BIGINT './@fromnumb',
+        ToNumb BIGINT './@tonumb'
+      );
+      
+      OPEN [C$Pydts113];
+      L$Loop$Pydts113:
+      FETCH [C$Pydts113] INTO @Code, @FromNumb, @ToNumb;
+      
+      IF @@FETCH_STATUS <> 0
+         GOTO L$EndLoop$Pydts113;
+      
+      UPDATE pd
+         SET pd.FROM_NUMB = @FromNumb,
+             pd.TO_NUMB = @ToNumb
+        FROM dbo.Payment_Detail pd, dbo.Request_Row rr
+       WHERE pd.CODE = @Code
+         AND rr.RQTP_CODE = '016';
+      
+      GOTO L$Loop$Pydts113;
+      L$EndLoop$Pydts113:
+      CLOSE [C$Pydts113];
+      DEALLOCATE [C$Pydts113];
    END
    L$EndSp:
    COMMIT TRAN RUNR_DBCM_T05;

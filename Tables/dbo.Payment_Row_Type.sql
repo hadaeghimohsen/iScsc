@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[Payment_Row_Type]
 (
 [APDT_AGOP_CODE] [bigint] NULL,
 [APDT_RWNO] [int] NULL,
+[AMNT_TYPE_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
 [AMNT] [bigint] NULL,
 [RCPT_MTOD] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -39,7 +40,7 @@ BEGIN
    -- Insert statements for trigger here
    -- 1400/05/24 * پر کردن مبلغ دینرمال کارت خوان
 	UPDATE a
-	   SET a.POS_AMNT = (SELECT ISNULL(SUM(p.AMNT), 0) FROM dbo.Payment_Row_Type p, Inserted i WHERE p.APDT_AGOP_CODE = i.APDT_AGOP_CODE AND p.APDT_RWNO = i.APDT_RWNO AND p.RCPT_MTOD = '003')
+	   SET a.POS_AMNT = (SELECT ISNULL(SUM(p.AMNT), 0) FROM dbo.Payment_Row_Type p, Deleted i WHERE p.APDT_AGOP_CODE = i.APDT_AGOP_CODE AND p.APDT_RWNO = i.APDT_RWNO AND p.RCPT_MTOD = '003')
 	  FROM dbo.Aggregation_Operation_Detail a, Deleted i
 	 WHERE a.AGOP_CODE = i.APDT_AGOP_CODE
 	   AND a.RWNO = i.APDT_RWNO;
@@ -87,8 +88,8 @@ AS
 BEGIN
 	MERGE dbo.Payment_Row_Type T
 	USING (SELECT * FROM INSERTED) S
-	ON (T.APDT_AGOP_CODE = S.APDT_AGOP_CODE AND
-	    T.APDT_RWNO      = S.APDT_RWNO AND
+	ON (/*T.APDT_AGOP_CODE = S.APDT_AGOP_CODE AND
+	    T.APDT_RWNO      = S.APDT_RWNO AND*/
 	    T.CODE           = S.CODE)
 	WHEN MATCHED THEN
 	   UPDATE
@@ -124,5 +125,9 @@ END
 GO
 ALTER TABLE [dbo].[Payment_Row_Type] ADD CONSTRAINT [PK_PYRT] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Payment_Row_Type] ADD CONSTRAINT [FK_PYRT_APBS] FOREIGN KEY ([AMNT_TYPE_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE CASCADE
+GO
 ALTER TABLE [dbo].[Payment_Row_Type] ADD CONSTRAINT [FK_PYRT_APDT] FOREIGN KEY ([APDT_AGOP_CODE], [APDT_RWNO]) REFERENCES [dbo].[Aggregation_Operation_Detail] ([AGOP_CODE], [RWNO]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع مبلغ ورودی / خروجی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Row_Type', 'COLUMN', N'AMNT_TYPE_CODE'
 GO

@@ -36,7 +36,9 @@ BEGIN
              ,@ExprDate DATE
              ,@MbspFighFileNo BIGINT
              ,@MbspRwno SMALLINT
-             ,@MbspRectCode VARCHAR(3) = '004';
+             ,@MbspRectCode VARCHAR(3) = '004'
+             ,@FromNumb BIGINT
+             ,@ToNumb BIGINT;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -59,7 +61,9 @@ BEGIN
             ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE')
             ,@MbspFighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbspfighfileno)[1]', 'BIGINT')
             ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
-            ,@MbspRectCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprectcode)[1]', 'VARCHAR(3)');
+            ,@MbspRectCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprectcode)[1]', 'VARCHAR(3)')
+            ,@FromNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fromnumb)[1]', 'BIGINT')
+            ,@ToNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tonumb)[1]', 'BIGINT');
       
       IF @MbspRwno = 0 OR @MbspRwno IS NULL
          SELECT @MbspFighFileNo = NULL, 
@@ -73,6 +77,10 @@ BEGIN
       
       IF @ExprDate = '1900-01-01'
          SET @ExprDate = NULL;
+      
+      -- 1401/02/04
+      IF @FromNumb = 0 SET @FromNumb = NULL;
+      IF @ToNumb = 0 SET @ToNumb = NULL;
       
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
       BEGIN
@@ -178,6 +186,8 @@ BEGIN
             ,MBSP_FIGH_FILE_NO = @MbspFighFileNo
             ,MBSP_RWNO = @MbspRwno
             ,MBSP_RECT_CODE = @MbspRectCode
+            ,FROM_NUMB = @FromNumb
+            ,TO_NUMB = @ToNumb
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

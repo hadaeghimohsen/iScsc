@@ -220,18 +220,19 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
-   
+	
    -- Insert statements for trigger here
    MERGE dbo.Fighter_Public T
    USING (SELECT * FROM INSERTED) S
    ON (T.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND
        T.FIGH_FILE_NO   = S.FIGH_FILE_NO   AND
-       T.RECT_CODE      = S.RECT_CODE)
+       T.RECT_CODE      = S.RECT_CODE AND 
+       t.CRET_BY IS NULL)
    WHEN MATCHED THEN
       UPDATE
-         SET CRET_BY             = UPPER(SUSER_NAME())
-            ,CRET_DATE           = GETDATE()
-            ,RWNO                = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.Fighter_Public WHERE FIGH_FILE_NO = S.FIGH_FILE_NO AND RECT_CODE = S.RECT_CODE /*RQRO_RQST_RQID < S.RQRO_RQST_RQID*/);
+         SET T.CRET_BY             = UPPER(SUSER_NAME())
+            ,T.CRET_DATE           = GETDATE()
+            ,T.RWNO                = (SELECT ISNULL(MAX(fp.RWNO), 0) + 1 FROM dbo.Fighter_Public fp WHERE fp.FIGH_FILE_NO = S.FIGH_FILE_NO AND fp.RECT_CODE = S.RECT_CODE);
 END
 ;
 GO
@@ -457,7 +458,8 @@ BEGIN
    USING (SELECT * FROM INSERTED) S
    ON (T.RQRO_RQST_RQID = S.RQRO_RQST_RQID AND
        T.FIGH_FILE_NO   = S.FIGH_FILE_NO   AND
-       T.RECT_CODE      = S.RECT_CODE)
+       T.RECT_CODE      = S.RECT_CODE AND 
+       T.RWNO           = S.RWNO)
    WHEN MATCHED THEN
       UPDATE
          SET MDFY_BY             = UPPER(SUSER_NAME())

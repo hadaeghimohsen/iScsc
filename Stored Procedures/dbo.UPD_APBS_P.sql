@@ -9,7 +9,16 @@ CREATE PROCEDURE [dbo].[UPD_APBS_P]
    @Ref_Code BIGINT,
    @Rwno INT,
    @Numb FLOAT,
-   @Unit SMALLINT   
+   @Unit SMALLINT,
+   @Prt1_Time DATETIME,
+   @Prt2_Time DATETIME,
+   @Prt3_Time DATETIME,
+   @Prt4_Time DATETIME,
+   @Prt5_Time DATETIME,
+   @Prt6_Time DATETIME,
+   @Sex_Type VARCHAR(3),
+   @Colr INT,
+   @Stat VARCHAR(3)
 AS 
 BEGIN
    MERGE dbo.App_Base_Define T
@@ -22,6 +31,15 @@ BEGIN
          T.REF_CODE = S.Ref_Code,
          T.RWNO = S.Rwno,
          T.NUMB = s.NUMB,
-         T.UNIT = s.UNIT;
+         T.UNIT = s.UNIT,
+         t.PRT1_TIME = @Prt1_Time,
+         T.PRT2_TIME = @Prt2_Time,
+         T.PRT3_TIME = @Prt3_Time,
+         T.PRT4_TIME = @Prt4_Time,
+         T.PRT5_TIME = @Prt5_Time,
+         T.PRT6_TIME = @Prt6_Time,
+         T.SEX_TYPE = @Sex_Type,
+         T.COLR = @Colr,
+         T.STAT = @Stat;
 END 
 GO

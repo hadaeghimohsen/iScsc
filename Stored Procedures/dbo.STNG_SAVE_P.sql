@@ -92,7 +92,13 @@ BEGIN
 	             ,@AttnCompCnc3 VARCHAR(30)
 	             ,@Atn4EvntActnType VARCHAR(3)
 	             ,@AttnGustNumbType VARCHAR(3)
-	             ,@AttnDelyTime SMALLINT;
+	             ,@AttnDelyTime SMALLINT
+	             ,@Snd1Path NVARCHAR(4000)
+	             ,@Snd2Path NVARCHAR(4000)
+	             ,@Snd3Path NVARCHAR(4000)
+	             ,@Snd4Path NVARCHAR(4000)
+	             ,@Snd5Path NVARCHAR(4000)
+	             ,@Snd6Path NVARCHAR(4000);
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -164,7 +170,14 @@ BEGIN
 	             ,@Atn4EvntActnType = @X.query('//Settings').value('(Settings/@atn4evntactntype)[1]', 'VARCHAR(3)')
 	             
 	             ,@AttnGustNumbType = @X.query('//Settings').value('(Settings/@attngustnumbtype)[1]', 'VARCHAR(3)')
-	             ,@AttnDelyTime = @X.query('//Settings').value('(Settings/@attndelytime)[1]', 'SMALLINT');
+	             ,@AttnDelyTime = @X.query('//Settings').value('(Settings/@attndelytime)[1]', 'SMALLINT')
+	             
+	             ,@Snd1Path = @X.query('//Settings').value('(Settings/@snd1path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd2Path = @X.query('//Settings').value('(Settings/@snd2path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd3Path = @X.query('//Settings').value('(Settings/@snd3path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd4Path = @X.query('//Settings').value('(Settings/@snd4path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd5Path = @X.query('//Settings').value('(Settings/@snd5path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd6Path = @X.query('//Settings').value('(Settings/@snd6path)[1]', 'NVARCHAR(4000)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -250,6 +263,13 @@ BEGIN
                   
                   ,ATTN_GUST_NUMB_TYPE = @AttnGustNumbType
                   ,ATTN_DELY_TIME = @AttnDelyTime
+                  
+                  ,SND1_PATH = @Snd1Path
+                  ,SND2_PATH = @Snd2Path
+                  ,SND3_PATH = @Snd3Path
+                  ,SND4_PATH = @Snd4Path
+                  ,SND5_PATH = @Snd5Path
+                  ,SND6_PATH = @Snd6Path
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

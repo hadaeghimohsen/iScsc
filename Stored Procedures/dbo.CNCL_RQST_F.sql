@@ -16,9 +16,12 @@ BEGIN
     BEGIN TRAN T1;
     BEGIN TRY
         DECLARE @Rqid BIGINT;
-        SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]',
-                                                    'BIGINT');
-	
+        SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]', 'BIGINT');
+	     
+	     -- 1401/02/04 * حذف رکورد های پرداختی درخواست
+	     DELETE dbo.Payment_Method 
+	      WHERE PYMT_RQST_RQID = @Rqid;
+	     
         UPDATE  Request
         SET     RQST_STAT = '003'
         WHERE   RQID = @Rqid;

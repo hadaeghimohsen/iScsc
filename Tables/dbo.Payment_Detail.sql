@@ -33,6 +33,8 @@ CREATE TABLE [dbo].[Payment_Detail]
 [MBSP_FIGH_FILE_NO] [bigint] NULL,
 [MBSP_RWNO] [smallint] NULL,
 [MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[FROM_NUMB] [bigint] NULL,
+[TO_NUMB] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -521,5 +523,11 @@ EXEC sp_addextendedproperty N'MS_Description', N'تاریخ انقضا', 'SCHEMA
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'هزینه هایی که به صورت مشخص شده در اختیار فرد خاصی قرار میگیرد', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'FIGH_FILE_NO'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'فروش کارتهای انبوه به ارگان ها
+از شماره', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'FROM_NUMB'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'پیش هزینه ها', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'PRE_EXPN_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'فروش کارتهای انبوه به ارگان ها
+تا شماره', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'TO_NUMB'
 GO

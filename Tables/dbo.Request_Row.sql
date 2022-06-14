@@ -392,7 +392,7 @@ BEGIN
                 );
       ROLLBACK TRANSACTION;   
    END
-   ELSE IF EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND ISNULL(ACTV_TAG_DNRM, '101') <= '100') AND EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE NOT IN ('014', '002'))
+   ELSE IF EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND ISNULL(ACTV_TAG_DNRM, '101') <= '100') AND EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE NOT IN ('013', '014', '002'))
    BEGIN
       SELECT @ErorMesg = N' هنرجو ' + NAME_DNRM + N' به دلایلی از سیستم به صورت موقت خارج شده لطفا به سرپرستی اطلاع دهید '
         FROM Fighter 
@@ -412,7 +412,7 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();
+            ,MDFY_DATE = GETDATE();            
    
    -- 1396/03/01
    IF EXISTS(

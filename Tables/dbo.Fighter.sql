@@ -128,6 +128,14 @@ BEGIN
    )
    */
    
+   -- 1400-02-04 * مشکلی که درون سیستم استخر بهاران بود که وقتی مهمان آزاد ثبت درخواست انجام میدادیم با مشکل مواجه مشد
+   IF NOT EXISTS(SELECT * FROM Inserted)
+      RETURN;
+   
+   -- 1401-02-29 * IF Member is Guest no need Update
+   IF EXISTS(SELECT * FROM Inserted i WHERE i.FGPB_TYPE_DNRM = '005')
+	  RETURN;
+   
    -- Insert statements for trigger here
    MERGE dbo.Fighter T
    USING (SELECT * FROM INSERTED) S
@@ -137,16 +145,15 @@ BEGIN
          SET T.MDFY_BY        = UPPER(SUSER_NAME())
             ,T.MDFY_DATE      = GETDATE()
             ,T.CONF_DATE      = CASE 
-                                 WHEN T.CONF_STAT = '002' AND S.CONF_STAT = '002' AND T.CONF_DATE IS NULL THEN GETDATE() 
-                                 WHEN T.CONF_STAT = '002' AND T.CONF_DATE IS NOT NULL THEN T.CONF_DATE 
-                                 WHEN T.CONF_STAT = '001' AND S.CONF_STAT = '001' THEN NULL 
-                              END
+                                    WHEN T.CONF_STAT = '002' AND S.CONF_STAT = '002' AND T.CONF_DATE IS NULL THEN GETDATE() 
+                                    WHEN T.CONF_STAT = '002' AND T.CONF_DATE IS NOT NULL THEN T.CONF_DATE 
+                                    WHEN T.CONF_STAT = '001' AND S.CONF_STAT = '001' THEN NULL 
+                                END
             ,T.DEBT_DNRM      = dbo.GET_DBTF_U(S.FILE_NO)
             ,T.BUFE_DEBT_DNTM = dbo.GET_DBBF_U(s.FILE_NO)
             ,T.TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No)
             ,T.DPST_AMNT_DNRM = dbo.GET_DPST_U(s.FILE_NO);
-END
-;
+END;
 GO
 ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FIGH_PK] PRIMARY KEY CLUSTERED  ([FILE_NO]) ON [PRIMARY]
 GO
