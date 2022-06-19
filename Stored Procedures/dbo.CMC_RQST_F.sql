@@ -311,10 +311,13 @@ BEGIN
              ,@CrtfNumb = r.query('ChngMtodCtgy/Crtf_Numb').value('.', 'VARCHAR(20)')
              ,@TestDate = r.query('ChngMtodCtgy/Test_Date').value('.', 'DATE')
              ,@GlobCode = CASE WHEN LEN(r.query('ChngMtodCtgy/Glob_Code').value('.', 'VARCHAR(20)')) = 0 THEN @GlobCode ELSE r.query('ChngMtodCtgy/Glob_Code').value('.', 'VARCHAR(20)')END
-             ,@MtodCode = r.query('ChngMtodCtgy/Mtod_Code').value('.', 'BIGINT')
-             ,@CtgyCode = r.query('ChngMtodCtgy/Ctgy_Code').value('.', 'BIGINT')
+             ,@MtodCode = r.query('ChngMtodCtgy').value('(ChngMtodCtgy/@Mtod_Code)[1]', 'BIGINT')
+             ,@CtgyCode = r.query('ChngMtodCtgy').value('(ChngMtodCtgy/@Ctgy_Code)[1]', 'BIGINT')
+             ,@CbmtCode = r.query('ChngMtodCtgy').value('(ChngMtodCtgy/@Cbmt_Code)[1]', 'BIGINT')
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
+       
+       SELECT @X;
        
          -- Begin Check Validate
          --IF ISNULL(@MtodCode, 0) = 0 RAISERROR (N'برای فیلد "سبک" درخواست اطلاعات وارد نشده' , 16, 1);

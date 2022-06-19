@@ -89,7 +89,7 @@ BEGIN
    BEGIN
       -- Insert Into Default Value
       INSERT INTO dbo.Club ( REGN_PRVN_CNTY_CODE ,REGN_PRVN_CODE ,REGN_CODE ,CODE ,NAME )
-      VALUES  ( '001' , '017' , '001' , 0 , N'بی نام' );
+      VALUES  ( '001' , '017' , '001' , 0 , N'RelaySoft' );
       
       DECLARE @ClubCode BIGINT;
       SELECT @ClubCode = Code FROM dbo.Club;
@@ -99,29 +99,28 @@ BEGIN
       
       INSERT INTO dbo.User_Club_Fgac ( FGA_CODE ,CLUB_CODE ,SYS_USER ,REC_STAT ,VALD_TYPE )
       SELECT dbo.GNRT_NVID_U(), @ClubCode, USER_DB, '002', '002' FROM dbo.V#Users;
+      
+      DECLARE @p0 SMALLINT = SUBSTRING(dbo.GET_MTOS_U(GETDATE()), 1, 4),@p1 varchar(3) = '001',@p3 DATETIME = GETDATE(),@p4 nvarchar(4000) = 'RelaySoft',@p5 DATETIME = GETDATE(),@p6 DATETIME = DATEADD(YEAR, 1, GETDATE()),@p7 REAL = 0,@p8 REAL = 0,@p9 varchar(3) = '002',@p10 BIGINT;      
+		EXEC [dbo].[INS_REGL_P] @Year = @p0, @Type = @p1, @LettNo = @p0, @LettDate = @p3, @LettOwnr = @p4, @StrtDate = @p5, @EndDate = @p6, @TaxPrct = @p7, @DutyPrct = @p8, @AmntType = @p9, @InsrPric = @p10;
+		
+		UPDATE dbo.Regulation SET REGL_STAT = '001' WHERE YEAR != @p0 AND [TYPE] = '001';
+		UPDATE dbo.Regulation SET REGL_STAT = '002' WHERE YEAR = @p0 AND [TYPE] = '001';
+		DELETE dbo.Regulation WHERE YEAR != @p0 AND [TYPE] = '001';
+		
+		INSERT INTO dbo.Expense_Item ( CODE ,RQTP_CODE ,RQTT_CODE ,EPIT_DESC ,TYPE ) VALUES (0, '001', '001', N'شهریه', '001');
+		
+		EXEC dbo.INS_MTOD_P @Mtod_Desc = N'فروشگاه اینترنتی',@Mtod_Code = 0,@Epit_Type = '001',@Dflt_Stat = '001',@Mtod_Stat = '002',@Chck_Attn_Alrm = '001',@Natl_Code = '',@Shar_Stat = '001';
+		
+		DECLARE @MtodCode BIGINT;
+		SELECT TOP 1 @MtodCode = CODE FROM dbo.Method;
+		EXEC [dbo].[INS_CTGY_P] @Mtod_Code = @MtodCode, @Ctgy_Desc = N'سبد خرید', @Epit_Type = '001', @Numb_Of_Attn_Mont = 0, @Numb_Cycl_Day = 0, @Numb_Mont_Ofer = 0, @Pric = 0, @Dflt_Stat = '001', @Ctgy_Stat = '002', @Gust_Numb = 0;
+		
+		DECLARE @Xtemp XML = '<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی آقایان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>001</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
+		EXEC [dbo].[ADM_MSAV_F] @X = @Xtemp;
+		
+		SET @Xtemp = '<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی بانوان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>002</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
+		EXEC [dbo].[ADM_MSAV_F] @X = @Xtemp;
    END
-   /*INSERT INTO dbo.Settings( CLUB_CODE ,DFLT_STAT ,BACK_UP ,BACK_UP_APP_EXIT ,
-   BACK_UP_IN_TRED ,BACK_UP_OPTN_PATH ,BACK_UP_OPTN_PATH_ADRS ,BACK_UP_ROOT_PATH ,
-   DRES_STAT ,DRES_AUTO ,MORE_FIGH_ONE_DRES ,MORE_ATTN_SESN ,NOTF_STAT ,NOTF_EXP_DAY ,
-   NOTF_VIST_DATE ,ATTN_SYST_TYPE ,COMM_PORT_NAME ,BAND_RATE ,BAR_CODE_DATA_TYPE ,
-   ATN3_EVNT_ACTN_TYPE ,IP_ADDR ,PORT_NUMB ,ATTN_COMP_CONCT ,ATN1_EVNT_ACTN_TYPE ,
-   IP_ADR2 ,PORT_NUM2 ,ATTN_COMP_CNC2 ,ATN2_EVNT_ACTN_TYPE ,ATTN_NOTF_STAT ,
-   ATTN_NOTF_CLOS_TYPE ,ATTN_NOTF_CLOS_INTR ,DEBT_CLNG_STAT ,MOST_DEBT_CLNG_AMNT ,
-   EXPR_DEBT_DAY ,TRY_VALD_SBMT ,DEBT_CHCK_STAT ,GATE_ATTN_STAT ,GATE_COMM_PORT_NAME ,
-   GATE_BAND_RATE ,GATE_TIME_CLOS ,GATE_ENTR_OPEN ,GATE_EXIT_OPEN ,EXPN_EXTR_STAT ,
-   EXPN_COMM_PORT_NAME ,EXPN_BAND_RATE ,RUN_QURY ,ATTN_PRNT_STAT ,SHAR_MBSP_STAT ,
-   RUN_RBOT ,HLDY_CONT ,CLER_ZERO)
-   VALUES  ( @ClubCode , '002' , NULL , NULL , 
-          NULL , NULL , N'' , N'' , '' , 
-          '' , '001' , '001' , '' , 0 , GETDATE() , 
-          '000' , '' , 9600 , '002' , 
-          '' , '' , 4370 , '' , '' , 
-          '' , 4370 , '' , '' , '002' , 
-          '' , 0 , '001' , 0 , 
-          0 , '' , '001' , '001' , '' , 
-          9600 , 0 , '' , '' , '001' , 
-          '' , 9600 , '002' , '001' , '001' , 
-          '001' , 0 , '001'  );*/
    
    -- Save Host Info
    IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'iProject')

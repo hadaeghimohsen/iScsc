@@ -344,13 +344,21 @@ AS
                                                         + CHAR(10)
                                                         + N'تاریخ : '
                                                         + dbo.GET_MTST_U(GETDATE())
-                                              FROM      dbo.Attendance a ,
-                    Inserted i
+                                              FROM      dbo.Attendance a , Inserted i
                                   WHERE     i.CODE = a.CODE
                                             );          
-               
+                        
                         IF @MsgbStat = '002'
-                            BEGIN      
+                            BEGIN
+                            SET @MsgbText =                               
+                              dbo.GET_TEXT_F(
+                                 (SELECT i.FIGH_FILE_NO AS '@fileno'
+                                       ,i.MBSP_RWNO_DNRM AS '@mbsprwno'
+                                       ,@MsgbText AS '@text'
+                                   FROM Inserted i 
+                                    FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                            
+                            --SET @MsgbText = @XMsg.query('Result').value('.', 'NVARCHAR(4000)');
                                 SELECT  @XMsg = ( SELECT    5 AS '@subsys' ,
                                                             @LineType AS '@linetype' ,
                                                             ( SELECT
@@ -401,9 +409,9 @@ AS
                                                             ( SELECT
                                                               @Cel4Phon AS '@phonnumb' ,
                                                               ( SELECT
-                                                              '022' AS '@type' ,
-                 @MsgbText
-                                    FOR
+                                                              '022' AS '@type' , 
+                                                              @MsgbText
+                                                              FOR
                                                               XML
                                                               PATH('Message') ,
                                                               TYPE

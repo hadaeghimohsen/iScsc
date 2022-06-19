@@ -28,6 +28,9 @@ BEGIN
       
       IF @RqstStat = '001' 
       BEGIN
+         DELETE dbo.Payment_Method
+          WHERE PYMT_RQST_RQID = @Rqid;
+                   
          UPDATE Request
             SET RQST_STAT = '003'
           WHERE RQID = @Rqid;

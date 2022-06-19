@@ -831,7 +831,14 @@ BEGIN
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+               SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+            
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @Figh_File_No AS '@fileno'
+                           ,@Mbsp_Rwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                
             DECLARE @XMsg XML;
             SELECT @XMsg = (
@@ -886,7 +893,14 @@ BEGIN
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+               SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;            
+
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @Figh_File_No AS '@fileno'
+                           ,@Mbsp_Rwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
             
             SET @MsgbText += (
                SELECT CHAR(10) + N' شما در ساعت ' + CAST(ENTR_TIME AS VARCHAR(5)) + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' وارد باشگاه شده اید '
@@ -977,7 +991,14 @@ BEGIN
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+               SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;            
+
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @Figh_File_No AS '@fileno'
+                           ,@Mbsp_Rwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
             
             SET @MsgbText += (
                SELECT CHAR(10) + N' شما در ساعت ' + CAST(a.EXIT_TIME AS VARCHAR(5)) + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' از باشگاه خارج شده اید '
@@ -1031,7 +1052,14 @@ BEGIN
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;              
+               SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;              
+
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @Figh_File_No AS '@fileno'
+                           ,@Mbsp_Rwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
             
             IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
 	         BEGIN
@@ -1115,7 +1143,14 @@ BEGIN
                   SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + ISNULL(@MsgbText, N'')
                
                IF @InsrCnamStat = '002'
-                  SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;            
+                  SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;            
+
+               SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @Figh_File_No AS '@fileno'
+                           ,@Mbsp_Rwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                
                SET @MsgbText += (
                   SELECT CHAR(10) + N' شما بخاطر تجاوز از ساعت حضور در باشگاه' + N' با مربی ' + c.NAME_DNRM + N' برای کلاس ' + m.MTOD_DESC + N' از باشگاه خارج شده اید و یک جلسه دیگر از شما کسر شد'

@@ -1,0 +1,94 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date, ,>
+-- Description:	<Description, ,>
+-- =============================================
+CREATE FUNCTION [dbo].[GET_ITMV_F]
+(
+	@X XML
+)
+RETURNS NVARCHAR(4000)
+AS
+BEGIN
+	DECLARE @Fileno BIGINT
+	       ,@ClubCode BIGINT
+	       ,@MbspRwno SMALLINT
+	       ,@UserName VARCHAR(250)
+	       ,@TempItem VARCHAR(100);
+   
+  	SELECT @FileNo = @X.query('TemplateItemToText').value('(TemplateItemToText/@fileno)[1]', 'BIGINT')
+  	      ,@MbspRwno = @X.query('TemplateItemToText').value('(TemplateItemToText/@mbsprwno)[1]', 'SMALLINT')
+	      ,@TempItem = @X.query('TemplateItemToText').value('(TemplateItemToText/@tempitem)[1]', 'VARCHAR(100)');
+	
+	SELECT @ClubCode = CLUB_CODE_DNRM
+	  FROM dbo.Fighter
+	 WHERE FILE_NO = @Fileno;
+	
+	RETURN 
+	   CASE @TempItem
+		   -- اطلاعات مشتریان
+		   WHEN '{FIGH_FILE_NO}' THEN (SELECT CAST(@Fileno AS VARCHAR(30)))
+		   WHEN '{FIGH_DEBT_DNRM}' THEN (SELECT REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, f.DEBT_DNRM), 1), '.00', '') FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_DPST_AMNT_DNRM}' THEN (SELECT REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, f.DPST_AMNT_DNRM), 1), '.00', '') FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_CONF_DATE}' THEN (SELECT dbo.GET_MTOS_U(f.CONF_DATE) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_NAME_DNRM}' THEN (SELECT f.NAME_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_FRST_NAME_DNRM}' THEN (SELECT f.FRST_NAME_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_LAST_NAME_DNRM}' THEN (SELECT f.LAST_NAME_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_FATH_NAME_DNRM}' THEN (SELECT f.FATH_NAME_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_POST_ADRS_DNRM}' THEN (SELECT f.POST_ADRS_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_SEX_TYPE_DNRM}' THEN (SELECT d.DOMN_DESC FROM dbo.Fighter f, dbo.[D$SXDC] d WHERE f.FILE_NO = @Fileno AND f.SEX_TYPE_DNRM = d.VALU)
+		   WHEN '{FIGH_BRTH_DATE_DNRM}' THEN (SELECT dbo.GET_MTOS_U(f.BRTH_DATE_DNRM) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_CELL_PHON_DNRM}' THEN (SELECT f.CELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_TELL_PHON_DNRM}' THEN (SELECT f.TELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_INSR_NUMB_DNRM}' THEN (SELECT f.INSR_NUMB_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_INSR_DATE_DNRM}' THEN (SELECT dbo.GET_MTOS_U(f.INSR_DATE_DNRM) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_FNGR_PRNT_DNRM}' THEN (SELECT f.FNGR_PRNT_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_SUNT_CODE_DNRM}' THEN (SELECT su.SUNT_DESC FROM dbo.Fighter f, dbo.Sub_Unit su WHERE f.FILE_NO = @Fileno AND (f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM + f.SUNT_BUNT_DEPT_CODE_DNRM + f.SUNT_BUNT_CODE_DNRM + f.SUNT_CODE_DNRM = su.BUNT_DEPT_ORGN_CODE + su.BUNT_DEPT_CODE + su.BUNT_CODE + su.CODE))
+		   WHEN '{FIGH_SERV_NO_DNRM}' THEN (SELECT f.SERV_NO_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_NATL_CODE_DNRM}' THEN (SELECT f.NATL_CODE_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_GLOB_CODE_DNRM}' THEN (SELECT f.GLOB_CODE_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_CHAT_ID_DNRM}' THEN (SELECT CAST(f.CHAT_ID_DNRM AS VARCHAR(30)) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_MOM_CELL_PHON_DNRM}' THEN (SELECT f.MOM_CELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_MOM_TELL_PHON_DNRM}' THEN (SELECT f.MOM_TELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_MOM_CHAT_ID_DNRM}' THEN (SELECT CAST(f.MOM_CHAT_ID_DNRM AS VARCHAR(30)) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_DAD_CELL_PHON_DNRM}' THEN (SELECT f.DAD_CELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_DAD_TELL_PHON_DNRM}' THEN (SELECT f.DAD_TELL_PHON_DNRM FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_DAD_CHAT_ID_DNRM}' THEN (SELECT CAST(f.DAD_CHAT_ID_DNRM AS VARCHAR(30)) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_RTNG_NUMB_DNRM}' THEN (SELECT CAST(f.RTNG_NUMB_DNRM AS VARCHAR(2)) FROM dbo.Fighter f WHERE f.FILE_NO = @Fileno)
+		   WHEN '{FIGH_ATTN_NUMB_OF_YEAR}' THEN (SELECT CAST(COUNT(*) AS VARCHAR(10)) FROM dbo.Attendance a, dbo.Settings s WHERE a.CLUB_CODE = s.CLUB_CODE AND a.FIGH_FILE_NO = @Fileno AND a.ATTN_STAT = '002' AND (s.REST_ATTN_NUMB_BY_YEAR = '001' OR (s.REST_ATTN_NUMB_BY_YEAR = '002' AND YEAR(a.ATTN_DATE) = YEAR(GETDATE()))))
+		   -- اطلاعات دوره مشتری
+		   WHEN '{MBSP_END_DATE}' THEN (SELECT dbo.GET_MTOS_U(sp.END_DATE) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_NUMB_OF_ATTN_MONT}' THEN (SELECT CAST(sp.NUMB_OF_ATTN_MONT AS VARCHAR(10)) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_NUMB_OF_DAYS_DNRM}' THEN (SELECT CAST(sp.NUMB_OF_DAYS_DNRM AS VARCHAR(10)) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_NUMB_OF_MONT_DNRM}' THEN (SELECT CAST(sp.NUMB_OF_MONT_DNRM AS VARCHAR(10)) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_RTNG_NUMB_DNRM}' THEN (SELECT CAST(sp.RTNG_NUMB_DNRM AS VARCHAR(2)) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_RWNO}' THEN (SELECT CAST(@MbspRwno AS VARCHAR(10)))
+         WHEN '{MBSP_STRT_DATE}' THEN (SELECT dbo.GET_MTOS_U(sp.STRT_DATE) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_SUM_ATTN_MONT_DNRM}' THEN (SELECT CAST(sp.SUM_ATTN_MONT_DNRM AS VARCHAR(10)) FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         WHEN '{MBSP_NUMB_DAY_CHRG}' THEN (SELECT CASE sp.NUMB_OF_ATTN_MONT WHEN '0' THEN CAST(sp.NUMB_OF_DAYS_DNRM AS VARCHAR(10)) + N' ' + N'روز' ELSE CAST(sp.NUMB_OF_ATTN_MONT AS VARCHAR(10)) + N' ' + N' جلسه' END FROM dbo.Member_Ship sp WHERE sp.FIGH_FILE_NO = @Fileno AND sp.RWNO = @MbspRwno AND sp.RECT_CODE = '004')
+         -- اطلاعات مجموعه
+         WHEN '{CLUB_CELL_PHON}' THEN (SELECT CELL_PHON FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_CLUB_DESC}' THEN (SELECT CLUB_DESC FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_ECON_CODE}' THEN (SELECT ECON_CODE FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_EMAL_ADRS}' THEN (SELECT EMAL_ADRS FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_NAME}' THEN (SELECT NAME FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_POST_ADRS}' THEN (SELECT POST_ADRS FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_TELL_PHON}' THEN (SELECT TELL_PHON FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_WEB_SITE}' THEN (SELECT WEB_SITE FROM dbo.Club WHERE CODE = @ClubCode)
+         WHEN '{CLUB_ZIP_CODE}' THEN (SELECT ZIP_CODE FROM dbo.Club WHERE CODE = @ClubCode)
+         -- اطلاعات عمومی سیستم
+         WHEN '{GLOB_CRNT_YEAR}' THEN (SELECT LEFT(dbo.GET_MTOS_U(GETDATE()), 4))
+         -- اطلاعات کاربر
+         WHEN '{USER_CELL_PHON}' THEN (SELECT ISNULL(CELL_PHON, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{USER_EMAL_ADRS}' THEN (SELECT ISNULL(EMAL_ADRS, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{USER_TELL_PHON}' THEN (SELECT ISNULL(TELL_PHON, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{USER_USER_DB}' THEN (SELECT ISNULL(USER_DB, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{USER_USER_NAME}' THEN (SELECT ISNULL([USER_NAME], '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{USER_VOIP_NUMB}' THEN (SELECT ISNULL(VOIP_NUMB, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+	   END;
+END
+GO

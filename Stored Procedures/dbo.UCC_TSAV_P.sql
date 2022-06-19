@@ -21,6 +21,7 @@ BEGIN
 	           @FileNo   BIGINT,
 	           @RqroRwno SMALLINT,
 	           @FgpbRwno INT,
+	           @MbspRwno SMALLINT,
 	           @xTemp XML;
    	
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
@@ -86,7 +87,13 @@ BEGIN
        WHERE RQRO_RQST_RQID = @Rqid
          AND RQRO_RWNO = @RqroRwno
          AND RECT_CODE = '004';      
-
+      
+      -- 1401/03/28
+      SELECT @MbspRwno = ms.RWNO
+        FROM dbo.Member_Ship ms
+       WHERE ms.RQRO_RQST_RQID = @Rqid
+         AND ms.RQRO_RWNO = @RqroRwno
+         AND ms.RECT_CODE = '004';
 
       -- 1396/08/18 * اگر درون تخفیفات مشترک گزینه ای باشد که مبلغ تخفیف مابه التفاوت وجود داشته باشد بایستی 
       -- مبلغ بدهی قبلی را به عنوان تخفیف مابه التفاوت لحاظ شود و تسویه حساب کامل انجام شود         
@@ -192,11 +199,12 @@ BEGIN
                OR FNGR_PRNT <> ISNULL(@NewFngrPrnt, FNGR_PRNT))
       )
       BEGIN
-         SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش اطلاعات عمومی پیرو تمدید مشترک بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید"><Request_Row fileno=""><ChngMtodCtgy><Mtod_Code/><Ctgy_Code/> </ChngMtodCtgy></Request_Row></Request></Process>';
+         SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش اطلاعات عمومی پیرو تمدید مشترک بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید"><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
          SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
          SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
          SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
          EXEC CMC_RQST_F @X;
@@ -208,11 +216,12 @@ BEGIN
             AND R.RQTP_CODE = '011'
             AND R.RQTT_CODE = '004';
 
-         SET @X = '<Process><Request rqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><ChngMtodCtgy><Mtod_Code/><Ctgy_Code/> </ChngMtodCtgy></Request_Row></Request></Process>';
+         SET @X = '<Process><Request rqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
          SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
          SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
          SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
          EXEC CMC_SAVE_F @X;
@@ -507,7 +516,15 @@ BEGIN
             END;            
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+               SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+            
+            -- 1401/03/28               
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @FileNo AS '@fileno'
+                           ,@MbspRwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                
             DECLARE @XMsg XML;
             SELECT @XMsg = (
@@ -567,7 +584,15 @@ BEGIN
                      SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
                   
                   IF @InsrCnamStat = '002'
-                     SET @MsgbText = @MsgbText + N' ' + @ClubName;
+                     SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+                  
+                  -- 1401/03/28               
+                  SET @MsgbText =                               
+                     dbo.GET_TEXT_F(
+                        (SELECT @FileNo AS '@fileno'
+                              ,@MbspRwno AS '@mbsprwno'
+                              ,@MsgbText AS '@text'
+                           FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                      
                   --DECLARE @XMsg XML;
                   SELECT @XMsg = (
@@ -669,9 +694,18 @@ BEGIN
             );
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
+               SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;
             
             --RAISERROR(@MsgbText, 16, 1);
+
+            -- 1401/03/28               
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @FileNo AS '@fileno'
+                           ,@MbspRwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+
             
             IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
 	         BEGIN

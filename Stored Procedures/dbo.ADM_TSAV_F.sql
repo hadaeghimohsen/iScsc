@@ -573,7 +573,15 @@ BEGIN
             END;
 
             IF @InsrCnamStat = '002'
-               SET @MsgbText = @MsgbText + N' ' + @ClubName;
+               SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+            
+            -- 1401/03/28
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @FileNo AS '@fileno'
+                           ,1 AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
             
             DECLARE @XMsg XML;
             SELECT @XMsg = (
@@ -654,7 +662,15 @@ BEGIN
                      SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
                   
                   IF @InsrCnamStat = '002'
-                     SET @MsgbText = @MsgbText + N' ' + @ClubName;
+                     SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+                  
+                  -- 1401/03/28
+                  SET @MsgbText =                               
+                     dbo.GET_TEXT_F(
+                        (SELECT @FileNo AS '@fileno'
+                              ,1 AS '@mbsprwno'
+                              ,@MsgbText AS '@text'
+                           FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                      
                   --DECLARE @XMsg XML;
                   SELECT @XMsg = (
@@ -760,7 +776,15 @@ BEGIN
             --RAISERROR(@MsgbText, 16, 1);
             
             IF @InsrCnamStat = '002'
-               SET @MsgbText = ISNULL(@MsgbText, N'') + N' ' + @ClubName;
+               SET @MsgbText = ISNULL(@MsgbText, N'') + CHAR(10) + @ClubName;
+            
+            -- 1401/03/28
+            SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @FileNo AS '@fileno'
+                           ,1 AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
             
             IF EXISTS (SELECT name FROM sys.databases WHERE name = N'iRoboTech')
 	         BEGIN

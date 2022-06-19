@@ -69,7 +69,8 @@ CREATE TABLE [dbo].[Settings]
 [SND3_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SND4_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SND5_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SND6_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[SND6_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[REST_ATTN_NUMB_BY_YEAR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -139,6 +140,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مجوز تعداد ورود جلسات مشتریان بدهکار', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'PERM_ENTR_DEBT_SERV_NUMB'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد ورود و خروج های مشتری بر اساس سال صفر شود یا خیر', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'REST_ATTN_NUMB_BY_YEAR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'اجرا کردن کوئری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'RUN_QURY'
 GO

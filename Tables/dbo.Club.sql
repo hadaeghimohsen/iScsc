@@ -98,7 +98,8 @@ BEGIN
                EXPR_DEBT_DAY ,TRY_VALD_SBMT ,DEBT_CHCK_STAT ,GATE_ATTN_STAT ,GATE_COMM_PORT_NAME ,
                GATE_BAND_RATE ,GATE_TIME_CLOS ,GATE_ENTR_OPEN ,GATE_EXIT_OPEN ,EXPN_EXTR_STAT ,
                EXPN_COMM_PORT_NAME ,EXPN_BAND_RATE ,RUN_QURY ,ATTN_PRNT_STAT ,SHAR_MBSP_STAT ,
-               RUN_RBOT ,HLDY_CONT ,CLER_ZERO, DUPL_NATL_CODE, DUPL_CELL_PHON, INPT_NATL_CODE_STAT, INPT_CELL_PHON_STAT
+               RUN_RBOT ,HLDY_CONT ,CLER_ZERO, DUPL_NATL_CODE, DUPL_CELL_PHON, INPT_NATL_CODE_STAT, INPT_CELL_PHON_STAT,
+               PERM_ENTR_DEBT_SERV_NUMB, ATTN_GUST_NUMB_TYPE, ATTN_DELY_TIME, REST_ATTN_NUMB_BY_YEAR
              )
       VALUES (S.CODE, dbo.GNRT_NVID_U() , '002' , NULL , NULL , 
           NULL , NULL , N'' , N'' , '' , 
@@ -110,7 +111,8 @@ BEGIN
           0 , '002' , '001' , '001' , '' , 
           9600 , 0 , '' , '' , '001' , 
           '' , 9600 , '002' , '001' , '001' , 
-          '001' , 0 , '001', '001', '001', '001', '001');
+          '001' , 0 , '001', '001', '001', '001', '001',
+          0, '001', 0, '001');
    
 END
 ;

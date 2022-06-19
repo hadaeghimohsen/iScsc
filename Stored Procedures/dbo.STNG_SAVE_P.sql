@@ -54,7 +54,7 @@ BEGIN
 	             ,@PortNumb INT
 	             ,@AttnCompConct VARCHAR(30)
 	             ,@Atn1EvntActnType VARCHAR(3)
-                ,@IPAdr2 VARCHAR(15)
+                 ,@IPAdr2 VARCHAR(15)
 	             ,@PortNum2 INT
 	             ,@AttnCompCnc2 VARCHAR(30)	             
 	             ,@Atn2EvntActnType VARCHAR(3)
@@ -65,30 +65,30 @@ BEGIN
 	             ,@DebtClngStat VARCHAR(3)
 	             ,@MostDebtClngAmnt BIGINT
 	             ,@ExprDebtDay INT
-                ,@DebtChckStat VARCHAR(3)
-                ,@PermmEntrDebtServNumb int
-                ,@TryValdSbmt VARCHAR(3)                
-                ,@GateAttnStat VARCHAR(3)
-                ,@GateCommPortName VARCHAR(30)
-                ,@GateBandRate INT
-                ,@GateTimeClos INT
-                ,@GateEntrOpen VARCHAR(3)
-                ,@GateExitOpen VARCHAR(3)
-                ,@ExpnExtrStat VARCHAR(3)
-                ,@ExpnCommPortName VARCHAR(30)
-                ,@ExpnBandRate INT
-                ,@RunQury VARCHAR(3)
-                ,@AttnPrntStat VARCHAR(3)
-                ,@SharMbspStat VARCHAR(3)
-                ,@RunRbot VARCHAR(3)
-                ,@ClerZero VARCHAR(3)
-                ,@HldyCont INT
-                ,@DuplNatlCode VARCHAR(3)
-                ,@DuplCellPhon VARCHAR(3)
-                ,@InptNatlCodeStat VARCHAR(3)
-                ,@InptCellPhonStat VARCHAR(3)
-                ,@IPAdr3 VARCHAR(15)
-                ,@PortNum3 INT
+                 ,@DebtChckStat VARCHAR(3)
+                 ,@PermmEntrDebtServNumb int
+                 ,@TryValdSbmt VARCHAR(3)                
+                 ,@GateAttnStat VARCHAR(3)
+                 ,@GateCommPortName VARCHAR(30)
+                 ,@GateBandRate INT
+                 ,@GateTimeClos INT
+                 ,@GateEntrOpen VARCHAR(3)
+                 ,@GateExitOpen VARCHAR(3)
+                 ,@ExpnExtrStat VARCHAR(3)
+                 ,@ExpnCommPortName VARCHAR(30)
+                 ,@ExpnBandRate INT
+                 ,@RunQury VARCHAR(3)
+                 ,@AttnPrntStat VARCHAR(3)
+                 ,@SharMbspStat VARCHAR(3)
+                 ,@RunRbot VARCHAR(3)
+                 ,@ClerZero VARCHAR(3)
+                 ,@HldyCont INT
+                 ,@DuplNatlCode VARCHAR(3)
+                 ,@DuplCellPhon VARCHAR(3)
+                 ,@InptNatlCodeStat VARCHAR(3)
+                 ,@InptCellPhonStat VARCHAR(3)
+                 ,@IPAdr3 VARCHAR(15)
+                 ,@PortNum3 INT
 	             ,@AttnCompCnc3 VARCHAR(30)
 	             ,@Atn4EvntActnType VARCHAR(3)
 	             ,@AttnGustNumbType VARCHAR(3)
@@ -98,7 +98,8 @@ BEGIN
 	             ,@Snd3Path NVARCHAR(4000)
 	             ,@Snd4Path NVARCHAR(4000)
 	             ,@Snd5Path NVARCHAR(4000)
-	             ,@Snd6Path NVARCHAR(4000);
+	             ,@Snd6Path NVARCHAR(4000)
+	             ,@RestAttnNumbByYear VARCHAR(3);
 	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
@@ -139,7 +140,7 @@ BEGIN
 	             ,@ExprDebtDay = @X.query('//Settings').value('(Settings/@exprdebtday)[1]', 'INT')
 	             ,@TryValdSbmt = @X.query('//Settings').value('(Settings/@tryvaldsbmt)[1]', 'VARCHAR(3)')
 	             ,@DebtChckStat = @X.query('//Settings').value('(Settings/@debtchckstat)[1]', 'VARCHAR(3)')
-	             ,@PermmEntrDebtServNumb = @X.query('//Settings').value('(Settings/@permmentrdebtservnumb)[1]', 'int')
+	             ,@PermmEntrDebtServNumb = @X.query('//Settings').value('(Settings/@permentrdebtservnumb)[1]', 'int')
 	             
 	             ,@GateAttnStat = @X.query('//Settings').value('(Settings/@gateattnstat)[1]', 'VARCHAR(3)')
 	             ,@GateCommPortName = @X.query('//Settings').value('(Settings/@gatecommportname)[1]', 'VARCHAR(30)')
@@ -177,7 +178,9 @@ BEGIN
 	             ,@Snd3Path = @X.query('//Settings').value('(Settings/@snd3path)[1]', 'NVARCHAR(4000)')
 	             ,@Snd4Path = @X.query('//Settings').value('(Settings/@snd4path)[1]', 'NVARCHAR(4000)')
 	             ,@Snd5Path = @X.query('//Settings').value('(Settings/@snd5path)[1]', 'NVARCHAR(4000)')
-	             ,@Snd6Path = @X.query('//Settings').value('(Settings/@snd6path)[1]', 'NVARCHAR(4000)');
+	             ,@Snd6Path = @X.query('//Settings').value('(Settings/@snd6path)[1]', 'NVARCHAR(4000)')
+	             
+	             ,@RestAttnNumbByYear = @X.query('//Settings').value('(Settings/@restattnnumbbyyear)[1]', 'VARCHAR(3)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -270,6 +273,8 @@ BEGIN
                   ,SND4_PATH = @Snd4Path
                   ,SND5_PATH = @Snd5Path
                   ,SND6_PATH = @Snd6Path
+                  
+                  ,REST_ATTN_NUMB_BY_YEAR = @RestAttnNumbByYear
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN
