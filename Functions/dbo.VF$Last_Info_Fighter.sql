@@ -2,23 +2,9 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE FUNCTION [dbo].[VF$Last_Info_Fighter] (
-   @FileNo BIGINT,
-   @FrstName NVARCHAR(250),
-   @LastName NVARCHAR(250),
-   @NatlCode VARCHAR(10),
-   @FngrPrnt VARCHAR(20),
-   @CellPhon VARCHAR(11),
-   @TellPhon VARCHAR(11),
-   @SexType VARCHAR(3),
-   @ServNo NVARCHAR(50),
-   @GlobCode NVARCHAR(50),
-   @MomCellPhon VARCHAR(11),
-   @MomTellPhon VARCHAR(11),
-   @DadCellPHon VARCHAR(11),
-   @DadTellPHon VARCHAR(11),
-   @SuntCode VARCHAR(4)  
-)RETURNS TABLE 
+CREATE FUNCTION [dbo].[VF$Last_Info_Fighter]
+(@FileNo bigint, @FrstName nvarchar(250), @LastName nvarchar(250), @NatlCode varchar(10), @FngrPrnt varchar(20), @CellPhon varchar(11), @TellPhon varchar(11), @SexType varchar(3), @ServNo nvarchar(50), @GlobCode nvarchar(50), @MomCellPhon varchar(11), @MomTellPhon varchar(11), @DadCellPHon varchar(11), @DadTellPHon varchar(11), @SuntCode varchar(4))
+RETURNS table
 AS
 RETURN
 (
@@ -104,7 +90,10 @@ FROM       dbo.Fighter f,
            dbo.[D$FGTP],
            dbo.[D$SXTP],
            dbo.[D$FGST],
-           dbo.[D$ACTG]
+           dbo.[D$ACTG],
+           dbo.Club C, 
+           dbo.V#UCFGA P, 
+           dbo.V#URFGA R	       
 WHERE (f.CONF_STAT = '002')
   AND f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM = s.BUNT_DEPT_ORGN_CODE
   AND f.SUNT_BUNT_DEPT_CODE_DNRM = s.BUNT_DEPT_CODE
@@ -113,9 +102,19 @@ WHERE (f.CONF_STAT = '002')
   AND f.FGPB_TYPE_DNRM = dbo.[D$FGTP].VALU
   AND f.SEX_TYPE_DNRM = dbo.[D$SXTP].VALU
   AND f.FIGH_STAT = dbo.[D$FGST].VALU
-  AND f.ACTV_TAG_DNRM = dbo.[D$ACTG].VALU
-  AND (f.FGPB_TYPE_DNRM IN ( '002','003', '004' ) OR dbo.PLC_CLUB_U('<Club code="' + CAST(f.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002')
+  AND f.ACTV_TAG_DNRM = dbo.[D$ACTG].VALU  
   AND (f.ACTV_TAG_DNRM >= '101')
+  
+  AND (f.FGPB_TYPE_DNRM IN ( '002',/*'003',*/ '004' ) OR /*dbo.PLC_CLUB_U('<Club code="' + CAST(f.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002'*/        
+      (
+            C.REGN_PRVN_CODE = R.REGN_PRVN_CODE
+        AND C.REGN_CODE = R.REGN_CODE
+        AND C.CODE = P.CLUB_CODE
+        AND C.CODE = f.CLUB_CODE_DNRM
+        AND P.SYS_USER = UPPER(SUSER_NAME())
+        AND R.SYS_USER = UPPER(SUSER_NAME())
+      )
+  )
     
   AND (@FileNo IS NULL OR f.FILE_NO = @FileNo)
   AND (@FrstName IS NULL OR @FrstName = '' OR f.FRST_NAME_DNRM LIKE N'%' + @FrstName + N'%')

@@ -472,6 +472,13 @@ BEGIN
                    )
             );
          
+         -- 1401/04/09 * حذف رکورد پیام های آماده ارسال که بعد از عدم تمدید مشتری آماده هستند را انجام میدهیم
+         DELETE dbo.V#Sms_Message_Box
+          WHERE PHON_NUMB IN (@CellPhon)
+            AND SUB_SYS = 5
+            AND MSGB_TYPE IN ('041', '042')
+            AND STAT = '001';            
+         
          IF @MsgbStat = '002' 
          BEGIN
             IF @InsrFnamStat = '002'
@@ -566,76 +573,171 @@ BEGIN
          END;
          
          -- ارسال پیامک هشدار جهت تمدید مجدد
-            -- بررسی اینکه پیامک هشدار فعال میباشد یا خیر
-            IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND STAT = '002' AND MIN_NUMB_DAY_RMND != 0)
+         -- بررسی اینکه پیامک هشدار فعال میباشد یا خیر
+         IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '009' AND STAT = '002' AND MIN_NUMB_DAY_RMND != 0)
+         BEGIN
+            SELECT @MsgbStat = STAT
+                  ,@MsgbText = MSGB_TEXT
+                  ,@ClubName = CLUB_NAME
+                  ,@InsrCnamStat = INSR_CNAM_STAT
+                  ,@InsrFnamStat = INSR_FNAM_STAT
+                  ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+              FROM dbo.Message_Broadcast
+             WHERE MSGB_TYPE = '009';
+            
+            IF @MsgbStat = '002' 
             BEGIN
-               SELECT @MsgbStat = STAT
-                     ,@MsgbText = MSGB_TEXT
-                     ,@ClubName = CLUB_NAME
-                     ,@InsrCnamStat = INSR_CNAM_STAT
-                     ,@InsrFnamStat = INSR_FNAM_STAT
-                     ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
-                 FROM dbo.Message_Broadcast
-                WHERE MSGB_TYPE = '009';
+               IF @InsrFnamStat = '002'
+                  SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
                
-               IF @MsgbStat = '002' 
-               BEGIN
-                  IF @InsrFnamStat = '002'
-                     SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+               IF @InsrCnamStat = '002'
+                  SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+               
+               -- 1401/03/28               
+               SET @MsgbText =                               
+                  dbo.GET_TEXT_F(
+                     (SELECT @FileNo AS '@fileno'
+                           ,@MbspRwno AS '@mbsprwno'
+                           ,@MsgbText AS '@text'
+                        FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                   
-                  IF @InsrCnamStat = '002'
-                     SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
-                  
-                  -- 1401/03/28               
-                  SET @MsgbText =                               
-                     dbo.GET_TEXT_F(
-                        (SELECT @FileNo AS '@fileno'
-                              ,@MbspRwno AS '@mbsprwno'
-                              ,@MsgbText AS '@text'
-                           FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
-                     
-                  --DECLARE @XMsg XML;
-                  SELECT @XMsg = (
-                     SELECT 5 AS '@subsys',
-                            '001' AS '@linetype',
-                            (
-                              SELECT @CellPhon AS '@phonnumb',
-                                     (
-                                         SELECT '009' AS '@type' 
-                                                ,@OrgnRqid AS '@rfid'
-                                                ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
-                                                ,@MsgbText
-                                            FOR XML PATH('Message'), TYPE 
-                                     ) 
-                                 FOR XML PATH('Contact'), TYPE
-                            ),
-                            (
-                              SELECT @DadCellPhon AS '@phonnumb',
-                                     (
-                                       SELECT '009' AS '@type' 
-                                              ,@OrgnRqid AS '@rfid'
-                                              ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
-                                              ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' دوره فرزند شما روبه اتمام می باشد لطفا جهت تمدید دوره اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
-                                          FOR XML PATH('Message'), TYPE 
-                                     ) 
-                                 FOR XML PATH('Contact'), TYPE
-                            ),
-                            (
-                              SELECT @MomCellPhon AS '@phonnumb',
-                                     (
-                                         SELECT '009' AS '@type' 
-                                                ,@OrgnRqid AS '@rfid'
-                                                ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
-                                                ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' دوره فرزند شما روبه اتمام می باشد لطفا جهت تمدید دوره اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
-                                            FOR XML PATH('Message'), TYPE 
-                                     ) 
-                                 FOR XML PATH('Contact'), TYPE
-                            )
-                       FOR XML PATH('Contacts'), ROOT('Process')                            
-                  );
-                  EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
-               END;
-            END
+               --DECLARE @XMsg XML;
+               SELECT @XMsg = (
+                  SELECT 5 AS '@subsys',
+                         '001' AS '@linetype',
+                         (
+                           SELECT @CellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '009' AS '@type' 
+                                             ,@OrgnRqid AS '@rfid'
+                                             ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
+                                             ,@MsgbText
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         ),
+                         (
+                           SELECT @DadCellPhon AS '@phonnumb',
+                                  (
+                                    SELECT '009' AS '@type' 
+                                           ,@OrgnRqid AS '@rfid'
+                                           ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
+                                           ,N'پدر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' دوره فرزند شما روبه اتمام می باشد لطفا جهت تمدید دوره اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                       FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         ),
+                         (
+                           SELECT @MomCellPhon AS '@phonnumb',
+                                  (
+                                      SELECT '009' AS '@type' 
+                                             ,@OrgnRqid AS '@rfid'
+                                             ,DATEADD(DAY, @MinNumbDayRmnd * -1, @EndDate ) AS '@actndate'
+                                             ,N'مادر ' + CASE @SexType WHEN '001' THEN (N' آقا ' + @FrstName) ELSE (@FrstName + N' خانم ') END + CHAR(10) + N' دوره فرزند شما روبه اتمام می باشد لطفا جهت تمدید دوره اقدام فرمایید ' + CHAR(10) + N'با آرزوی بهترین ها برای شما خانواده ' + @LastName + N' عزیز ' + CHAR(10) + N' تاریخ اتمام دوره ' + dbo.GET_MTOS_U(@EndDate) + CHAR(10) + CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END 
+                                         FOR XML PATH('Message'), TYPE 
+                                  ) 
+                              FOR XML PATH('Contact'), TYPE
+                         )
+                    FOR XML PATH('Contacts'), ROOT('Process')                            
+               );
+               EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END;
+         END
+         
+         --1401/04/09 * اضافه شدن پیامک های غیبت در دوره و پیام عدم تمدید مجدد مشتری بعد از ارسال پیام هشدار         
+         -- 1401/03/29 * بررسی اینکه برای غیبت مشتری درون دوره آیا پیامی آماده کنیم یا خیر
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+               ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '041';
+         
+         IF @MsgbStat = '002'
+         BEGIN
+              IF @InsrFnamStat = '002'
+                 SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+              
+              IF @InsrCnamStat = '002'
+                 SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+              
+              -- 1401/03/28
+              SET @MsgbText =                               
+                 dbo.GET_TEXT_F(
+                    (SELECT @FileNo AS '@fileno'
+                          ,@MbspRwno AS '@mbsprwno'
+                          ,@MsgbText AS '@text'
+                       FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                       
+              SELECT @XMsg = (
+                 SELECT 5 AS '@subsys',
+                        '001' AS '@linetype',
+                        (
+                          SELECT @CellPhon AS '@phonnumb',
+                                 (
+                                     SELECT '041' AS '@type' 
+                                            ,@OrgnRqid AS '@rfid'
+                                            ,DATEADD(DAY, @MinNumbDayRmnd, @StrtDate ) AS '@actndate'
+                                            ,@MsgbText
+                                        FOR XML PATH('Message'), TYPE 
+                                 ) 
+                             FOR XML PATH('Contact'), TYPE
+                        )
+                   FOR XML PATH('Contacts'), ROOT('Process')                            
+              );
+              EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+         END 
+         
+         -- 1401/03/30 * بررسی اینکه مشتری بعد از دریافت پیامک هشدار جهت تمدید دیگه تمدید مجدد انجام نداده
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+               ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '042';
+         
+         IF @MsgbStat = '002'
+         BEGIN
+              IF @InsrFnamStat = '002'
+                 SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+              
+              IF @InsrCnamStat = '002'
+                 SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+              
+              -- 1401/03/28
+              SET @MsgbText =                               
+                 dbo.GET_TEXT_F(
+                    (SELECT @FileNo AS '@fileno'
+                          ,@MbspRwno AS '@mbsprwno'
+                          ,@MsgbText AS '@text'
+                       FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                       
+              SELECT @XMsg = (
+                 SELECT 5 AS '@subsys',
+                        '001' AS '@linetype',
+                        (
+                          SELECT @CellPhon AS '@phonnumb',
+                                 (
+                                     SELECT '042' AS '@type' 
+                                            ,@OrgnRqid AS '@rfid'
+                                            ,DATEADD(DAY, @MinNumbDayRmnd, @EndDate ) AS '@actndate'
+                                            ,@MsgbText
+                                        FOR XML PATH('Message'), TYPE 
+                                 ) 
+                             FOR XML PATH('Contact'), TYPE
+                        )
+                   FOR XML PATH('Contacts'), ROOT('Process')                            
+              );
+              EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+         END
       END;      
       -- 1396/11/15 * ثبت پیامک تلگرام
       IF @ChatId IS NOT NULL

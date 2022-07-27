@@ -33,6 +33,19 @@ BEGIN
       RETURN;
    END*/
    
+   DECLARE @MsgbStat VARCHAR(3)
+          ,@MsgbText NVARCHAR(MAX)
+          ,@ClubName NVARCHAR(250)
+          ,@InsrCnamStat VARCHAR(3)
+          ,@InsrFnamStat VARCHAR(3)
+          ,@LineType VARCHAR(3)
+          ,@MinNumbDayRmnd INT
+          ,@FrstName NVARCHAR(250)
+          ,@LastName NVARCHAR(250)
+          ,@SexType VARCHAR(3)
+          ,@XMsg XML
+          ,@CellPhon VARCHAR(11);
+   
    DECLARE @HostName NVARCHAR(128)
           ,@ComaCode BIGINT
           ,@AttnDelyTime SMALLINT;   
@@ -92,6 +105,10 @@ BEGIN
    BEGIN
       SELECT @Club_Code = CLUB_CODE_DNRM
             ,@Type = FGPB_TYPE_DNRM
+            ,@FrstName = FRST_NAME_DNRM
+            ,@LastName = LAST_NAME_DNRM
+            ,@SexType = SEX_TYPE_DNRM
+            ,@CellPhon = CELL_PHON_DNRM
         FROM Fighter
        WHERE FILE_NO = @Figh_File_No;
       
@@ -175,6 +192,10 @@ BEGIN
          ,@StrtDateStr = dbo.GET_MTOS_U(MBSP_STRT_DATE)
          ,@NumbOfAttnMont = M.NUMB_OF_ATTN_MONT
          ,@SumAttnMontDnrm = M.SUM_ATTN_MONT_DNRM
+         ,@FrstName = F.FRST_NAME_DNRM
+         ,@LastName = F.LAST_NAME_DNRM
+         ,@SexType = F.SEX_TYPE_DNRM
+         ,@CellPhon = F.CELL_PHON_DNRM
          --,@EndDate = MBSP_END_DATE
      FROM dbo.Fighter F, dbo.D$SXDC sxdc, dbo.Member_Ship M
     WHERE F.FILE_NO = @Figh_File_No
@@ -750,6 +771,89 @@ BEGIN
       INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE, SEND_MESG_STAT)
       VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type, '001');
       
+      -- 1401/03/30 * اگر رکورد حضوری درون سیستم ثبت شده باشد
+      IF @Attn_TYPE = '001'
+      BEGIN
+         -- در این قسمت چون مشتری حضوری برای کلاس خود ثبت کرده ما هم گزینه پیامک غیبت در دوره را به مدت زمانی که مشخص کرده ایم با تاریخ امروز جلو میبریم اگر تاریخ ارسال پیامک از تاریخ دوره بیشتر شد آن پیامک را حذف میکنیم
+         UPDATE s
+            SET ACTN_DATE = DATEADD(DAY, m.MIN_NUMB_DAY_RMND, @Attn_Date)                
+           FROM dbo.V#Sms_Message_Box s, dbo.Message_Broadcast m, dbo.Fighter f
+          WHERE s.SUB_SYS = 5
+            AND m.MSGB_TYPE = s.MSGB_TYPE
+            AND m.MSGB_TYPE = '041'
+            AND s.PHON_NUMB IN (f.CELL_PHON_DNRM)
+            AND s.STAT = '001';
+         
+         -- 1401/04/07
+         -- اگر پیامک هشدار جهت غیبت مشتری فعال باشد و قبلا برای مشتری پیام غیبت ارسال شده باید رکورد جدیدی برای ارسال مجدد برای غیبت ثبت کنیم
+         IF NOT EXISTS(
+            SELECT *
+              FROM dbo.V#Sms_Message_Box s, dbo.Message_Broadcast m, dbo.Fighter f
+            WHERE s.SUB_SYS = 5
+              AND m.MSGB_TYPE = s.MSGB_TYPE
+              AND m.MSGB_TYPE = '041'
+              AND s.PHON_NUMB IN (f.CELL_PHON_DNRM)
+              AND s.STAT = '001' -- ارسال نشده باشد              
+         ) AND
+         EXISTS(SELECT * FROM dbo.Message_Broadcast m WHERE m.STAT = '002' AND m.MSGB_TYPE = '041') -- سامانه پیامکی فعال باشد
+         BEGIN
+            -- 1401/03/29 * بررسی اینکه برای غیبت مشتری درون دوره آیا پیامی آماده کنیم یا خیر
+            SELECT @MsgbStat = STAT
+                  ,@MsgbText = MSGB_TEXT
+                  ,@ClubName = CLUB_NAME
+                  ,@InsrCnamStat = INSR_CNAM_STAT
+                  ,@InsrFnamStat = INSR_FNAM_STAT
+                  ,@LineType = LINE_TYPE
+                  ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+              FROM dbo.Message_Broadcast
+             WHERE MSGB_TYPE = '041';
+            
+            IF @MsgbStat = '002'
+            BEGIN
+                 IF @InsrFnamStat = '002'
+                    SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+                 
+                 IF @InsrCnamStat = '002'
+                    SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+                 
+                 -- 1401/03/28
+                 SET @MsgbText =                               
+                    dbo.GET_TEXT_F(
+                       (SELECT @Figh_File_No AS '@fileno'
+                             ,1 AS '@mbsprwno'
+                             ,@MsgbText AS '@text'
+                          FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                          
+                 SELECT @XMsg = (
+                    SELECT 5 AS '@subsys',
+                           '001' AS '@linetype',
+                           (
+                             SELECT @CellPhon AS '@phonnumb',
+                                    (
+                                        SELECT '041' AS '@type' 
+                                               ,@AttnCode AS '@rfid'
+                                               ,DATEADD(DAY, @MinNumbDayRmnd, @Attn_Date ) AS '@actndate'
+                                               ,@MsgbText
+                                           FOR XML PATH('Message'), TYPE 
+                                    ) 
+                                FOR XML PATH('Contact'), TYPE
+                           )
+                      FOR XML PATH('Contacts'), ROOT('Process')                            
+                 );
+                 EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+            END
+         END          
+         
+         DELETE dbo.V#Sms_Message_Box
+          WHERE EXISTS (
+                SELECT *
+                  FROM dbo.Attendance a
+                 WHERE a.CELL_PHON_DNRM = PHON_NUMB
+                   AND MSGB_TYPE = '041'
+                   AND a.MBSP_END_DATE_DNRM <= CAST(ACTN_DATE AS DATE)
+          );
+      END 
+      
       -- 1398/03/14 * اختصاص شماره کمد به مشتری
       -- البته اگر این گزینه کمد انلاین فعال باشه 
       -- 1396/01/09 * بدست آوردن کلاینت متصل به سرور
@@ -794,27 +898,27 @@ BEGIN
       END 
       
       -- 1398/4/11 * ثبت پیامک 
-      DECLARE @CellPhon VARCHAR(11),
-              @SexType VARCHAR(3),
-              @FrstName NVARCHAR(250),
-              @LastName NVARCHAR(250);
+      --DECLARE @CellPhon VARCHAR(11),
+      --        @SexType VARCHAR(3),
+      --        @FrstName NVARCHAR(250),
+      --        @LastName NVARCHAR(250);
       
-      SELECT @CellPhon = CELL_PHON_DNRM
-            ,@SexType = SEX_TYPE_DNRM
-            ,@FrstName = FRST_NAME_DNRM
-            ,@LastName = LAST_NAME_DNRM
-        FROM dbo.Fighter
-       WHERE FILE_NO = @Figh_File_No
-         AND FGPB_TYPE_DNRM = '001';
+      --SELECT @CellPhon = CELL_PHON_DNRM
+      --      ,@SexType = SEX_TYPE_DNRM
+      --      ,@FrstName = FRST_NAME_DNRM
+      --      ,@LastName = LAST_NAME_DNRM
+      --  FROM dbo.Fighter
+      -- WHERE FILE_NO = @Figh_File_No
+      --   AND FGPB_TYPE_DNRM = '001';
          
       IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND NOT EXISTS(SELECT * FROM dbo.Attendance WHERE CODE = @AttnCode AND SEND_MESG_STAT = '002')
       BEGIN
-         DECLARE @MsgbStat VARCHAR(3)
-                ,@MsgbText NVARCHAR(MAX)
-                ,@ClubName NVARCHAR(250)
-                ,@InsrCnamStat VARCHAR(3)
-                ,@InsrFnamStat VARCHAR(3)
-                ,@LineType VARCHAR(3);
+         --DECLARE @MsgbStat VARCHAR(3)
+         --       ,@MsgbText NVARCHAR(MAX)
+         --       ,@ClubName NVARCHAR(250)
+         --       ,@InsrCnamStat VARCHAR(3)
+         --       ,@InsrFnamStat VARCHAR(3)
+         --       ,@LineType VARCHAR(3);
                 
          SELECT @MsgbStat = STAT
                ,@MsgbText = MSGB_TEXT
@@ -840,7 +944,7 @@ BEGIN
                            ,@MsgbText AS '@text'
                         FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
                
-            DECLARE @XMsg XML;
+            --DECLARE @XMsg XML;
             SELECT @XMsg = (
                SELECT 5 AS '@subsys',
                       @LineType AS '@linetype',
@@ -848,6 +952,7 @@ BEGIN
                         SELECT @CellPhon AS '@phonnumb',
                                (
                                    SELECT '008' AS '@type' 
+                                          ,@AttnCode AS '@rfid'
                                           ,@MsgbText
                                       FOR XML PATH('Message'), TYPE 
                                ) 

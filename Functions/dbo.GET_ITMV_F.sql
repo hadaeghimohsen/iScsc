@@ -8,20 +8,21 @@ GO
 -- Description:	<Description, ,>
 -- =============================================
 CREATE FUNCTION [dbo].[GET_ITMV_F]
-(
-	@X XML
-)
-RETURNS NVARCHAR(4000)
+(@X xml)
+RETURNS nvarchar(4000)
+WITH EXEC AS CALLER
 AS
 BEGIN
-	DECLARE @Fileno BIGINT
-	       ,@ClubCode BIGINT
-	       ,@MbspRwno SMALLINT
-	       ,@UserName VARCHAR(250)
-	       ,@TempItem VARCHAR(100);
+DECLARE @Fileno BIGINT
+       ,@ClubCode BIGINT
+       ,@MbspRwno SMALLINT
+       ,@FgdcCode BIGINT
+       ,@UserName VARCHAR(250)
+       ,@TempItem VARCHAR(100);
    
   	SELECT @FileNo = @X.query('TemplateItemToText').value('(TemplateItemToText/@fileno)[1]', 'BIGINT')
   	      ,@MbspRwno = @X.query('TemplateItemToText').value('(TemplateItemToText/@mbsprwno)[1]', 'SMALLINT')
+  	      ,@FgdcCode = @X.query('TemplateItemToText').value('(TemplateItemToText/@fgdccode)[1]', 'BIGINT')
 	      ,@TempItem = @X.query('TemplateItemToText').value('(TemplateItemToText/@tempitem)[1]', 'VARCHAR(100)');
 	
 	SELECT @ClubCode = CLUB_CODE_DNRM
@@ -82,6 +83,10 @@ BEGIN
          WHEN '{CLUB_ZIP_CODE}' THEN (SELECT ZIP_CODE FROM dbo.Club WHERE CODE = @ClubCode)
          -- اطلاعات عمومی سیستم
          WHEN '{GLOB_CRNT_YEAR}' THEN (SELECT LEFT(dbo.GET_MTOS_U(GETDATE()), 4))
+         WHEN '{GLOB_CRNT_USER}' THEN (SELECT User_Name FROM V#Users vu WHERE vu.USER_DB = UPPER(SUSER_NAME()))
+         WHEN '{GLOB_CRNT_DATE_TIME}' THEN (SELECT dbo.GET_MTOS_U(GETDATE()) + N' ' + CAST(CAST(GETDATE() AS TIME(0)) AS VARCHAR(5)))
+         WHEN '{GLOB_CRNT_DATE}' THEN (SELECT dbo.GET_MTOS_U(GETDATE()))
+         WHEN '{GLOB_CRNT_TIME}' THEN (SELECT CAST(CAST(GETDATE() AS TIME(0)) AS VARCHAR(5)))
          -- اطلاعات کاربر
          WHEN '{USER_CELL_PHON}' THEN (SELECT ISNULL(CELL_PHON, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
          WHEN '{USER_EMAL_ADRS}' THEN (SELECT ISNULL(EMAL_ADRS, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
@@ -89,6 +94,11 @@ BEGIN
          WHEN '{USER_USER_DB}' THEN (SELECT ISNULL(USER_DB, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
          WHEN '{USER_USER_NAME}' THEN (SELECT ISNULL([USER_NAME], '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
          WHEN '{USER_VOIP_NUMB}' THEN (SELECT ISNULL(VOIP_NUMB, '*') FROM dbo.V#Users WHERE USER_DB = UPPER(SUSER_NAME()))
+         -- اطلاعات کد تخفیف مشتریان
+         WHEN '{FGDC_DISC_CODE}' THEN (SELECT DISC_CODE FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
+         WHEN '{FGDC_EXPR_DATE}' THEN (SELECT dbo.GET_MTOS_U(EXPR_DATE) FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
+         WHEN '{FGDC_DSCT_AMNT}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN CAST(DSCT_AMNT AS NVARCHAR(50)) WHEN '002' THEN REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DSCT_AMNT), 1), '.00', '') END FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
+         WHEN '{FGDC_DSCT_TYPE}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN N'%' WHEN '002' THEN (SELECT d.DOMN_DESC FROM dbo.Regulation r, dbo.[D$ATYP] d WHERE r.AMNT_TYPE = d.VALU AND r.REGL_STAT = '002' AND r.[TYPE] = '001') END FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)         
 	   END;
 END
 GO

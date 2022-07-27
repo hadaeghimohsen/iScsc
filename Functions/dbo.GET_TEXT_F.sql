@@ -19,10 +19,12 @@ BEGIN
    */
 	DECLARE @FileNo BIGINT
 	       ,@MbspRwno SMALLINT
+	       ,@FgdcCode BIGINT
 	       ,@Tmid BIGINT;
 	
 	SELECT @FileNo = @X.query('TemplateToText').value('(TemplateToText/@fileno)[1]', 'BIGINT')
 	      ,@MbspRwno = @X.query('TemplateToText').value('(TemplateToText/@mbsprwno)[1]', 'SMALLINT')
+	      ,@FgdcCode = @X.query('TemplateToText').value('(TemplateToText/@fgdccode)[1]', 'BIGINT')
 	      ,@Tmid = @X.query('TemplateToText').value('(TemplateToText/@tmid)[1]', 'BIGINT');
 	
 	DECLARE @TempText NVARCHAR(4000)
@@ -68,6 +70,7 @@ BEGIN
       SELECT @Xp = (
          SELECT @FileNo AS '@fileno'
                ,@MbspRwno AS '@mbsprwno'
+               ,@FgdcCode AS '@fgdccode'
                ,@PlaceHolderItem AS '@tempitem'
             FOR XML PATH('TemplateItemToText')
       );

@@ -4,8 +4,8 @@ SET ANSI_NULLS ON
 GO
 CREATE VIEW [dbo].[V#Sms_Message_Box]
 AS
-SELECT     MBID, SUB_SYS, LINE_TYPE, ACTN_DATE, RFID, KEY1_RFID, KEY2_RFID, PHON_NUMB, MSGB_TEXT, MSGB_TYPE, STAT, MESG_ID, EROR_CODE, EROR_MESG, SRVR_SEND_DATE, 
-                      MESG_LENT, SEND_TYPE, BULK_NUMB, PAGE_NUMB_DNRM, CRET_BY, CRET_DATE, MDFY_BY, MDFY_DATE
+SELECT     MBID, SUB_SYS, LINE_TYPE, ACTN_DATE, RFID, KEY1_RFID, KEY2_RFID, PHON_NUMB, CHAT_ID, MSGB_TEXT, MSGB_TYPE, STAT, MESG_ID, EROR_CODE, EROR_MESG, SRVR_SEND_DATE, 
+                      MESG_LENT, SEND_TYPE, BULK_NUMB, PAGE_NUMB_DNRM, VIST_STAT, VIST_DATE, VIST_SUB_SYS, CRET_BY, CRET_DATE, MDFY_BY, MDFY_DATE
 FROM         iProject.Msgb.Sms_Message_Box
 WHERE     (SUB_SYS = 5)
 GO
@@ -76,7 +76,7 @@ Begin DesignProperties =
    End
    Begin DiagramPane = 
       Begin Origin = 
-         Top = 0
+         Top = -96
          Left = 0
       End
       Begin Tables = 
@@ -88,7 +88,7 @@ Begin DesignProperties =
                Right = 213
             End
             DisplayFlags = 280
-            TopColumn = 6
+            TopColumn = 10
          End
       End
    End

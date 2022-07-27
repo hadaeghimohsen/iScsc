@@ -534,7 +534,7 @@ BEGIN
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
             
             IF @SendInfo = '002'
-            BEGIN            
+            BEGIN
                SELECT @MesgInfo =                       
                       N'اطلاعات ثبت نامی شما به شرح زیر میباشد' + CHAR(10) + 
                       m.MTOD_DESC + N' , ' + cb.CTGY_DESC + N' با سرپرستی ' + c.FRST_NAME_DNRM + N' ' + c.LAST_NAME_DNRM + CHAR(10) + 
@@ -620,7 +620,7 @@ BEGIN
                     FOR XML PATH('Contacts'), ROOT('Process')                            
                );
                EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
-            END
+            END;
             
             -- ارسال پیامک به پدر
             IF @DadCellPhon IS NOT NULL
@@ -713,9 +713,102 @@ BEGIN
                   );
                   EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
                END;
-            END
-            
+            END;            
          END;
+         
+         -- 1401/03/29 * بررسی اینکه برای غیبت مشتری درون دوره آیا پیامی آماده کنیم یا خیر
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+               ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '041';
+         
+         IF @MsgbStat = '002'
+         BEGIN
+              IF @InsrFnamStat = '002'
+                 SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+              
+              IF @InsrCnamStat = '002'
+                 SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+              
+              -- 1401/03/28
+              SET @MsgbText =                               
+                 dbo.GET_TEXT_F(
+                    (SELECT @FileNo AS '@fileno'
+                          ,1 AS '@mbsprwno'
+                          ,@MsgbText AS '@text'
+                       FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                       
+              SELECT @XMsg = (
+                 SELECT 5 AS '@subsys',
+                        '001' AS '@linetype',
+                        (
+                          SELECT @CellPhon AS '@phonnumb',
+                                 (
+                                     SELECT '041' AS '@type' 
+                                            ,@OrgnRqid AS '@rfid'
+                                            ,DATEADD(DAY, @MinNumbDayRmnd, @StrtDate ) AS '@actndate'
+                                            ,@MsgbText
+                                        FOR XML PATH('Message'), TYPE 
+                                 ) 
+                             FOR XML PATH('Contact'), TYPE
+                        )
+                   FOR XML PATH('Contacts'), ROOT('Process')                            
+              );
+              EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+         END 
+         
+         -- 1401/03/30 * بررسی اینکه مشتری بعد از دریافت پیامک هشدار جهت تمدید دیگه تمدید مجدد انجام نداده
+         SELECT @MsgbStat = STAT
+               ,@MsgbText = MSGB_TEXT
+               ,@ClubName = CLUB_NAME
+               ,@InsrCnamStat = INSR_CNAM_STAT
+               ,@InsrFnamStat = INSR_FNAM_STAT
+               ,@LineType = LINE_TYPE
+               ,@SendInfo = SEND_INFO
+               ,@MinNumbDayRmnd = MIN_NUMB_DAY_RMND
+           FROM dbo.Message_Broadcast
+          WHERE MSGB_TYPE = '042';
+         
+         IF @MsgbStat = '002'
+         BEGIN
+              IF @InsrFnamStat = '002'
+                 SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' + @MsgbText;
+              
+              IF @InsrCnamStat = '002'
+                 SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
+              
+              -- 1401/03/28
+              SET @MsgbText =                               
+                 dbo.GET_TEXT_F(
+                    (SELECT @FileNo AS '@fileno'
+                          ,1 AS '@mbsprwno'
+                          ,@MsgbText AS '@text'
+                       FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                       
+              SELECT @XMsg = (
+                 SELECT 5 AS '@subsys',
+                        '001' AS '@linetype',
+                        (
+                          SELECT @CellPhon AS '@phonnumb',
+                                 (
+                                     SELECT '042' AS '@type' 
+                                            ,@OrgnRqid AS '@rfid'
+                                            ,DATEADD(DAY, @MinNumbDayRmnd, @EndDate ) AS '@actndate'
+                                            ,@MsgbText
+                                        FOR XML PATH('Message'), TYPE 
+                                 ) 
+                             FOR XML PATH('Contact'), TYPE
+                        )
+                   FOR XML PATH('Contacts'), ROOT('Process')                            
+              );
+              EXEC dbo.MSG_SEND_P @X = @XMsg -- xml
+         END 
       END;
       -- 1396/11/15 * ثبت پیامک  بله
       IF @ChatId IS NOT NULL
@@ -732,7 +825,7 @@ BEGIN
          
          SET @MsgbText = '';
          
-         IF @TelgStat = '002'
+         IF @TelgStat = '002' AND EXISTS(SELECT name FROM sys.databases WHERE name = N'iRoboTech')
          BEGIN
             IF @InsrFnamStat = '002'
                SET @MsgbText = (SELECT DOMN_DESC FROM dbo.[D$SXDC] WHERE VALU = @SexType) + N' ' + @FrstName + N' ' + @LastName + N' ' ;--+ ISNULL(@MsgbText, N'');
