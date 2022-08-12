@@ -230,6 +230,21 @@ BEGIN
       
       IF NOT EXISTS(SELECT * FROM Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RQRO_RWNO = @RqroRwno AND FIGH_FILE_NO = @FileNo AND RECT_CODE = '001')
       BEGIN
+         -- 1401/05/21 * Default Load Data From Expense Table
+         SELECT TOP 1
+                @EndDate = DATEADD(DAY, e.NUMB_CYCL_DAY, @StrtDate),
+                @NumbOfAttnMont = e.NUMB_OF_ATTN_MONT
+           FROM dbo.Expense e, dbo.Expense_Type et, dbo.Request_Requester rr, dbo.Regulation rg
+          WHERE e.CTGY_CODE = @CtgyCode
+            AND e.EXPN_STAT = '002'
+            AND e.EXTP_CODE = et.CODE
+            AND et.RQRQ_CODE = rr.CODE
+            AND rr.RQTP_CODE = '009'
+            AND rr.RQTT_CODE = '001'
+            AND rr.REGL_YEAR = rg.YEAR
+            AND rr.REGL_CODE = rg.CODE
+            AND rg.REGL_STAT = '002';
+               
          -- 1395/07/13 * بارگذاری آخرین اطلاعات
          SELECT @NumbOfAttnMont = ISNULL(@NumbOfAttnMont, M.NUMB_OF_ATTN_MONT)
                ,@NumbOfAttnWeek = M.NUMB_OF_ATTN_WEEK

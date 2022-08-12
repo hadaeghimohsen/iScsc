@@ -254,7 +254,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
       
       IF EXISTS(
          SELECT *
@@ -361,6 +362,7 @@ BEGIN
               --,@JOBTITLCODE = P.JOB_TITL_CODE
               ,@CMNT = P.CMNT
               ,@Password = P.PASS_WORD
+              ,@RefCode = P.REF_CODE
           FROM Fighter_Public P
          WHERE P.FIGH_FILE_NO = @FileNo
            AND P.RQRO_RQST_RQID = @Rqid
@@ -465,6 +467,7 @@ BEGIN
              --,@JOBTITLCODE = P.JOB_TITL_CODE
              ,@CMNT = P.CMNT
              ,@Password = P.PASS_WORD
+             ,@RefCode = p.REF_CODE
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -592,7 +595,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       ELSE
       BEGIN
@@ -696,7 +700,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       
       GOTO NextFromRqrv;

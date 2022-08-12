@@ -63,6 +63,7 @@ CREATE TABLE [dbo].[Fighter_Public]
 [ZIP_CODE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CMNT] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PASS_WORD] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[REF_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -281,7 +282,7 @@ BEGIN
           ,@FMLY_NUMB           INT                 ,@MOM_CELL_PHON       VARCHAR(11)
           ,@MOM_TELL_PHON       VARCHAR(11)         ,@MOM_CHAT_ID         BIGINT
           ,@DAD_CELL_PHON       VARCHAR(11)         ,@DAD_TELL_PHON       VARCHAR(11)
-          ,@DAD_CHAT_ID         BIGINT;
+          ,@DAD_CHAT_ID         BIGINT              ,@Ref_Code            BIGINT;
           
    -- FETCH LAST INFORMATION;
    SELECT TOP 1
@@ -315,7 +316,7 @@ BEGIN
          /*,@FMLY_NUMB           = T.FMLY_NUMB                */  , @MOM_CELL_PHON  = T.MOM_CELL_PHON
          ,@MOM_TELL_PHON       = T.MOM_TELL_PHON                  , @MOM_CHAT_ID    = T.MOM_CHAT_ID
          ,@DAD_CELL_PHON       = T.DAD_CELL_PHON                  , @DAD_TELL_PHON  = T.DAD_TELL_PHON
-         ,@DAD_CHAT_ID         = T.DAD_CHAT_ID
+         ,@DAD_CHAT_ID         = T.DAD_CHAT_ID                    , @Ref_Code       = T.REF_CODE
      FROM [dbo].[Fighter_Public] T , INSERTED S
      WHERE T.FIGH_FILE_NO   = S.FIGH_FILE_NO
        AND t.RQRO_RQST_RQID = s.RQRO_RQST_RQID
@@ -519,7 +520,8 @@ BEGIN
             ,MOM_CHAT_ID         = CASE S.MOM_CHAT_ID         WHEN NULL THEN @MOM_CHAT_ID         ELSE S.MOM_CHAT_ID         END
             ,DAD_CELL_PHON       = CASE S.DAD_CELL_PHON       WHEN NULL THEN @DAD_CELL_PHON       ELSE S.DAD_CELL_PHON       END
             ,DAD_TELL_PHON       = CASE S.DAD_TELL_PHON       WHEN NULL THEN @DAD_TELL_PHON       ELSE S.DAD_TELL_PHON       END
-            ,DAD_CHAT_ID         = CASE S.DAD_CHAT_ID         WHEN NULL THEN @DAD_CHAT_ID         ELSE S.DAD_CHAT_ID         END;
+            ,DAD_CHAT_ID         = CASE S.DAD_CHAT_ID         WHEN NULL THEN @DAD_CHAT_ID         ELSE S.DAD_CHAT_ID         END
+            ,T.REF_CODE          = CASE S.REF_CODE            WHEN NULL THEN @Ref_Code            ELSE S.REF_CODE            END;
             
             
    -- UPDATE FIGHTER TABLE
@@ -574,7 +576,8 @@ BEGIN
             ,DAD_TELL_PHON_DNRM = S.DAD_TELL_PHON
             ,DAD_CHAT_ID_DNRM = S.DAD_CHAT_ID
             ,DPST_ACNT_SLRY_BANK_DNRM = s.DPST_ACNT_SLRY_BANK
-            ,DPST_ACNT_SLRY_DNRM = s.DPST_ACNT_SLRY;
+            ,DPST_ACNT_SLRY_DNRM = s.DPST_ACNT_SLRY
+            ,T.REF_CODE_DNRM = s.REF_CODE;
 END
 ;
 GO
@@ -595,6 +598,8 @@ GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_REGN] FOREIGN KEY ([REGN_PRVN_CNTY_CODE], [REGN_PRVN_CODE], [REGN_CODE]) REFERENCES [dbo].[Region] ([PRVN_CNTY_CODE], [PRVN_CODE], [CODE]) ON UPDATE CASCADE
+GO
+ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_RFGH] FOREIGN KEY ([REF_CODE]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Fighter_Public] ADD CONSTRAINT [FK_FGPB_RQRO] FOREIGN KEY ([RQRO_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO]) ON DELETE CASCADE
 GO
@@ -619,6 +624,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'محل صدور', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'ISSU_PLAC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'رمز اینترنتی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'PASS_WORD'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد معرف', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'REF_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد سازمانی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter_Public', 'COLUMN', N'SERV_NO'
 GO

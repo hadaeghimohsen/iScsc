@@ -80,7 +80,8 @@ BEGIN
              ,@MomChatId BIGINT
              ,@DadCellPhon VARCHAR(11)
              ,@DadTellPhon VARCHAR(11)
-             ,@DadChatId BIGINT;
+             ,@DadChatId BIGINT
+             ,@RefCode BIGINT;
 
       SELECT @DiseCode     = P.DISE_CODE
             ,@MtodCode     = P.MTOD_CODE
@@ -127,6 +128,7 @@ BEGIN
             --,@IntrFileNo = P.INTR_FILE_NO
             --,@CntrCode = P.CNTR_CODE
             ,@ChatId = P.CHAT_ID
+            ,@RefCode = p.REF_CODE
         FROM Fighter_Public P
        WHERE P.FIGH_FILE_NO = @FileNo
          AND P.RQRO_RQST_RQID = @Rqid
@@ -243,7 +245,8 @@ BEGIN
            --,@MRID_TYPE = NULL
            --,@JOB_TITL_CODE = NULL
            ,@CMNT = NULL
-           ,@Pass_Word = NULL;
+           ,@Pass_Word = NULL
+           ,@Ref_Code = @RefCode;
       END
       
       UPDATE Fighter

@@ -203,7 +203,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
              
       SELECT @DiseCode = @X.query('//Dise_Code').value('.', 'BIGINT')
             ,@MtodCode = @X.query('//Mtod_Code').value('.', 'BIGINT')
@@ -252,7 +253,8 @@ BEGIN
             ,@DadCellPhon = @x.query('//Dad_Cell_Phon').value('.', 'VARCHAR(11)')
             ,@DadTellPhon = @x.query('//Dad_Tell_Phon').value('.', 'VARCHAR(11)')
             ,@DadChatId = @x.query('//Dad_Chat_Id').value('.', 'BIGINT')
-            ,@Password = @x.query('//Pass_Word').value('.', 'VARCHAR(250)');;
+            ,@Password = @x.query('//Pass_Word').value('.', 'VARCHAR(250)')
+            ,@RefCode = @x.query('//Ref_Code').value('.', 'BIGINT');
       
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
       -- Begin Check Validate
@@ -399,7 +401,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;                 
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;                 
       END
       ELSE
       BEGIN
@@ -503,7 +506,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;                     
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;                     
       END
       -- اگر ثبت نام هنرجوی قدیمی باشه
       IF EXISTS(

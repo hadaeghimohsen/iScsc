@@ -108,12 +108,14 @@ CREATE PROCEDURE [dbo].[INS_FGPB_P]
 	@Mrid_Type VARCHAR(3),
 	@Job_Titl_Code BIGINT,*/
 	@Cmnt NVARCHAR(4000),
-	@Pass_Word VARCHAR(250)
+	@Pass_Word VARCHAR(250),
+	@Ref_Code BIGINT
 AS
 BEGIN
    --IF @Intr_File_No = 0 SET @Intr_File_No = NULL
    --IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
-   IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;   
+   IF @Ref_Code = 0 SET @Ref_Code = NULL;
+   IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;
    IF @Serv_No = '' SET @Serv_No = NULL;
    IF @Glob_Code = '' OR @Glob_Code = '0' SET @Glob_Code = NULL;
    IF @Fath_Name = '' SET @Fath_Name = NULL;
@@ -177,7 +179,7 @@ BEGIN
            ,SALR_PLAC_CODE, UNIT_BLOK_CNDO_CODE, UNIT_BLOK_CODE, UNIT_CODE, PUNT_BLOK_CNDO_CODE, PUNT_BLOK_CODE, PUNT_CODE, PHAS_NUMB
            ,HIRE_DEGR, HIRE_PLAC_DEGR, SCOR_NUMB, HOME_REGN_PRVN_CNTY_CODE, HOME_REGN_PRVN_CODE, HOME_REGN_CODE, HOME_POST_ADRS
            ,HOME_CORD_X, HOME_CORD_Y, HOME_ZIP_CODE,*/ ZIP_CODE, /*RISK_CODE, RISK_NUMB, WAR_DAY_NUMB, CPTV_DAY_NUMB, MRID_TYPE, JOB_TITL_CODE*/ CMNT
-           ,PASS_WORD)
+           ,PASS_WORD, REF_CODE)
      VALUES
            (@Prvn_Code, @Regn_Code, @Dise_Code, @Mtod_Code, @Ctgy_Code 
            ,@Club_Code, @Rqro_Rqst_Rqid, @Rqro_Rwno, @File_No, 0, @Rect_Code
@@ -193,7 +195,7 @@ BEGIN
            ,@SALR_PLAC_CODE, @UNIT_BLOK_CNDO_CODE, @UNIT_BLOK_CODE, @UNIT_CODE, @PUNT_BLOK_CNDO_CODE, @PUNT_BLOK_CODE, @PUNT_CODE, @PHAS_NUMB
            ,@HIRE_DEGR, @HIRE_PLAC_DEGR, @SCOR_NUMB, @HOME_REGN_PRVN_CNTY_CODE, @HOME_REGN_PRVN_CODE, @HOME_REGN_CODE, @HOME_POST_ADRS
            ,@HOME_CORD_X, @HOME_CORD_Y, @HOME_ZIP_CODE,*/ @ZIP_CODE, /*@RISK_CODE, @RISK_NUMB, @WAR_DAY_NUMB, @CPTV_DAY_NUMB, @MRID_TYPE, @JOB_TITL_CODE,*/ @CMNT
-           ,@Pass_Word
+           ,@Pass_Word, @Ref_Code
            );
 END
 GO

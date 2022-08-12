@@ -263,7 +263,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
       
       IF EXISTS(
          SELECT *
@@ -363,6 +364,7 @@ BEGIN
              --,@JOBTITLCODE = r.query('Fighter_Public/Job_Titl_Code').value('.', 'BIGINT')
              ,@CMNT = r.query('Fighter_Public/Cmnt').value('.', 'NVARCHAR(4000)')
              ,@Password = r.query('Fighter_Public/Pass_Word').value('.', 'VARCHAR(250)')
+             ,@RefCode = r.query('Fighter_Public/Ref_Code').value('.', 'BIGINT')
          FROM @X.nodes('//Request_Row')Rr(r)
         WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @FileNo;
          
@@ -544,6 +546,7 @@ BEGIN
              --,@UnitBlokCode = P.UNIT_BLOK_CODE
              --,@UnitCode = P.UNIT_CODE
              ,@Password = P.PASS_WORD
+             ,@RefCode = P.REF_CODE
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -665,7 +668,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       ELSE
       BEGIN
@@ -769,7 +773,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       
       GOTO NextFromRqrv;

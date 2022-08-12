@@ -33,7 +33,13 @@ BEGIN
    
    --IF LEN(@Code) < 4
       --RAISERROR(N'برای کد مجموعه فرعی باید تعداد 4 رقم باشد. به عنوان مثال 0001', 16, 1);
-      
+   
+   IF @Code IS NULL
+      SELECT @Code = dbo.GET_PSTR_U(MAX(CODE) + 1, 4)
+        FROM dbo.Sub_Unit
+       WHERE BUNT_DEPT_ORGN_CODE = @OrgnCode
+         AND BUNT_DEPT_CODE = @DeptCode
+         AND BUNT_CODE = @BuntCode;
 
    INSERT INTO dbo.Sub_Unit
            ( BUNT_DEPT_ORGN_CODE ,

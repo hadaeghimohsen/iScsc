@@ -20,11 +20,13 @@ BEGIN
 	DECLARE @FileNo BIGINT
 	       ,@MbspRwno SMALLINT
 	       ,@FgdcCode BIGINT
+	       ,@AdvpCode BIGINT
 	       ,@Tmid BIGINT;
 	
 	SELECT @FileNo = @X.query('TemplateToText').value('(TemplateToText/@fileno)[1]', 'BIGINT')
 	      ,@MbspRwno = @X.query('TemplateToText').value('(TemplateToText/@mbsprwno)[1]', 'SMALLINT')
 	      ,@FgdcCode = @X.query('TemplateToText').value('(TemplateToText/@fgdccode)[1]', 'BIGINT')
+	      ,@AdvpCode = @X.query('TemplateToText').value('(TemplateToText/@advpcode)[1]', 'BIGINT')
 	      ,@Tmid = @X.query('TemplateToText').value('(TemplateToText/@tmid)[1]', 'BIGINT');
 	
 	DECLARE @TempText NVARCHAR(4000)
@@ -40,9 +42,7 @@ BEGIN
 	   SELECT @TempText = TEMP_TEXT
 	         ,@RsultText = TEMP_TEXT
 	     FROM dbo.Template
-	    WHERE TMID = @Tmid;
-	
-	
+	    WHERE TMID = @Tmid;	
    
    -- Process on Text Template
    DECLARE @PlaceHolder VARCHAR(1)
@@ -71,6 +71,7 @@ BEGIN
          SELECT @FileNo AS '@fileno'
                ,@MbspRwno AS '@mbsprwno'
                ,@FgdcCode AS '@fgdccode'
+               ,@AdvpCode AS '@advpcode'
                ,@PlaceHolderItem AS '@tempitem'
             FOR XML PATH('TemplateItemToText')
       );

@@ -108,11 +108,13 @@ CREATE PROCEDURE [dbo].[UPD_FGPB_P]
 	@Mrid_Type VARCHAR(3),
 	@Job_Titl_Code BIGINT,*/
 	@Cmnt NVARCHAR(4000),
-	@Pass_Word VARCHAR(250)	
+	@Pass_Word VARCHAR(250),
+	@Ref_Code BIGINT
 AS
 BEGIN
    --IF @Intr_File_No = 0 SET @Intr_File_No = NULL
    --IF @Cntr_Code = 0 SET @Cntr_Code = NULL;
+   IF @Ref_Code = 0 SET @Ref_Code = NULL;
    IF @Cbmt_Code = 0 SET @Cbmt_Code = NULL;
    IF @Serv_No = '' SET @Serv_No = NULL;
    IF @Glob_Code = '' OR @Glob_Code = '0' SET @Glob_Code = NULL;
@@ -260,6 +262,7 @@ BEGIN
          --,JOB_TITL_CODE = @JOB_TITL_CODE
          ,CMNT = @CMNT
          ,PASS_WORD = @Pass_Word
+         ,REF_CODE = @Ref_Code
      WHERE Figh_File_No = @File_No
        AND [RQRO_RQST_RQID] = @Rqro_Rqst_Rqid
        AND [RQRO_RWNO] = @Rqro_Rwno;

@@ -290,6 +290,7 @@ BEGIN
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)             
              ,@Password VARCHAR(250)
+             ,@RefralCode BIGINT
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -344,6 +345,7 @@ BEGIN
             ,@DadTellPhon = @x.query('//Dad_Tell_Phon').value('.', 'VARCHAR(11)')
             ,@DadChatId = @x.query('//Dad_Chat_Id').value('.', 'BIGINT')            
             ,@Password = @x.query('//Pass_Word').value('.', 'VARCHAR(250)')            
+            ,@RefralCode = @x.query('//Ref_Code').value('.', 'BIGINT')            
             ,@StrtDate = @x.query('//Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
             ,@EndDate = @x.query('//Member_Ship').value('(Member_Ship/@enddate)[1]', 'DATE')
             ,@NumbMontOfer = @x.query('//Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')
@@ -554,7 +556,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefralCode ;
          
          EXEC dbo.INS_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint
@@ -671,7 +674,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefralCode;
          
          EXEC dbo.UPD_MBSP_P @Rqid = @Rqid, -- bigint
              @RqroRwno = @RqroRwno, -- smallint

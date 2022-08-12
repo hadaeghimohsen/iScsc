@@ -51,7 +51,7 @@ CREATE TABLE [dbo].[Fighter]
 [ATTN_TIME_DNRM] [time] NULL,
 [ACTV_TAG_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BLOD_GROP_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[FIGH_FILE_NO] [bigint] NULL,
+[REF_CODE_DNRM] [bigint] NULL,
 [IMAG_RCDC_RCID_DNRM] [bigint] NULL,
 [IMAG_RWNO_DNRM] [smallint] NULL,
 [CARD_NUMB_DNRM] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -161,7 +161,7 @@ ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FK_FIGH_CLUB] FOREIGN KEY ([CLUB_COD
 GO
 ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FK_FIGH_CTGY] FOREIGN KEY ([CTGY_CODE_DNRM]) REFERENCES [dbo].[Category_Belt] ([CODE])
 GO
-ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FK_FIGH_FIGH] FOREIGN KEY ([FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
+ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FK_FIGH_FIGH] FOREIGN KEY ([REF_CODE_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FK_FIGH_MTOD] FOREIGN KEY ([MTOD_CODE_DNRM]) REFERENCES [dbo].[Method] ([CODE])
 GO
@@ -180,6 +180,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ردیف جلسه خصوصی با مربی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'MBCO_RWNO_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد ملی', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'NATL_CODE_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد معرف', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'REF_CODE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'میزان رضایتمندی مشتریان', 'SCHEMA', N'dbo', 'TABLE', N'Fighter', 'COLUMN', N'RTNG_NUMB_DNRM'
 GO

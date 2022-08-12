@@ -84,16 +84,15 @@ SELECT     f.FILE_NO,
            f.DAD_CELL_PHON_DNRM,
            f.DAD_TELL_PHON_DNRM,
            f.DAD_CHAT_ID_DNRM,
-           f.SERV_NO_DNRM
+           f.SERV_NO_DNRM,
+           f.SEX_TYPE_DNRM,
+           f.REF_CODE_DNRM
 FROM       dbo.Fighter f,           
            dbo.Sub_Unit s,
            dbo.[D$FGTP],
            dbo.[D$SXTP],
            dbo.[D$FGST],
-           dbo.[D$ACTG],
-           dbo.Club C, 
-           dbo.V#UCFGA P, 
-           dbo.V#URFGA R	       
+           dbo.[D$ACTG]
 WHERE (f.CONF_STAT = '002')
   AND f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM = s.BUNT_DEPT_ORGN_CODE
   AND f.SUNT_BUNT_DEPT_CODE_DNRM = s.BUNT_DEPT_CODE
@@ -105,16 +104,7 @@ WHERE (f.CONF_STAT = '002')
   AND f.ACTV_TAG_DNRM = dbo.[D$ACTG].VALU  
   AND (f.ACTV_TAG_DNRM >= '101')
   
-  AND (f.FGPB_TYPE_DNRM IN ( '002',/*'003',*/ '004' ) OR /*dbo.PLC_CLUB_U('<Club code="' + CAST(f.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002'*/        
-      (
-            C.REGN_PRVN_CODE = R.REGN_PRVN_CODE
-        AND C.REGN_CODE = R.REGN_CODE
-        AND C.CODE = P.CLUB_CODE
-        AND C.CODE = f.CLUB_CODE_DNRM
-        AND P.SYS_USER = UPPER(SUSER_NAME())
-        AND R.SYS_USER = UPPER(SUSER_NAME())
-      )
-  )
+  AND (f.FGPB_TYPE_DNRM IN ( '002','003', '004' ) OR dbo.PLC_CLUB_U('<Club code="' + CAST(f.CLUB_CODE_DNRM AS VARCHAR(20)) + '"/>') = '002')
     
   AND (@FileNo IS NULL OR f.FILE_NO = @FileNo)
   AND (@FrstName IS NULL OR @FrstName = '' OR f.FRST_NAME_DNRM LIKE N'%' + @FrstName + N'%')

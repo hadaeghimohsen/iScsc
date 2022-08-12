@@ -158,7 +158,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
       
        SELECT @DiseCode = P.DISE_CODE
              ,@ClubCode = p.CLUB_CODE
@@ -212,6 +213,7 @@ BEGIN
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
              ,@Password = P.PASS_WORD
+             ,@RefCode = P.REF_CODE
          FROM Fighter_Public P
         WHERE P.FIGH_FILE_NO = @FileNo
           AND P.RQRO_RQST_RQID = @Rqid
@@ -337,7 +339,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       ELSE
       BEGIN
@@ -441,7 +444,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       
       GOTO NextFromRqrv;

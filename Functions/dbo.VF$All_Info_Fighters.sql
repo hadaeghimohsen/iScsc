@@ -19,7 +19,8 @@ SELECT dbo.Fighter.FILE_NO, dbo.Fighter_Public.CHAT_ID AS CHAT_ID_DNRM, dbo.Figh
        dbo.Fighter_Public.CORD_X,dbo.Fighter_Public.CORD_Y, dbo.Fighter_Public.SERV_NO, dbo.Fighter_Public.BRTH_PLAC, dbo.Fighter_Public.ISSU_PLAC, dbo.Fighter_Public.FATH_WORK, dbo.Fighter_Public.HIST_DESC,
        dbo.Fighter_Public.DPST_ACNT_SLRY_BANK,dbo.Fighter_Public.DPST_ACNT_SLRY, dbo.Fighter_Public.CBMT_CODE,
        dbo.Fighter_Public.MOM_CELL_PHON, dbo.Fighter_Public.MOM_TELL_PHON, dbo.Fighter_Public.MOM_CHAT_ID,
-       dbo.Fighter_Public.DAD_CELL_PHON, dbo.Fighter_Public.DAD_TELL_PHON, dbo.Fighter_Public.DAD_CHAT_ID       
+       dbo.Fighter_Public.DAD_CELL_PHON, dbo.Fighter_Public.DAD_TELL_PHON, dbo.Fighter_Public.DAD_CHAT_ID,
+       dbo.Fighter_Public.REF_CODE
 FROM   --dbo.Category_Belt INNER JOIN
        --dbo.Method ON dbo.Category_Belt.MTOD_CODE = dbo.Method.CODE LEFT OUTER JOIN
        dbo.Fighter INNER JOIN

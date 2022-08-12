@@ -161,6 +161,7 @@ BEGIN
              ,@DadCellPhon VARCHAR(11)
              ,@DadTellPhon VARCHAR(11)
              ,@DadChatId BIGINT
+             ,@RefCode BIGINT
              ,@StrtDate DATE
              ,@EndDate DATE
              ,@NumbMontOfer INT
@@ -208,6 +209,7 @@ BEGIN
             --,@IntrFileNo = @x.query('//Intr_File_No').value('.', 'BIGINT')
             --,@CntrCode = @x.query('//Cntr_Code').value('.', 'BIGINT')
             ,@ChatId = @x.query('//Chat_Id').value('.', 'BIGINT')
+            ,@RefCode = @x.query('//RefCode').value('.', 'BIGINT')
             ,@StrtDate = @x.query('//Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
             ,@EndDate = @x.query('//Member_Ship').value('(Member_Ship/@enddate)[1]', 'DATE')
             ,@NumbMontOfer = @x.query('//Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')
@@ -408,7 +410,8 @@ BEGIN
            --,@MRID_TYPE = NULL
            --,@JOB_TITL_CODE = NULL
            ,@CMNT = NULL
-           ,@Pass_Word = NULL;           
+           ,@Pass_Word = NULL
+           ,@Ref_Code = @RefCode;
       END
       ELSE
       BEGIN
@@ -512,7 +515,8 @@ BEGIN
            --,@MRID_TYPE = NULL
            --,@JOB_TITL_CODE = NULL
            ,@CMNT = NULL
-           ,@Pass_Word = NULL;
+           ,@Pass_Word = NULL
+           ,@Ref_Code = @RefCode;
       END
       L$EndSp:
       COMMIT TRAN T1;

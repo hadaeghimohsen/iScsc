@@ -17,12 +17,13 @@ DECLARE @Fileno BIGINT
        ,@ClubCode BIGINT
        ,@MbspRwno SMALLINT
        ,@FgdcCode BIGINT
-       ,@UserName VARCHAR(250)
+       ,@AdvpCode BIGINT
        ,@TempItem VARCHAR(100);
    
   	SELECT @FileNo = @X.query('TemplateItemToText').value('(TemplateItemToText/@fileno)[1]', 'BIGINT')
   	      ,@MbspRwno = @X.query('TemplateItemToText').value('(TemplateItemToText/@mbsprwno)[1]', 'SMALLINT')
   	      ,@FgdcCode = @X.query('TemplateItemToText').value('(TemplateItemToText/@fgdccode)[1]', 'BIGINT')
+  	      ,@AdvpCode = @X.query('TemplateItemToText').value('(TemplateItemToText/@advpcode)[1]', 'BIGINT')
 	      ,@TempItem = @X.query('TemplateItemToText').value('(TemplateItemToText/@tempitem)[1]', 'VARCHAR(100)');
 	
 	SELECT @ClubCode = CLUB_CODE_DNRM
@@ -98,7 +99,18 @@ DECLARE @Fileno BIGINT
          WHEN '{FGDC_DISC_CODE}' THEN (SELECT DISC_CODE FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
          WHEN '{FGDC_EXPR_DATE}' THEN (SELECT dbo.GET_MTOS_U(EXPR_DATE) FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
          WHEN '{FGDC_DSCT_AMNT}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN CAST(DSCT_AMNT AS NVARCHAR(50)) WHEN '002' THEN REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DSCT_AMNT), 1), '.00', '') END FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
-         WHEN '{FGDC_DSCT_TYPE}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN N'%' WHEN '002' THEN (SELECT d.DOMN_DESC FROM dbo.Regulation r, dbo.[D$ATYP] d WHERE r.AMNT_TYPE = d.VALU AND r.REGL_STAT = '002' AND r.[TYPE] = '001') END FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)         
+         WHEN '{FGDC_DSCT_TYPE}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN N'%' WHEN '002' THEN (SELECT d.DOMN_DESC FROM dbo.Regulation r, dbo.[D$ATYP] d WHERE r.AMNT_TYPE = d.VALU AND r.REGL_STAT = '002' AND r.[TYPE] = '001') END FROM dbo.Fighter_Discount_Card WHERE CODE = @FgdcCode)
+         WHEN '{FGDC_MTOD_CODE}' THEN ISNULL((SELECT m.MTOD_DESC FROM dbo.Method m, dbo.Fighter_Discount_Card d WHERE d.CODE = @FgdcCode AND d.MTOD_CODE = m.CODE), '')
+         WHEN '{FGDC_CTGY_CODE}' THEN ISNULL((SELECT c.CTGY_DESC FROM dbo.Category_Belt c, dbo.Fighter_Discount_Card d WHERE d.CODE = @FgdcCode AND d.CTGY_CODE = c.CODE), '')
+         WHEN '{FGDC_RQTP_CODE}' THEN ISNULL((SELECT r.RQTP_DESC FROM dbo.Request_Type r, dbo.Fighter_Discount_Card d WHERE d.CODE = @FgdcCode AND d.RQTP_CODE = r.CODE), '')
+         -- اطلاعات پارامتر تبلیغات
+         WHEN '{ADVP_DISC_CODE}' THEN (SELECT DISC_CODE FROM dbo.Advertising_Parameter WHERE CODE = @AdvpCode)
+         WHEN '{ADVP_EXPR_DATE}' THEN (SELECT dbo.GET_MTOS_U(EXPR_DATE) FROM dbo.Advertising_Parameter WHERE CODE = @AdvpCode)
+         WHEN '{ADVP_DSCT_AMNT}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN CAST(DSCT_AMNT AS NVARCHAR(50)) WHEN '002' THEN REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DSCT_AMNT), 1), '.00', '') END FROM dbo.Advertising_Parameter WHERE CODE = @AdvpCode)
+         WHEN '{ADVP_DSCT_TYPE}' THEN (SELECT CASE DSCT_TYPE WHEN '001' THEN N'%' WHEN '002' THEN (SELECT d.DOMN_DESC FROM dbo.Regulation r, dbo.[D$ATYP] d WHERE r.AMNT_TYPE = d.VALU AND r.REGL_STAT = '002' AND r.[TYPE] = '001') END FROM dbo.Advertising_Parameter WHERE CODE = @AdvpCode)
+         WHEN '{ADVP_MTOD_CODE}' THEN ISNULL((SELECT m.MTOD_DESC FROM dbo.Method m, dbo.Advertising_Parameter d WHERE d.CODE = @AdvpCode AND d.MTOD_CODE = m.CODE), '')
+         WHEN '{ADVP_CTGY_CODE}' THEN ISNULL((SELECT c.CTGY_DESC FROM dbo.Category_Belt c, dbo.Advertising_Parameter d WHERE d.CODE = @AdvpCode AND d.CTGY_CODE = c.CODE), '')
+         WHEN '{ADVP_RQTP_CODE}' THEN ISNULL((SELECT r.RQTP_DESC FROM dbo.Request_Type r, dbo.Advertising_Parameter d WHERE d.CODE = @AdvpCode AND d.RQTP_CODE = r.CODE), '')
 	   END;
 END
 GO
