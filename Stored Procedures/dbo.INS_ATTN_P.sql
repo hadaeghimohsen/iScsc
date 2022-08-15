@@ -135,14 +135,15 @@ BEGIN
       END
    END
    
+   -- 1401/05/23 * پر کردن تاریخ حضور درون سیستم
    IF @Attn_Date IS NULL
       SET @Attn_Date = GETDATE();
+      
    IF NOT EXISTS(SELECT * FROM Fighter WHERE CONF_STAT = '002' AND FILE_NO = @Figh_File_No)
       RAISERROR ( N'خطا 2 - این شماره پرونده وجود خارجی ندارد', -- Message text.
                16, -- Severity.
                1 -- State.
-               );
-   
+               );   
    
    IF @Attn_TYPE = '005' -- حضوری با مربی دیگر بدون قید و شرط
    BEGIN
@@ -208,55 +209,55 @@ BEGIN
    
    -- پایان مهلت بدهی هنرجو
    
-   IF @Attn_Ignr_Stat = '001'   
-      IF dbo.CHK_DEBT_U('<Fighter fileno="' + CAST(@Figh_File_No AS VARCHAR(14)) + '"/>') = 0
-      BEGIN
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
-                            @SexDesc + N' ' + @NameDnrm + CHAR(10) +
-                            N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
-                            N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
-                            N'لطفا جهت تسویه بدهی خود اقدام فرمایید'
-                            ;
-         RAISERROR (@MessageShow, 
-                  --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
-                  16, -- Severity.
-                  1 -- State.
-                  );
-      END;
+   --IF @Attn_Ignr_Stat = '001'   
+   --   IF dbo.CHK_DEBT_U('<Fighter fileno="' + CAST(@Figh_File_No AS VARCHAR(14)) + '"/>') = 0
+   --   BEGIN
+   --      SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+   --                         @SexDesc + N' ' + @NameDnrm + CHAR(10) +
+   --                         N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+   --                         N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
+   --                         N'لطفا جهت تسویه بدهی خود اقدام فرمایید'
+   --                         ;
+   --      RAISERROR (@MessageShow, 
+   --               --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
+   --               16, -- Severity.
+   --               1 -- State.
+   --               );
+   --   END;
    
    -- بررسی کردن گزینه بلوکه کردن
-   IF @Attn_Ignr_Stat = '001'
-      IF EXISTS(
-         SELECT *
-           FROM dbo.Fighter f, dbo.Member_Ship m
-          WHERE f.FILE_NO = m.FIGH_FILE_NO
-            AND f.MBFZ_RWNO_DNRM = m.RWNO
-            AND m.RECT_CODE = '004'
-            AND f.FILE_NO = @Figh_File_No
-            AND m.VALD_TYPE = '002'
-            AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE
-      )
-      BEGIN
-         SELECT @StrtDateStr = dbo.GET_MTOS_U(m.STRT_DATE)
-               ,@EndDate = dbo.GET_MTOS_U(m.END_DATE)
-           FROM dbo.Fighter f, dbo.Member_Ship m
-          WHERE f.FILE_NO = m.FIGH_FILE_NO
-            AND f.MBFZ_RWNO_DNRM = m.RWNO
-            AND m.RECT_CODE = '004'
-            AND f.FILE_NO = @Figh_File_No
-            AND m.VALD_TYPE = '002'
-            AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE;
+   --IF @Attn_Ignr_Stat = '001'
+   --   IF EXISTS(
+   --      SELECT *
+   --        FROM dbo.Fighter f, dbo.Member_Ship m
+   --       WHERE f.FILE_NO = m.FIGH_FILE_NO
+   --         AND f.MBFZ_RWNO_DNRM = m.RWNO
+   --         AND m.RECT_CODE = '004'
+   --         AND f.FILE_NO = @Figh_File_No
+   --         AND m.VALD_TYPE = '002'
+   --         AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE
+   --   )
+   --   BEGIN
+   --      SELECT @StrtDateStr = dbo.GET_MTOS_U(m.STRT_DATE)
+   --            ,@EndDate = dbo.GET_MTOS_U(m.END_DATE)
+   --        FROM dbo.Fighter f, dbo.Member_Ship m
+   --       WHERE f.FILE_NO = m.FIGH_FILE_NO
+   --         AND f.MBFZ_RWNO_DNRM = m.RWNO
+   --         AND m.RECT_CODE = '004'
+   --         AND f.FILE_NO = @Figh_File_No
+   --         AND m.VALD_TYPE = '002'
+   --         AND CAST(GETDATE() AS DATE) BETWEEN m.STRT_DATE AND m.END_DATE;
             
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
-                            @SexDesc + N' ' + @NameDnrm + CHAR(10) +
-                            N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
-                            N' وضعیت خود را بلوکه کرده و نمی تواند وارد باشگاه شود.';
-         RAISERROR (@MessageShow, 
-                  --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
-                  16, -- Severity.
-                  1 -- State.
-                  );
-      END 
+   --      SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+   --                         @SexDesc + N' ' + @NameDnrm + CHAR(10) +
+   --                         N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+   --                         N' وضعیت خود را بلوکه کرده و نمی تواند وارد باشگاه شود.';
+   --      RAISERROR (@MessageShow, 
+   --               --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
+   --               16, -- Severity.
+   --               1 -- State.
+   --               );
+   --   END 
    
    -- 1396/11/23 * بررسی اینکه آیا مشترکین اشتراکی جلسه باقیمانده دارند یا خیر
    IF EXISTS(
@@ -523,138 +524,191 @@ BEGIN
          RETURN;
       END
    
-   
+   -- 1401/05/23 * عملیات مدیریت بدهی مشتریان
+   IF @Attn_Ignr_Stat = '001' AND @Attn_Type NOT IN ('005')
+   BEGIN
+      DECLARE @DebtDnrm BIGINT	          
+	          ,@DebtClngStat VARCHAR(3)
+	          ,@MostDebtClngAmnt BIGINT
+	          ,@ExprDebtDay INT
+	          ,@DebtChckStat VARCHAR(3)
+	          ,@PermEntrDebtServNumb INT;
+	          
+      SELECT  @DebtDnrm = DEBT_DNRM
+             ,@DebtClngStat = s.DEBT_CLNG_STAT
+             ,@MostDebtClngAmnt = s.MOST_DEBT_CLNG_AMNT
+             ,@ExprDebtDay = s.EXPR_DEBT_DAY
+		       ,@DebtChckStat = s.DEBT_CHCK_STAT
+		       ,@PermEntrDebtServNumb = s.PERM_ENTR_DEBT_SERV_NUMB
+        FROM dbo.Fighter f, dbo.Settings s
+       WHERE f.FILE_NO = @Figh_File_No
+         AND f.CLUB_CODE_DNRM = s.CLUB_CODE;
+      
+      -- آیا میزان سقف بدهی لحاظ شود یا خیر
+      IF @DebtClngStat = '002'
+      BEGIN
+         -- آیا میزان سقف بدهی بیشتر از حد مجاز هست یا خیر
+         IF @DebtDnrm >= @MostDebtClngAmnt
+         BEGIN            
+            -- اگر میزان مبلغ بدهی در سیستم حضور و غیاب تاثیر داشته باشد
+            IF @DebtChckStat = '002'
+            BEGIN
+               -- اگر تعداد جلسات مجاز در مورد افراد بدهکار گذشته باشد اجازه ثبت اطلاعات را ندارد
+               IF (SELECT COUNT(a.CODE) FROM dbo.Attendance a WHERE a.FIGH_FILE_NO = @Figh_File_No AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno AND a.MBSP_RECT_CODE_DNRM = '004' AND a.ATTN_STAT = '002' AND a.EXIT_TIME IS NOT NULL) >= @PermEntrDebtServNumb
+               BEGIN
+                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+                      @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
+                      N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+                      N' میزان بدهی شما بیش از حد مجاز [ ورود جلسات ] می باشد.' + CHAR(10) +
+                      N'لطفا جهت تسویه حساب اقدام فرمایید';
+                  RAISERROR (@MessageShow, 16, 1);   
+               END 
+            END
+            -- میزان مبلغ بدهی بر اساس تاریخ مهلت پرداخت محاسبه شود
+            ELSE IF @DebtChckStat = '001' AND -- اگر از تاریخ پرداخت بدهی گذشته باشد
+                    EXISTS(SELECT * FROM dbo.Member_Ship ms WHERE ms.FIGH_FILE_NO = @Figh_File_No AND ms.RWNO = @Mbsp_Rwno AND ms.RECT_CODE = '004' AND CAST(DATEADD(DAY, @ExprDebtDay, ms.STRT_DATE) AS DATE) < CAST(GETDATE() AS DATE))
+            BEGIN
+                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+                      @SexDesc + N' ' + @NameDnrm + CHAR(10) +
+                      N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+                      N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
+                      N'لطفا جهت تسویه بدهی خود اقدام فرمایید';
+                  RAISERROR (@MessageShow, 16, 1);   
+            END  
+         END 
+      END 
+   END 
    
    -- 1395/07/21 ** بررسی میزان بدهی هنرجو برای حضور درون باشگاه
-   IF @Attn_Ignr_Stat = '001'
-      IF @Attn_Type NOT IN ('005')
-      BEGIN
-         DECLARE @DebtDnrm BIGINT
-		          ,@DebtChckStat VARCHAR(3);
-         SELECT @DebtDnrm = DEBT_DNRM
-			      ,@DebtChckStat = s.DEBT_CHCK_STAT
-           FROM dbo.Fighter f, dbo.Settings s
-          WHERE f.FILE_NO = @Figh_File_No
-            AND f.CLUB_CODE_DNRM = s.CLUB_CODE;
+   --IF @Attn_Ignr_Stat = '001'
+   --   IF @Attn_Type NOT IN ('005')
+   --   BEGIN
+   --      DECLARE @DebtDnrm BIGINT
+		 --         ,@DebtChckStat VARCHAR(3);
+   --      SELECT @DebtDnrm = DEBT_DNRM
+			--      ,@DebtChckStat = s.DEBT_CHCK_STAT
+   --        FROM dbo.Fighter f, dbo.Settings s
+   --       WHERE f.FILE_NO = @Figh_File_No
+   --         AND f.CLUB_CODE_DNRM = s.CLUB_CODE;
          
-         -- اگر هنرجو بدهی داشته باشد
-         IF @DebtDnrm > 0 AND @DebtChckStat = '002'
-         BEGIN
-            DECLARE @StrtDate DATE
-                   ,@NumbOfMontDnrm INT
-                   ,@NumbOfDayDnrm INT
-                   ,@TempMbspRwno SMALLINT
-                   ,@TotlAttn INT
-                   ,@Rqid BIGINT
-                   ,@Amnt BIGINT;
+   --      -- اگر هنرجو بدهی داشته باشد
+   --      IF @DebtDnrm > 0 AND @DebtChckStat = '002'
+   --      BEGIN
+   --         DECLARE @StrtDate DATE
+   --                ,@NumbOfMontDnrm INT
+   --                ,@NumbOfDayDnrm INT
+   --                ,@TempMbspRwno SMALLINT
+   --                ,@TotlAttn INT
+   --                ,@Rqid BIGINT
+   --                ,@Amnt BIGINT;
             
-            SELECT TOP 1 
-                  @TempMbspRwno = M.RWNO,
-                  @StrtDate = M.STRT_DATE, 
-                  @Rqid = R.RQID, 
-                  @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
-                  @NumbOfDayDnrm = M.NUMB_OF_DAYS_DNRM,
-                  @TotlAttn = M.NUMB_OF_ATTN_MONT
-              FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Request R
-             WHERE F.FILE_NO = @Figh_File_No
-               AND F.FILE_NO = M.FIGH_FILE_NO
-               --AND F.MBSP_RWNO_DNRM = M.RWNO
-               AND m.RWNO = @Mbsp_Rwno
-               AND m.VALD_TYPE = '002'
-               AND M.RECT_CODE = '004'
-               AND R.RQID = M.RQRO_RQST_RQID
-               AND R.RQTP_CODE = '009' -- درخواست تمدید باشگاه
-               AND R.RQTT_CODE = '001' -- متقاضی هنرجو می باشد
-               AND R.RQST_STAT = '002' -- درخواست پایانی شده باشد
-             ORDER BY R.SAVE_DATE DESC;
+   --         SELECT TOP 1 
+   --               @TempMbspRwno = M.RWNO,
+   --               @StrtDate = M.STRT_DATE, 
+   --               @Rqid = R.RQID, 
+   --               @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
+   --               @NumbOfDayDnrm = M.NUMB_OF_DAYS_DNRM,
+   --               @TotlAttn = M.NUMB_OF_ATTN_MONT
+   --           FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Request R
+   --          WHERE F.FILE_NO = @Figh_File_No
+   --            AND F.FILE_NO = M.FIGH_FILE_NO
+   --            --AND F.MBSP_RWNO_DNRM = M.RWNO
+   --            AND m.RWNO = @Mbsp_Rwno
+   --            AND m.VALD_TYPE = '002'
+   --            AND M.RECT_CODE = '004'
+   --            AND R.RQID = M.RQRO_RQST_RQID
+   --            AND R.RQTP_CODE = '009' -- درخواست تمدید باشگاه
+   --            AND R.RQTT_CODE = '001' -- متقاضی هنرجو می باشد
+   --            AND R.RQST_STAT = '002' -- درخواست پایانی شده باشد
+   --          ORDER BY R.SAVE_DATE DESC;
             
-            IF @Mbsp_Rwno IS NULL OR @Mbsp_Rwno = 0
-               SELECT TOP 1 
-                     @TempMbspRwno = 1,
-                     @StrtDate = M.STRT_DATE, 
-                     @Rqid = R.RQID, 
-                     @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
-                     @NumbOfDayDnrm = M.NUMB_OF_DAYS_DNRM,
-                     @TotlAttn = M.NUMB_OF_ATTN_MONT
-                 FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Request R, Request_Row Rr
-                WHERE F.FILE_NO = @Figh_File_No
-                  AND F.FILE_NO = M.FIGH_FILE_NO
-                  AND R.RQID = Rr.RQST_RQID
-                  AND Rr.FIGH_FILE_NO = F.FILE_NO
-                  AND m.VALD_TYPE = '002'
-                  AND M.RWNO = 1 -- اولین رکورد تمدید باشگاه
-                  AND M.RECT_CODE = '004'
-                  AND R.RQTP_CODE = '001' -- درخواست تمدید باشگاه
-                  AND R.RQTT_CODE = '001' -- متقاضی هنرجو می باشد
-                  AND R.RQST_STAT = '002' -- درخواست پایانی شده باشد
-                ORDER BY R.SAVE_DATE DESC;
+   --         IF @Mbsp_Rwno IS NULL OR @Mbsp_Rwno = 0
+   --            SELECT TOP 1 
+   --                  @TempMbspRwno = 1,
+   --                  @StrtDate = M.STRT_DATE, 
+   --                  @Rqid = R.RQID, 
+   --                  @NumbOfMontDnrm = M.NUMB_OF_MONT_DNRM, 
+   --                  @NumbOfDayDnrm = M.NUMB_OF_DAYS_DNRM,
+   --                  @TotlAttn = M.NUMB_OF_ATTN_MONT
+   --              FROM dbo.Fighter F, dbo.Member_Ship M, dbo.Request R, Request_Row Rr
+   --             WHERE F.FILE_NO = @Figh_File_No
+   --               AND F.FILE_NO = M.FIGH_FILE_NO
+   --               AND R.RQID = Rr.RQST_RQID
+   --               AND Rr.FIGH_FILE_NO = F.FILE_NO
+   --               AND m.VALD_TYPE = '002'
+   --               AND M.RWNO = 1 -- اولین رکورد تمدید باشگاه
+   --               AND M.RECT_CODE = '004'
+   --               AND R.RQTP_CODE = '001' -- درخواست تمدید باشگاه
+   --               AND R.RQTT_CODE = '001' -- متقاضی هنرجو می باشد
+   --               AND R.RQST_STAT = '002' -- درخواست پایانی شده باشد
+   --             ORDER BY R.SAVE_DATE DESC;
             
-            -- اگر تاریخ حضوری بیشتر تاریخ شروع جلسه هنرجو باشد
-            IF DATEDIFF(DAY, @StrtDate , GETDATE()) > 0
-            BEGIN
-               SELECT @Amnt = SUM(SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT)
-                 FROM dbo.Payment
-                WHERE RQST_RQID = @Rqid
-                GROUP BY RQST_RQID;
+   --         -- اگر تاریخ حضوری بیشتر تاریخ شروع جلسه هنرجو باشد
+   --         IF DATEDIFF(DAY, @StrtDate , GETDATE()) > 0
+   --         BEGIN
+   --            SELECT @Amnt = SUM(SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT)
+   --              FROM dbo.Payment
+   --             WHERE RQST_RQID = @Rqid
+   --             GROUP BY RQST_RQID;
                
-               -- آیا بدهی هنرجو بیش از حد مجاز می باشد
-               IF @Amnt - @DebtDnrm <= 0 
-               BEGIN
-                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
-                                     @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
-                                     N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
-                                     --N' تعداد کل جلسات ' + @NumbOfAttnMont + N' تعداد جلسات حضوری ' + @SumAttnMontDnrm + CHAR(10) +
-                                     N' میزان بدهی شما بیش از حد مجاز می باشد.' + CHAR(10) +
-                                     N'لطفا جهت تسویه حساب اقدام فرمایید'
-                                     ;
-                  RAISERROR (@MessageShow, 
-                           --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
-                           16, -- Severity.
-                           1 -- State.
-                           );
-                  --RAISERROR (N'خطا 8 - میزان بدهی هنرجو بیش از حد مجاز می باشد. لطفا جهت تسویه حساب هنرجو اقدام فرمایید', 16, 1);            
-                  RETURN;
-               END -- آیا بدهی هنرجو بیش از حد مجاز می باشد            
+   --            -- آیا بدهی هنرجو بیش از حد مجاز می باشد
+   --            IF @Amnt - @DebtDnrm <= 0 
+   --            BEGIN
+   --               SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+   --                                  @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
+   --                                  N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+   --                                  --N' تعداد کل جلسات ' + @NumbOfAttnMont + N' تعداد جلسات حضوری ' + @SumAttnMontDnrm + CHAR(10) +
+   --                                  N' میزان بدهی شما بیش از حد مجاز می باشد.' + CHAR(10) +
+   --                                  N'لطفا جهت تسویه حساب اقدام فرمایید'
+   --                                  ;
+   --               RAISERROR (@MessageShow, 
+   --                        --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
+   --                        16, -- Severity.
+   --                        1 -- State.
+   --                        );
+   --               --RAISERROR (N'خطا 8 - میزان بدهی هنرجو بیش از حد مجاز می باشد. لطفا جهت تسویه حساب هنرجو اقدام فرمایید', 16, 1);            
+   --               RETURN;
+   --            END -- آیا بدهی هنرجو بیش از حد مجاز می باشد            
                
-               DECLARE @AttnPric INT;
+   --            DECLARE @AttnPric INT;
               
-               -- اگر تعداد جلسات هنرجو مشخص باشد
-               IF @TotlAttn > 0
-               BEGIN
-                  SELECT @AttnPric = ROUND(@Amnt / @TotlAttn, -3);               
-               END -- اگر تعداد جلسات هنرجو مشخص باشد
-               -- اگر تعداد جلسات هنرجو مشخص نباشد از تعداد روزهای بدست آمده بررسی هزینه هر جلسه را جلو می بریم
-               ELSE
-               BEGIN
-                  SELECT @AttnPric = ROUND(@Amnt / (@NumbOfDayDnrm - 4 * @NumbOfMontDnrm), -3);            
-               END
-               IF ((@Amnt - @DebtDnrm) / @AttnPric) <=
-                  (SELECT COUNT(*) 
-                     FROM dbo.Attendance 
-                    WHERE FIGH_FILE_NO = @Figh_File_No 
-                      AND MBSP_RECT_CODE_DNRM = '004' 
-                      AND MBSP_RWNO_DNRM >= @TempMbspRwno 
-                      AND EXIT_TIME IS NOT NULL
-                      AND ATTN_STAT = '002') + 1
-               BEGIN
-                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
-                                     @SexDesc + N' ' + @NameDnrm + CHAR(10) +
-                                     N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
-                                     N' تعداد کل جلسات ' + CAST(@NumbOfAttnMont AS VARCHAR(5)) + N' تعداد جلسات حضوری ' + CAST(@SumAttnMontDnrm AS VARCHAR(5)) + CHAR(10) +
-                                     N' میزان بدهی هنرجو بیش از حد تعداد جلسات حضوری می باشد.' + CHAR(10) +
-                                     N'لطفا جهت تسویه حساب اقدام فرمایید'
-                                     ;
-                  RAISERROR (@MessageShow, 
-                           --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
-                           16, -- Severity.
-                           1 -- State.
-                           );
-                  --RAISERROR (N'خطا 9 - میزان بدهی هنرجو بیش از حد تعداد جلسات حضوری می باشد. لطفا جهت تسویه حساب بقیه جلسات هنرجو اقدام فرمایید', 16, 1);            
-                  RETURN;
-               END
-            END -- اگر تاریخ حضوری بیشتر تاریخ شروع جلسه هنرجو باشد
-         END -- اگر هنرجو بدهی داشته باشد
-      END -- 1395/07/21 ** بررسی میزان بدهی هنرجو برای حضور درون باشگاه
+   --            -- اگر تعداد جلسات هنرجو مشخص باشد
+   --            IF @TotlAttn > 0
+   --            BEGIN
+   --               SELECT @AttnPric = ROUND(@Amnt / @TotlAttn, -3);               
+   --            END -- اگر تعداد جلسات هنرجو مشخص باشد
+   --            -- اگر تعداد جلسات هنرجو مشخص نباشد از تعداد روزهای بدست آمده بررسی هزینه هر جلسه را جلو می بریم
+   --            ELSE
+   --            BEGIN
+   --               SELECT @AttnPric = ROUND(@Amnt / (@NumbOfDayDnrm - 4 * @NumbOfMontDnrm), -3);            
+   --            END
+   --            IF ((@Amnt - @DebtDnrm) / @AttnPric) <=
+   --               (SELECT COUNT(*) 
+   --                  FROM dbo.Attendance 
+   --                 WHERE FIGH_FILE_NO = @Figh_File_No 
+   --                   AND MBSP_RECT_CODE_DNRM = '004' 
+   --                   AND MBSP_RWNO_DNRM >= @TempMbspRwno 
+   --                   AND EXIT_TIME IS NOT NULL
+   --                   AND ATTN_STAT = '002') + 1
+   --            BEGIN
+   --               SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+   --                                  @SexDesc + N' ' + @NameDnrm + CHAR(10) +
+   --                                  N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
+   --                                  N' تعداد کل جلسات ' + CAST(@NumbOfAttnMont AS VARCHAR(5)) + N' تعداد جلسات حضوری ' + CAST(@SumAttnMontDnrm AS VARCHAR(5)) + CHAR(10) +
+   --                                  N' میزان بدهی هنرجو بیش از حد تعداد جلسات حضوری می باشد.' + CHAR(10) +
+   --                                  N'لطفا جهت تسویه حساب اقدام فرمایید'
+   --                                  ;
+   --               RAISERROR (@MessageShow, 
+   --                        --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
+   --                        16, -- Severity.
+   --                        1 -- State.
+   --                        );
+   --               --RAISERROR (N'خطا 9 - میزان بدهی هنرجو بیش از حد تعداد جلسات حضوری می باشد. لطفا جهت تسویه حساب بقیه جلسات هنرجو اقدام فرمایید', 16, 1);            
+   --               RETURN;
+   --            END
+   --         END -- اگر تاریخ حضوری بیشتر تاریخ شروع جلسه هنرجو باشد
+   --      END -- اگر هنرجو بدهی داشته باشد
+   --   END -- 1395/07/21 ** بررسی میزان بدهی هنرجو برای حضور درون باشگاه
    
    
    L$ATTN:

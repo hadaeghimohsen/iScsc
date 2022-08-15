@@ -233,7 +233,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
       
       DECLARE @CrtfDate DATE
              ,@CrtfNumb VARCHAR(20)
@@ -293,6 +294,11 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@IdtyNumb = P.IDTY_NUMB
+             ,@ZipCode = P.ZIP_CODE
+             ,@Cmnt = P.CMNT
+             ,@Password = P.PASS_WORD
+             ,@RefCode = P.REF_CODE
          FROM Fighter F, Fighter_Public P
         WHERE F.FILE_NO = @FileNo
           AND F.FILE_NO = P.FIGH_FILE_NO
@@ -545,7 +551,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;           
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;
       END
       ELSE
       BEGIN
@@ -649,9 +656,9 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
-           
-      END
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;           
+      END;
       
       GOTO NextFromRqrv;
       EndFetchRqrv:

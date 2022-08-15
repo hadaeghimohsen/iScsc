@@ -499,6 +499,53 @@ BEGIN
 		   --AND ISNULL(Ms.NUMB_OF_ATTN_MONT, 0) >= ISNULL(Ms.SUM_ATTN_MONT_DNRM, 0) 
          AND CAST(GETDATE() AS DATE) BETWEEN CAST(ms.STRT_DATE AS DATE) AND CAST(ms.END_DATE AS DATE);
       
+      -- 1401/05/21 * نهایی کردن کد تخفیف استفاده شده درون سیستم با روش غیرفعال کردن رکورد کد تخفیف
+      UPDATE ac
+         SET ac.RECD_STAT = '001'
+        FROM dbo.Advertising_Campaign ac, dbo.Payment_Discount pd
+       WHERE ac.CODE = pd.ADVC_CODE
+         AND pd.PYMT_RQST_RQID = @OrgnRqid;
+      
+      -- 1402/05/23 * ثبت کد تخفیف برای مشتری برای گزینه حالت مشتری وفادار، معرفی مشتری
+      -- 1st : مشتری وفادار
+      --INSERT INTO dbo.Fighter_Discount_Card
+      --( ADVP_CODE ,FIGH_FILE_NO ,CODE ,RECD_TYPE ,
+      --DISC_CODE ,EXPR_DATE ,STAT ,MTOD_CODE ,
+      --CTGY_CODE ,DSCT_AMNT ,DSCT_TYPE ,RQTP_CODE ,
+      --DSCT_DESC ,TEMP_TMID )
+      --SELECT TOP 1
+      --       p.CODE, @FileNo, 0, p.RECD_TYPE,
+      --       p.DISC_CODE, p.EXPR_DATE, p.STAT, p.MTOD_CODE,
+      --       p.CTGY_CODE, p.DSCT_AMNT, p.DSCT_TYPE, p.RQTP_CODE,
+      --       p.ADVP_NAME, p.TEMP_TMID
+      --  FROM dbo.Advertising_Parameter p
+      -- WHERE p.RECD_TYPE = '005'
+      --   AND CAST(p.EXPR_DATE AS DATE) >= CAST(GETDATE() AS DATE)
+      --   AND (p.CTGY_CODE IS NULL OR p.CTGY_CODE = @CtgyCode)
+      --   AND (p.RQTP_CODE IS NULL OR p.RQTP_CODE IN ('001'))
+      --   AND p.STAT = '002';
+      
+      -- 2nd : پورسانت برای مشتری معرفی کننده
+      INSERT INTO dbo.Fighter_Discount_Card
+      ( ADVP_CODE ,FIGH_FILE_NO ,CODE ,RECD_TYPE ,
+      DISC_CODE ,EXPR_DATE ,STAT ,MTOD_CODE ,
+      CTGY_CODE ,DSCT_AMNT ,DSCT_TYPE ,RQTP_CODE ,
+      DSCT_DESC ,TEMP_TMID )
+      SELECT TOP 1
+             p.CODE, f.REF_CODE_DNRM, 0, p.RECD_TYPE,
+             p.DISC_CODE, p.EXPR_DATE, p.STAT, p.MTOD_CODE,
+             p.CTGY_CODE, p.DSCT_AMNT, p.DSCT_TYPE, p.RQTP_CODE,
+             N'ثیت نام [ ' + f.NAME_DNRM + N' ] به شما کد تخفیف تعلق گرفته شد', 
+             p.TEMP_TMID
+        FROM dbo.Advertising_Parameter p, dbo.Fighter f
+       WHERE p.RECD_TYPE = '006'
+         AND CAST(p.EXPR_DATE AS DATE) >= CAST(GETDATE() AS DATE)
+         AND (p.CTGY_CODE IS NULL OR p.CTGY_CODE = @CtgyCode)
+         AND (p.RQTP_CODE IS NULL OR p.RQTP_CODE IN ('001'))
+         AND p.STAT = '002'
+         AND f.FILE_NO = @FileNo
+         AND f.REF_CODE_DNRM IS NOT NULL;
+         
       -- 1396/10/05 * ثبت پیامک       
       IF @CellPhon IS NOT NULL AND LEN(@CellPhon) != 0 AND EXISTS(SELECT * FROM dbo.Request WHERE RQID = @OrgnRqid AND RQTT_CODE = '001')
       BEGIN

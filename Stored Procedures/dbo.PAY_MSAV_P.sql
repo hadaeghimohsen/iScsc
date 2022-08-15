@@ -20,7 +20,7 @@ BEGIN
          AND RWNO = @X.query('Payment').value('(Payment/@rwno)[1]', 'SMALLINT');
    ELSE IF @ActnType = 'InsertUpdate'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
@@ -36,9 +36,11 @@ BEGIN
             ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
             ,pm.query('.').value('(Payment_Method/@actndate)[1]', 'DATE') AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
-      WITH Pmmt(CashCode, RqstRqid, RqroRwno, Rwno, Amnt, RcptMtod, TermNo, TranNo, CardNo, Bank, FlowNo, RefNo, ActnDate, ValdType)
+      WITH Pmmt(CashCode, RqstRqid, RqroRwno, Rwno, Amnt, RcptMtod, TermNo, TranNo, CardNo, Bank, FlowNo, RefNo, ActnDate, ValdType, RcptToOthrAcnt, RcptFilePath)
       AS (
          SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT')
                ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')
@@ -54,6 +56,8 @@ BEGIN
 			      ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
                ,pm.query('.').value('(Payment_Method/@actndate)[1]', 'DATE') AS ActnDate
                ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+               ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+               ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
            FROM @X.nodes('//Update/Payment_Method') T(pm)
       )  
       UPDATE Payment_Method
@@ -67,6 +71,8 @@ BEGIN
             ,FLOW_NO = Pmmt.FlowNo
             ,REF_NO = Pmmt.RefNo
             ,VALD_TYPE = Pmmt.ValdType
+            ,RCPT_TO_OTHR_ACNT = Pmmt.RcptToOthrAcnt
+            ,RCPT_FILE_PATH = Pmmt.RcptFilePath
         FROM Payment_Method INNER JOIN Pmmt
         ON PYMT_CASH_CODE = Pmmt.CashCode
          AND PYMT_RQST_RQID = Pmmt.RqstRqid
@@ -76,7 +82,7 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithoutPOS'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
@@ -91,6 +97,8 @@ BEGIN
             ,'001' AS RcptMtod
             ,GETDATE() AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
       -- تایید پرداخت بعد از بدهکاری وتسویه حساب
@@ -108,7 +116,7 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithPOS'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
@@ -133,6 +141,8 @@ BEGIN
             ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
             ,GETDATE()
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
       -- تایید پرداخت بعد از بدهکاری وتسویه حساب
@@ -200,7 +210,7 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithCard2Card'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
@@ -215,6 +225,8 @@ BEGIN
             ,'009' AS RcptMtod
             ,GETDATE() AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
+            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
       -- تایید پرداخت بعد از بدهکاری وتسویه حساب

@@ -501,17 +501,25 @@ BEGIN
       IF @FileNo IS NOT NULL AND (@FighStat = '001' AND NOT EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND RQST_RQID = @Rqid))
       BEGIN
          -- Exce {Event Log} for Ref Sub System
-         SELECT @xRet = (
-               SELECT '002' AS '@needrecall'
-                     ,@RefSubSys AS '@subsys'
-                     ,'1000' AS '@cmndcode'                     
-                     ,@RefCode AS '@refcode'
-                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
-                  FOR XML PATH('Router_Command')
-            );
+         -- 1401/05/23 * در این قسمت نرم افزار اگر مشتری قفل میباشد درخواست مشتری را انصراف میدهیم و شرایط را برای ادامه کار مهیا میکنیم
+         ----SELECT @xRet = (
+         ----      SELECT '002' AS '@needrecall'
+         ----            ,@RefSubSys AS '@subsys'
+         ----            ,'1000' AS '@cmndcode'                     
+         ----            ,@RefCode AS '@refcode'
+         ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+         ----         FOR XML PATH('Router_Command')
+         ----   );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-         SET @CmndStat = '001'
-         GOTO L$Loop$Expns;
+         ----SET @CmndStat = '001'
+         ----GOTO L$Loop$Expns;
+         SET @xTemp = (
+             SELECT RQST_RQID AS '@rqid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @FileNo
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml         
       END
       
       -- Do Some things
@@ -857,7 +865,9 @@ BEGIN
                 @Amnt = @DscnPric, -- int
                 @Amnt_Type = '001', -- varchar(3)
                 @Stat = '002', -- varchar(3)
-                @Pyds_Desc = N''; -- nvarchar(250)            
+                @Pyds_Desc = N'',
+                @Advc_Code = NULL,
+                @Fgdc_Code = NULL; -- nvarchar(250)            
          END 
       END -- if @rqtpcode = '016'
       ELSE IF @RqtpCode = '020'
@@ -1085,17 +1095,24 @@ BEGIN
       IF @FileNo IS NOT NULL AND @FighStat = '001'
       BEGIN
          -- Exce {Event Log} for Ref Sub System
-         SELECT @xRet = (
-               SELECT '002' AS '@needrecall'
-                     ,@RefSubSys AS '@subsys'
-                     ,'1000' AS '@cmndcode'                     
-                     ,@RefCode AS '@refcode'
-                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
-                  FOR XML PATH('Router_Command')
-            );
+         ----SELECT @xRet = (
+         ----      SELECT '002' AS '@needrecall'
+         ----            ,@RefSubSys AS '@subsys'
+         ----            ,'1000' AS '@cmndcode'                     
+         ----            ,@RefCode AS '@refcode'
+         ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+         ----         FOR XML PATH('Router_Command')
+         ----   );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-         SET @CmndStat = '001'
-         GOTO L$Loop$Expns;
+         ----SET @CmndStat = '001'
+         ----GOTO L$Loop$Expns;
+         SET @xTemp = (
+             SELECT RQST_RQID AS '@rqid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @FileNo
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml         
       END
 
       
@@ -1215,7 +1232,9 @@ BEGIN
              @Amnt = @DscnPric, -- int
              @Amnt_Type = '001', -- varchar(3)
              @Stat = '002', -- varchar(3)
-             @Pyds_Desc = @ExpnDesc; -- nvarchar(250)            
+             @Pyds_Desc = @ExpnDesc,
+             @Advc_Code = NULL,
+             @Fgdc_Code = NULL; -- nvarchar(250)            
       END  
       
       GOTO L$LoopC$Expns1;
@@ -1294,7 +1313,9 @@ BEGIN
                 @Amnt = @DscnPric, -- int
                 @Amnt_Type = '001', -- varchar(3)
                 @Stat = '002', -- varchar(3)
-                @Pyds_Desc = @PydsDesc; -- nvarchar(250)  
+                @Pyds_Desc = @PydsDesc,
+                @Advc_Code = NULL,
+                @Fgdc_Code = NULL; -- nvarchar(250)  
       
       GOTO L$LoopC$Pyds1;
       L$EndLoopC$Pyds1:      
@@ -1662,17 +1683,24 @@ BEGIN
       IF @FileNo IS NOT NULL AND @FighStat = '001'
       BEGIN
          -- Exce {Event Log} for Ref Sub System
-         SELECT @xRet = (
-               SELECT '002' AS '@needrecall'
-                     ,@RefSubSys AS '@subsys'
-                     ,'1000' AS '@cmndcode'                     
-                     ,@RefCode AS '@refcode'
-                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
-                  FOR XML PATH('Router_Command')
-            );
+         ----SELECT @xRet = (
+         ----      SELECT '002' AS '@needrecall'
+         ----            ,@RefSubSys AS '@subsys'
+         ----            ,'1000' AS '@cmndcode'                     
+         ----            ,@RefCode AS '@refcode'
+         ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+         ----         FOR XML PATH('Router_Command')
+         ----   );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-         SET @CmndStat = '001'
-         GOTO L$Loop$Expns;
+         ----SET @CmndStat = '001'
+         ----GOTO L$Loop$Expns;
+         SET @xTemp = (
+             SELECT RQST_RQID AS '@rqid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @FileNo
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml         
       END
       
       -- اگر عملیات بدون هیچ مشکلی انجام شود
@@ -1783,17 +1811,24 @@ BEGIN
       IF @FileNo IS NULL OR ( @FileNo IS NOT NULL AND @FighStat = '001' )
       BEGIN
          -- Exce {Event Log} for Ref Sub System
-         SELECT @xRet = (
-               SELECT '002' AS '@needrecall'
-                     ,@RefSubSys AS '@subsys'
-                     ,'1000' AS '@cmndcode'                     
-                     ,@RefCode AS '@refcode'
-                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
-                  FOR XML PATH('Router_Command')
-            );
+         ----SELECT @xRet = (
+         ----      SELECT '002' AS '@needrecall'
+         ----            ,@RefSubSys AS '@subsys'
+         ----            ,'1000' AS '@cmndcode'                     
+         ----            ,@RefCode AS '@refcode'
+         ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+         ----         FOR XML PATH('Router_Command')
+         ----   );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-         SET @CmndStat = '001'
-         GOTO L$EndSp$107;
+         ----SET @CmndStat = '001'
+         ----GOTO L$EndSp$107;
+         SET @xTemp = (
+             SELECT RQST_RQID AS '@rqid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @FileNo
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml
       END
       
       -- پس در اینجا ما ابتدا به اندازه مبلغ مورد نیاز افزایش اعتبار می زنیم
@@ -1891,17 +1926,24 @@ BEGIN
       IF @FileNo IS NULL OR ( @FileNo IS NOT NULL AND @FighStat = '001' )
       BEGIN
          -- Exce {Event Log} for Ref Sub System
-         SELECT @xRet = (
-               SELECT '002' AS '@needrecall'
-                     ,@RefSubSys AS '@subsys'
-                     ,'1000' AS '@cmndcode'                     
-                     ,@RefCode AS '@refcode'
-                     ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
-                  FOR XML PATH('Router_Command')
-            );
+         ----SELECT @xRet = (
+         ----      SELECT '002' AS '@needrecall'
+         ----            ,@RefSubSys AS '@subsys'
+         ----            ,'1000' AS '@cmndcode'                     
+         ----            ,@RefCode AS '@refcode'
+         ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+         ----         FOR XML PATH('Router_Command')
+         ----   );
          --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
-         SET @CmndStat = '001'
-         GOTO L$EndSp;
+         --SET @CmndStat = '001'
+         --GOTO L$EndSp;
+         SET @xTemp = (
+             SELECT RQST_RQID AS '@rqid'
+               FROM dbo.Fighter
+              WHERE FILE_NO = @FileNo
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml         
       END     
       
       -- پس در اینجا ما ابتدا به اندازه مبلغ مورد نیاز افزایش اعتبار می زنیم

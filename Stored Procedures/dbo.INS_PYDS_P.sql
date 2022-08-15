@@ -16,7 +16,9 @@ CREATE PROCEDURE [dbo].[INS_PYDS_P]
 	@Amnt BIGINT,
 	@Amnt_Type VARCHAR(3),
 	@Stat VARCHAR(3),
-	@Pyds_Desc NVARCHAR(250)
+	@Pyds_Desc NVARCHAR(250),
+	@Advc_Code BIGINT,
+	@Fgdc_Code BIGINT
 AS
 BEGIN
 	 	-- بررسی دسترسی کاربر
@@ -42,26 +44,7 @@ BEGIN
    IF @Stat IS NULL 
       SET @Stat = '002';
       
-   INSERT INTO dbo.Payment_Discount
-           ( PYMT_CASH_CODE ,
-             PYMT_RQST_RQID ,
-             RQRO_RWNO ,
-             --RWNO ,
-             EXPN_CODE ,
-             AMNT ,
-             AMNT_TYPE ,
-             STAT ,
-             PYDS_DESC 
-           )
-   VALUES  ( @Pymt_Cash_Code , -- PYMT_CASH_CODE - bigint
-             @Pymt_Rqst_Rqid , -- PYMT_RQST_RQID - bigint
-             @Rqro_Rwno , -- RQRO_RWNO - smallint
-             --0 , -- RWNO - smallint
-             @Expn_Code , -- EXPN_CODE - bigint
-             @Amnt , -- AMNT - int
-             @Amnt_Type , -- AMNT_TYPE - varchar(3)
-             @Stat , -- STAT - varchar(3)
-             @Pyds_Desc  -- PYDS_DESC - nvarchar(250)             
-           )   
+   INSERT INTO dbo.Payment_Discount ( PYMT_CASH_CODE ,PYMT_RQST_RQID ,RQRO_RWNO ,EXPN_CODE ,AMNT ,AMNT_TYPE ,STAT ,PYDS_DESC ,ADVC_CODE ,FGDC_CODE )
+   VALUES  ( @Pymt_Cash_Code ,@Pymt_Rqst_Rqid ,@Rqro_Rwno ,@Expn_Code ,@Amnt ,@Amnt_Type ,@Stat ,@Pyds_Desc ,@Advc_Code ,@Fgdc_Code );
 END
 GO

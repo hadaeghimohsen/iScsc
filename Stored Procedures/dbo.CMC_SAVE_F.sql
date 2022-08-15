@@ -175,7 +175,8 @@ BEGIN
              --,@MridType VARCHAR(3)
              --,@JobTitlCode BIGINT
              ,@Cmnt NVARCHAR(4000)
-             ,@Password VARCHAR(250);
+             ,@Password VARCHAR(250)
+             ,@RefCode BIGINT;
              
              
       DECLARE @CrtfDate DATE
@@ -233,6 +234,11 @@ BEGIN
              ,@DadCellPhon = P.DAD_CELL_PHON
              ,@DadTellPhon = P.DAD_TELL_PHON
              ,@DadChatId = P.DAD_CHAT_ID
+             ,@IdtyNumb = P.IDTY_NUMB
+             ,@ZipCode = P.ZIP_CODE
+             ,@Cmnt = P.CMNT
+             ,@Password = P.PASS_WORD
+             ,@RefCode = p.REF_CODE
          FROM Fighter_Public P
         WHERE P.RQRO_RQST_RQID = @Rqid
           AND P.RQRO_RWNO = @RqroRwno
@@ -392,8 +398,8 @@ BEGIN
            --,@MRID_TYPE = @MRIDTYPE
            --,@JOB_TITL_CODE = @JOBTITLCODE
            ,@CMNT = @CMNT
-           ,@Pass_Word = @Password;
-           
+           ,@Pass_Word = @Password
+           ,@Ref_Code = @RefCode;           
       END
       
       /*DECLARE @AttnDate DATE;

@@ -10,6 +10,8 @@ CREATE TABLE [dbo].[Payment_Discount]
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PYDS_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ADVC_CODE] [bigint] NULL,
+[FGDC_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -165,11 +167,19 @@ END
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [PK_PYDS] PRIMARY KEY CLUSTERED  ([PYMT_CASH_CODE], [PYMT_RQST_RQID], [RQRO_RWNO], [RWNO]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_ADVC] FOREIGN KEY ([ADVC_CODE]) REFERENCES [dbo].[Advertising_Campaign] ([CODE])
+GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
+GO
+ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_FGDC] FOREIGN KEY ([FGDC_CODE]) REFERENCES [dbo].[Fighter_Discount_Card] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_FIGH] FOREIGN KEY ([FIGH_FILE_NO_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_PYMT] FOREIGN KEY ([PYMT_CASH_CODE], [PYMT_RQST_RQID]) REFERENCES [dbo].[Payment] ([CASH_CODE], [RQST_RQID]) ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_RQRO] FOREIGN KEY ([PYMT_RQST_RQID], [RQRO_RWNO]) REFERENCES [dbo].[Request_Row] ([RQST_RQID], [RWNO])
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد تخفیف کمپین تبلیغاتی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Discount', 'COLUMN', N'ADVC_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کد تخفیف مشتریان ارزنده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Discount', 'COLUMN', N'FGDC_CODE'
 GO

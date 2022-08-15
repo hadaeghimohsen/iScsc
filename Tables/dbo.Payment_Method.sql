@@ -17,6 +17,8 @@ CREATE TABLE [dbo].[Payment_Method]
 [ACTN_DATE] [datetime] NULL,
 [SHOP_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RCPT_TO_OTHR_ACNT] [bigint] NULL,
+[RCPT_FILE_PATH] [nvarchar] (260) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -188,7 +190,7 @@ BEGIN
                                         ( SELECT    @Cel5Phon AS '@phonnumb' ,
                                                     ( SELECT  '030' AS '@type' ,
               @MsgbText
-                                                    FOR
+                         FOR
                                                       XML PATH('Message') ,
                                                           TYPE
                                                     )
@@ -469,6 +471,8 @@ END
 ;
 GO
 ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [PK_PMTD] PRIMARY KEY CLUSTERED  ([PYMT_CASH_CODE], [PYMT_RQST_RQID], [RQRO_RQST_RQID], [RQRO_RWNO], [RWNO]) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [FK_PMMT_APBS] FOREIGN KEY ([RCPT_TO_OTHR_ACNT]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [FK_PMTD_FIGH] FOREIGN KEY ([FIGH_FILE_NO_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
