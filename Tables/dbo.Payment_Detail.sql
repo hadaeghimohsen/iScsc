@@ -35,6 +35,8 @@ CREATE TABLE [dbo].[Payment_Detail]
 [MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FROM_NUMB] [bigint] NULL,
 [TO_NUMB] [bigint] NULL,
+[PROF_AMNT_DNRM] [bigint] NULL,
+[DEDU_AMNT_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -151,9 +153,15 @@ BEGIN
    DECLARE @ExpnExtrPrct INT
           ,@RemnPric INT = 0;
 
+	-- 1396/08/24 * اضافه کردن آیتم هزینه مربوط به نوع ثبت نامی ها
+	DECLARE @MtodCode BIGINT
+	       ,@CtgyCode BIGINT;
+
    SELECT @ExpnPric      = CASE WHEN @ExpnPric = 0 THEN(T.PRIC) ELSE @ExpnPric END
          ,@ExpnExtrPrct  = (T.EXTR_PRCT)
          --,@RemnPric      = ROUND((T.PRIC + T.EXTR_PRCT), CASE @AmntUnitType WHEN '001' THEN -3 WHEN '002' THEN -2 END , 0) - (T.PRIC + T.EXTR_PRCT)
+         ,@MtodCode      = MTOD_CODE
+	      ,@CtgyCode      = CTGY_CODE
    FROM Expense T --, INSERTED S
    WHERE T.CODE = @ExpnCode;
    /*
@@ -168,15 +176,6 @@ BEGIN
    SET @Code = dbo.GNRT_NVID_U();
    IF EXISTS (SELECT * from dbo.Payment_Detail WHERE CODE = @Code)
 	GOTO L$NextCode;*/
-	
-	-- 1396/08/24 * اضافه کردن آیتم هزینه مربوط به نوع ثبت نامی ها
-	DECLARE @MtodCode BIGINT
-	       ,@CtgyCode BIGINT;
-	
-	SELECT @MtodCode = e.MTOD_CODE
-	      ,@CtgyCode = e.CTGY_CODE
-	  FROM dbo.Expense e, Inserted i
-	 WHERE e.CODE = i.EXPN_CODE;
 	
    -- Insert statements for trigger here
    MERGE dbo.Payment_Detail T
@@ -217,7 +216,16 @@ BEGIN
        WHERE EXPN_CODE = @ExpnCode
          AND p.PRE_EXPN_CODE = e.CODE
          AND STAT = '002';
-   END
+   END;
+   
+   -- 1401/05/028 * Insert Payment_Detail_Cost
+   INSERT INTO dbo.Payment_Detail_Cost( PYDT_CODE ,CODE ,RWNO ,INIT_AMNT_DNRM ,PYDT_APBS_CODE ,PYDT_DESC ,PYDT_TYPE ,PYDT_AMNT ,PYDT_CALC_AMNT ,RMND_AMNT )
+   SELECT pd.CODE, ec.CODE,ec.RWNO, ec.INIT_AMNT_DNRM, ec.EXCO_APBS_CODE, ec.EXCO_DESC, ec.EXCO_TYPE, ec.EXCO_AMNT, ec.EXCO_CALC_AMNT, ec.RMND_AMNT
+     FROM dbo.Expense_Cost ec, dbo.Payment_Detail pd
+    WHERE ec.EXPN_CODE = @ExpnCode
+      AND pd.EXPN_CODE = @ExpnCode
+      AND pd.PYMT_RQST_RQID = @Rqid
+      AND ec.EXCO_STAT = '002';
    
    GOTO L$NextRow;
    L$EndFetch:
@@ -280,12 +288,16 @@ BEGIN
    
    DECLARE @ExpnExtrPrct INT
           ,@RemnPric INT = 0
-          ,@CovrDsct VARCHAR(3);
+          ,@CovrDsct VARCHAR(3)
+          ,@ProfAmnt BIGINT
+          ,@DeduAmnt BIGINT;
    
-   SELECT @ExpnPric =CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END
+   SELECT @ExpnPric = CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END
          ,@ExpnExtrPrct = T.EXTR_PRCT 
          --,@RemnPric = ABS(ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -4 WHEN '002' THEN -3 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY)
          ,@CovrDsct = COVR_DSCT
+         ,@ProfAmnt = T.PROF_AMNT_DNRM
+         ,@DeduAmnt = T.DEDU_AMNT_DNRM
    FROM Expense T, INSERTED S
    WHERE T.CODE = @ExpnCode
      AND T.CODE = S.EXPN_CODE
@@ -312,13 +324,17 @@ BEGIN
             ,EXPN_PRIC      = CASE @PayType WHEN '002' THEN @ExpnPric      ELSE -@ExpnPric END
             ,EXPN_EXTR_PRCT = CASE @PayType WHEN '002' THEN @ExpnExtrPrct ELSE -@ExpnExtrPrct END
             ,REMN_PRIC      = @RemnPric
-            ,ISSU_DATE      = CASE WHEN S.PAY_STAT IN ('002', '003') AND S.ISSU_DATE IS NULL THEN GETDATE() WHEN S.ISSU_DATE IS NOT NULL THEN S.ISSU_DATE ELSE NULL END;   
+            ,ISSU_DATE      = CASE WHEN S.PAY_STAT IN ('002', '003') AND S.ISSU_DATE IS NULL THEN GETDATE() WHEN S.ISSU_DATE IS NOT NULL THEN S.ISSU_DATE ELSE NULL END
+            ,PROF_AMNT_DNRM = ISNULL(@ProfAmnt * s.QNTY, 0)
+            ,DEDU_AMNT_DNRM = ISNULL(@DeduAmnt * s.QNTY, 0);
    
    ---------------
    
    SELECT @SumExpnPric           = ISNULL(SUM(EXPN_PRIC * QNTY), 0), 
           @SumExpnExtrPrct       = ISNULL(SUM(EXPN_EXTR_PRCT * QNTY), 0),
-          @SumRemnPric           = ISNULL(SUM(REMN_PRIC), 0)
+          @SumRemnPric           = ISNULL(SUM(REMN_PRIC), 0),
+          @ProfAmnt              = SUM(PROF_AMNT_DNRM),
+          @DeduAmnt              = SUM(DEDU_AMNT_DNRM)
      FROM Payment_Detail 
     WHERE PYMT_RQST_RQID = @RqstRqid
       AND PYMT_CASH_CODE = @CashCode;
@@ -336,6 +352,8 @@ BEGIN
       SET SUM_EXPN_PRIC           = @SumExpnPric
          ,SUM_EXPN_EXTR_PRCT      = @SumExpnExtrPrct
          ,SUM_REMN_PRIC           = @SumRemnPric
+         ,PROF_AMNT_DNRM          = @ProfAmnt
+         ,DEDU_AMNT_DNRM          = @DeduAmnt
          /*
           SUM_EXPN_PRIC           = ROUND(@SumExpnPric, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
          ,SUM_EXPN_EXTR_PRCT      = ROUND(@SumExpnExtrPrct, CASE ISNULL(AMNT_UNIT_TYPE_DNRM, '001') WHEN '001' THEN -3 WHEN '002' THEN -2 END)
@@ -348,74 +366,75 @@ WHERE RQST_RQID = @RqstRqid
   AND CASH_CODE = @CashCode;
 
    -- ثبت اطلاعات هزینه های ثبت شده در جدول حسابداری برای باشگاه
-	IF EXISTS(
-	   SELECT *
-	     FROM Payment_Detail T, INSERTED S, dbo.Request R, dbo.Request_Type Rt
-	    WHERE T.PYMT_RQST_RQID = S.PYMT_RQST_RQID AND
-             T.PYMT_CASH_CODE = S.PYMT_CASH_CODE AND
-             T.RQRO_RWNO      = S.RQRO_RWNO      AND
-             T.EXPN_CODE      = S.EXPN_CODE      AND
-             T.PYMT_RQST_RQID = R.RQID           AND
-             R.RQTP_CODE      = Rt.CODE          AND
-             Rt.SAVE_PYMT_ACNT = '002'           AND -- درآمدهای باشگاه
-             T.PYMT_RQST_RQID = @Rqid            AND
-             T.PYMT_CASH_CODE = @CashCode        AND
-             T.RQRO_RWNO      = @RqroRwno        AND
-             T.EXPN_CODE      = @ExpnCode        AND
-             T.PAY_STAT       = '002' -- تایید پرداخت
-	)
-	BEGIN	   
-	   -- درج اطلاعات حسابداری باشگاه
-	   DECLARE @Rwno BIGINT
-	          ,@AcdtRwno INT
-	          ,@ActnDate DATETIME
-	          ,@RegnPrvnCntyCode VARCHAR(3)
-	          ,@RegnPrvnCode VARCHAR(3)
-	          ,@RegnCode VARCHAR(3)
-	          ,@ClubCode BIGINT
-	          ,@ExpnAmnt BIGINT;	   
-	   SET @ActnDate = GETDATE();
-	   SELECT @RegnPrvnCntyCode = R.REGN_PRVN_CNTY_CODE
-	         ,@RegnPrvnCode = R.REGN_PRVN_CODE
-	         ,@RegnCode = R.REGN_CODE
-	         ,@ClubCode = P.CLUB_CODE_DNRM
-	         ,@ExpnAmnt = P.SUM_RCPT_EXPN_PRIC + ISNULL(SUM_RCPT_EXPN_EXTR_PRCT, 0)
-	     FROM Request R, Payment P
-	    WHERE R.RQID = P.RQST_RQID
-	      AND R.RQID = @Rqid
-	      AND P.CASH_CODE = @CashCode;
+	--IF EXISTS(
+	--   SELECT *
+	--     FROM Payment_Detail T, INSERTED S, dbo.Request R, dbo.Request_Type Rt
+	--    WHERE T.PYMT_RQST_RQID = S.PYMT_RQST_RQID AND
+ --            T.PYMT_CASH_CODE = S.PYMT_CASH_CODE AND
+ --            T.RQRO_RWNO      = S.RQRO_RWNO      AND
+ --            T.EXPN_CODE      = S.EXPN_CODE      AND
+ --            T.PYMT_RQST_RQID = R.RQID           AND
+ --            R.RQTP_CODE      = Rt.CODE          AND
+ --            Rt.SAVE_PYMT_ACNT = '002'           AND -- درآمدهای باشگاه
+ --            T.PYMT_RQST_RQID = @Rqid            AND
+ --            T.PYMT_CASH_CODE = @CashCode        AND
+ --            T.RQRO_RWNO      = @RqroRwno        AND
+ --            T.EXPN_CODE      = @ExpnCode        AND
+ --            T.PAY_STAT       = '002' -- تایید پرداخت
+	--)
+	--BEGIN
+	--   -- درج اطلاعات حسابداری باشگاه
+	--   DECLARE @Rwno BIGINT
+	--          ,@AcdtRwno INT
+	--          ,@ActnDate DATETIME
+	--          ,@RegnPrvnCntyCode VARCHAR(3)
+	--          ,@RegnPrvnCode VARCHAR(3)
+	--          ,@RegnCode VARCHAR(3)
+	--          ,@ClubCode BIGINT
+	--          ,@ExpnAmnt BIGINT;	   
+	--   SET @ActnDate = GETDATE();
+	--   SELECT @RegnPrvnCntyCode = R.REGN_PRVN_CNTY_CODE
+	--         ,@RegnPrvnCode = R.REGN_PRVN_CODE
+	--         ,@RegnCode = R.REGN_CODE
+	--         ,@ClubCode = P.CLUB_CODE_DNRM
+	--         ,@ExpnAmnt = P.SUM_RCPT_EXPN_PRIC + ISNULL(SUM_RCPT_EXPN_EXTR_PRCT, 0)
+	--     FROM Request R, Payment P
+	--    WHERE R.RQID = P.RQST_RQID
+	--      AND R.RQID = @Rqid
+	--      AND P.CASH_CODE = @CashCode;
 	   
-	   -- 1395/08/10 * بدست آوردن مبلغ استفاده شده از سپرده
-	   DECLARE @SumAmntDeposit BIGINT;
-	   SELECT @SumAmntDeposit = SUM(AMNT)
-        FROM dbo.Payment_Method
-       WHERE RCPT_MTOD = '005' -- برداشت از مبلغ سپرده
-         AND PYMT_RQST_RQID = @Rqid;
+	--   -- 1395/08/10 * بدست آوردن مبلغ استفاده شده از سپرده
+	--   DECLARE @SumAmntDeposit BIGINT;
+	--   SELECT @SumAmntDeposit = SUM(AMNT)
+ --       FROM dbo.Payment_Method
+ --      WHERE RCPT_MTOD = '005' -- برداشت از مبلغ سپرده
+ --        AND PYMT_RQST_RQID = @Rqid;
       
-      --PRINT @SumAmntDeposit;
-      -- اگر مبلغ هزینه از مبلغ استفاده شده از سپرده بیشتر باشد هنرجو باید مبلغ باقیمانده را پرداخت کند
-      IF @ExpnAmnt - ISNULL(@SumAmntDeposit, 0) >= 0
-         SET @ExpnAmnt -= ISNULL(@SumAmntDeposit, 0);
+ --     --PRINT @SumAmntDeposit;
+ --     -- اگر مبلغ هزینه از مبلغ استفاده شده از سپرده بیشتر باشد هنرجو باید مبلغ باقیمانده را پرداخت کند
+ --     IF @ExpnAmnt - ISNULL(@SumAmntDeposit, 0) >= 0
+ --        SET @ExpnAmnt -= ISNULL(@SumAmntDeposit, 0);
       
-      --PRINT @Rqid;
+ --     --PRINT @Rqid;
       
-	   --IF NOT EXISTS(
-	   --   SELECT *
-	   --     FROM Request R, Payment P, Account_Detail ad
-	   --    WHERE R.RQID = P.RQST_RQID
-   	--      AND R.RQID = @Rqid
-   	--      AND P.CASH_CODE = @CashCode
-	   --      AND Ad.PYMT_CASH_CODE = P.CASH_CODE
-	   --      AND Ad.PYMT_RQST_RQID = P.RQST_RQID	         
-	   --) AND ISNULL(@ExpnAmnt, 0) > 0 -- مبلغ درآمد باید مثبت باشد
-	   --BEGIN 
-	   --   --EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, '002', @ActnDate, @Rwno OUT;
-	   --   --EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, '002', @ActnDate, @CashCode, @Rqid, NULL, @AcdtRwno OUT;
-	   --   PRINT 'No Save Account';
-	   --END
-	END
+	--   --IF NOT EXISTS(
+	--   --   SELECT *
+	--   --     FROM Request R, Payment P, Account_Detail ad
+	--   --    WHERE R.RQID = P.RQST_RQID
+ --  	--      AND R.RQID = @Rqid
+ --  	--      AND P.CASH_CODE = @CashCode
+	--   --      AND Ad.PYMT_CASH_CODE = P.CASH_CODE
+	--   --      AND Ad.PYMT_RQST_RQID = P.RQST_RQID	         
+	--   --) AND ISNULL(@ExpnAmnt, 0) > 0 -- مبلغ درآمد باید مثبت باشد
+	--   --BEGIN 
+	--   --   --EXEC dbo.INS_ACTN_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, 0, '002', @ActnDate, @Rwno OUT;
+	--   --   --EXEC dbo.INS_ACDT_P @RegnPrvnCntyCode, @RegnPrvnCode, @RegnCode, @ClubCode, @Rwno, @ExpnAmnt, '002', @ActnDate, @CashCode, @Rqid, NULL, @AcdtRwno OUT;
+	--   --   PRINT 'No Save Account';
+	--   --END
+	--END
    
    -- اگر درآمد شامل تخفیف بشود
+   
    IF @CovrDsct = '002'
    BEGIN
       -- محاسبه تخفیف
@@ -519,6 +538,8 @@ ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_RQRO] FOREIGN KEY ([P
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ اضافه واریز', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'ADD_QUTS'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ های کسرشده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'DEDU_AMNT_DNRM'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'تاریخ انقضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'EXPR_DATE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'هزینه هایی که به صورت مشخص شده در اختیار فرد خاصی قرار میگیرد', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'FIGH_FILE_NO'
@@ -527,6 +548,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'فروش کارتهای انب�
 از شماره', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'FROM_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'پیش هزینه ها', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'PRE_EXPN_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ سود نهایی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'PROF_AMNT_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'فروش کارتهای انبوه به ارگان ها
 تا شماره', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Detail', 'COLUMN', N'TO_NUMB'

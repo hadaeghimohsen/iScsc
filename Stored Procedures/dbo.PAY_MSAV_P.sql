@@ -36,7 +36,10 @@ BEGIN
             ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
             ,pm.query('.').value('(Payment_Method/@actndate)[1]', 'DATE') AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
-            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,CASE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT')
+                  WHEN 0 THEN NULL
+                  ELSE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT')
+             END AS RcptToOthrAcnt
             ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
@@ -56,7 +59,10 @@ BEGIN
 			      ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
                ,pm.query('.').value('(Payment_Method/@actndate)[1]', 'DATE') AS ActnDate
                ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
-               ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+               ,CASE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+                     WHEN 0 THEN NULL
+                     ELSE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+                END AS RcptToOthrAcnt
                ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
            FROM @X.nodes('//Update/Payment_Method') T(pm)
       )  
@@ -97,7 +103,10 @@ BEGIN
             ,'001' AS RcptMtod
             ,GETDATE() AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
-            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,CASE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+                  WHEN 0 THEN NULL
+                  ELSE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+             END AS RcptToOthrAcnt
             ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
@@ -141,7 +150,10 @@ BEGIN
             ,pm.query('.').value('(Payment_Method/@refno)[1]',    'VARCHAR(20)') AS RefNo
             ,GETDATE()
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
-            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,CASE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+                  WHEN 0 THEN NULL
+                  ELSE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+             END AS RcptToOthrAcnt
             ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       
@@ -225,7 +237,10 @@ BEGIN
             ,'009' AS RcptMtod
             ,GETDATE() AS ActnDate
             ,pm.query('.').value('(Payment_Method/@valdtype)[1]', 'VARCHAR(3)') AS ValdType
-            ,pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') AS RcptToOthrAcnt
+            ,CASE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+                  WHEN 0 THEN NULL
+                  ELSE pm.query('.').value('(Payment_Method/@rcpttoothracnt)[1]', 'BIGINT') 
+             END AS RcptToOthrAcnt
             ,pm.query('.').value('(Payment_Method/@rcptfilepath)[1]', 'NVARCHAR(260)') AS RcptFilePath
        FROM @X.nodes('//Insert/Payment_Method') T(pm);
       

@@ -46,7 +46,9 @@ RETURN
          , PYMT.CASH_CODE
          , PYMT.AMNT_UNIT_TYPE_DNRM
          , PYMT.REGL_YEAR_DNRM
-         , PYMT.REGL_CODE_DNRM         
+         , PYMT.REGL_CODE_DNRM
+         , PYMT.PROF_AMNT_DNRM
+         , PYMT.DEDU_AMNT_DNRM
      FROM dbo.Request_Type AS RQTP,
           dbo.Request AS RQST,
           dbo.Payment AS PYMT,

@@ -31,6 +31,8 @@ CREATE TABLE [dbo].[Expense]
 [NUMB_MONT_OFER] [int] NULL,
 [MIN_TIME] [datetime] NULL,
 [RELY_CMND] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PROF_AMNT_DNRM] [bigint] NULL,
+[DEDU_AMNT_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -205,6 +207,25 @@ BEGIN
       END 
    END
    
+   -- 1401/05/28 * برای آن دسته از هزینه هایی که قیمت کسر مبلغ دارند باید بررسی کنیم و هزینه ها رو دوباره محاسبه کنیم
+   -- First : We Must Check Change Expense Price?
+   IF EXISTS(
+      SELECT * 
+        FROM Inserted i, Deleted d 
+       WHERE i.CODE = d.CODE 
+         AND ISNULL(i.PRIC, 0) != ISNULL(d.PRIC, 0)
+         AND EXISTS(SELECT * FROM dbo.Expense_Cost ec WHERE ec.EXPN_CODE = i.CODE AND ec.EXCO_STAT = '002')
+      )
+   BEGIN
+      DECLARE @XTemp XML = (
+         SELECT i.CODE AS '@code',
+                i.PRIC AS '@pric'
+           FROM Inserted i
+            FOR XML PATH('Expense')
+      );
+      EXEC dbo.CALC_EXCO_P @X = @XTemp;      
+   END 
+   
    COMMIT TRAN CG$AUPD_EXPN_T;
    END TRY
    BEGIN CATCH
@@ -251,6 +272,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'ایا هزینه شامل ار
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'رسته مشترک', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'CTGY_CODE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ های کسرشده', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'DEDU_AMNT_DNRM'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرح هزینه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'EXPN_DESC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت هزینه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'EXPN_STAT'
@@ -284,6 +307,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل موجودی کالای', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'NUMB_OF_STOK'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'PRIC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ سود نهایی', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'PROF_AMNT_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد آیین نامه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'REGL_CODE'
 GO

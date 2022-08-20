@@ -225,12 +225,12 @@ BEGIN
 	   IF (@isNumbInvDir = 1)
 	   BEGIN
 	      IF NOT EXISTS (
-	              SELECT f.FIGH_FILE_NO, COUNT(f.FILE_NO)
+	              SELECT f.REF_CODE_DNRM, COUNT(f.FILE_NO)
 	                FROM dbo.Fighter f
 	               WHERE f.CONF_STAT = '002'
-	                 AND f.FIGH_FILE_NO = @FileNo
+	                 AND f.REF_CODE_DNRM = @FileNo
 	                 AND (@isFromInv = 0 OR @FromInv >= CAST(f.CONF_DATE AS DATE))
-	            GROUP BY f.FIGH_FILE_NO
+	            GROUP BY f.REF_CODE_DNRM
 	              HAVING COUNT(f.FILE_NO) >= @NumbInvDir	                 
 	             )
 	         GOTO L$LOOPC$SERVS;

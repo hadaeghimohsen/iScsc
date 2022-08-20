@@ -31,6 +31,8 @@ CREATE TABLE [dbo].[Payment]
 [CLUB_CODE_DNRM] [bigint] NULL,
 [AMNT_UNIT_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [LOCK_DATE] [datetime] NULL,
+[PROF_AMNT_DNRM] [bigint] NULL,
+[DEDU_AMNT_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -373,7 +375,11 @@ ALTER TABLE [dbo].[Payment] ADD CONSTRAINT [FK_PYMT_RQST] FOREIGN KEY ([RQST_RQI
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'واحد پولی', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'AMNT_UNIT_TYPE_DNRM'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ های کسر شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'DEDU_AMNT_DNRM'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان تغییرات هزینه ای', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'LOCK_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ سود نهایی', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'PROF_AMNT_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت صورتحساب', 'SCHEMA', N'dbo', 'TABLE', N'Payment', 'COLUMN', N'PYMT_STAT'
 GO
