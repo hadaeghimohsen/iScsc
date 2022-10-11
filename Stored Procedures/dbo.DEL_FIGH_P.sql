@@ -44,6 +44,7 @@ BEGIN
       DELETE Payment_Detail WHERE PYMT_RQST_RQID in (SELECT RQST_RQID FROM Request_Row rr WHERE FIGH_FILE_NO = @fileno);
       DELETE dbo.Attendance WHERE FIGH_FILE_NO = @FileNo;
       DELETE Request_Row WHERE FIGH_FILE_NO = @fileno;
+      UPDATE dbo.Fighter_Public SET REF_CODE = NULL WHERE REF_CODE = @FileNo;
       DELETE Fighter WHERE file_no = @fileno;
       
 	COMMIT TRANSACTION [T$DEL_FIGH_P]

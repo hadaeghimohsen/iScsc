@@ -173,22 +173,22 @@ BEGIN
       ROLLBACK TRANSACTION;
    END
    -- پایان مهلت بدهی هنرجو
-   ELSE IF dbo.CHK_DEBT_U('<Fighter fileno="' + CAST(@FileNo AS VARCHAR(14)) + '"/>') = 0 AND EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTT_CODE NOT IN ('004'))
-   BEGIN
-      SELECT @ErorMesg = N'هشدار!!!' + CHAR(10) + 
-                         sxdc.DOMN_DESC + N' ' + NAME_DNRM + 
-                         N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
-                         N'لطفا جهت تسویه بدهی خود اقدام فرمایید'
-        FROM dbo.Fighter F, dbo.D$SXDC sxdc
-       WHERE FILE_NO = @FileNo
-         AND F.SEX_TYPE_DNRM = sxdc.VALU;
+   --ELSE IF dbo.CHK_DEBT_U('<Fighter fileno="' + CAST(@FileNo AS VARCHAR(14)) + '"/>') = 0 AND EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTT_CODE NOT IN ('004'))
+   --BEGIN
+   --   SELECT @ErorMesg = N'هشدار!!!' + CHAR(10) + 
+   --                      sxdc.DOMN_DESC + N' ' + NAME_DNRM + 
+   --                      N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
+   --                      N'لطفا جهت تسویه بدهی خود اقدام فرمایید'
+   --     FROM dbo.Fighter F, dbo.D$SXDC sxdc
+   --    WHERE FILE_NO = @FileNo
+   --      AND F.SEX_TYPE_DNRM = sxdc.VALU;
 
-      RAISERROR (@ErorMesg, 
-               --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
-               16, -- Severity.
-               1 -- State.
-               );
-   END;
+   --   RAISERROR (@ErorMesg, 
+   --            --N'خطا 4 - این شماره پرونده فاقد اعتبار عضویت باشگاه می باشد. لطفا اول جهت تمدید قرارداد اقدام کنید سپس حضوری ثبت کنید', -- Message text.
+   --            16, -- Severity.
+   --            1 -- State.
+   --            );
+   --END;
    
    DECLARE @RegnPrvnCntyCode VARCHAR(3),
            @RegnPrvnCode VARCHAR(3),

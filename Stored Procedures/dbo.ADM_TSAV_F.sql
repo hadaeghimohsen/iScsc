@@ -368,8 +368,8 @@ BEGIN
             ,CBMT_CODE_DNRM = @CbmtCode
        WHERE PYMT_RQST_RQID = @Rqid;         
          
-      DECLARE @StrtDate DateTime
-             ,@EndDate  DATETIME
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME             
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
              ,@NumbOfAttnWeek INT
@@ -383,20 +383,43 @@ BEGIN
         FROM Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND FIGH_FILE_NO = @FileNo
-         AND RECT_CODE = '001';
-      
+         AND RECT_CODE = '001';      
 
-      SET @X = '<Process><Request rqstrqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
-      SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
-      SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-      SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
+      --SET @X = '<Process><Request rqstrqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
+      --SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
+      --SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+      --SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');      
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
+      
+      SET @X = (
+         SELECT @Rqid AS '@rqstrqid',
+                '009' AS '@rqtpcode',
+                '004' AS '@rqttcode',
+                @RegnCode AS '@regncode',
+                @PrvnCode AS '@prvncode',
+                (
+                  SELECT @FileNo AS '@fileno',
+                         (
+                           SELECT @StrtDate AS '@strtdate',
+                                  @EndDate AS '@enddate',
+                                  1 AS '@prntcont',
+                                  @NumbMontOfer AS '@numbmontofer',
+                                  @NumbOfAttnMont AS '@numbofattnmont',
+                                  @NumbOfAttnWeek AS '@numbofattnweek',
+                                  @AttnDayType AS '@attndaytype'                         
+                              FOR XML PATH('Member_Ship'), TYPE
+                         )
+                     FOR XML PATH('Request_Row'), TYPE                     
+                )
+            FOR XML PATH('Request'), ROOT('Process')
+      );
+
       EXEC UCC_RQST_P @X;
       
       SELECT @Rqid = R.RQID
@@ -406,17 +429,41 @@ BEGIN
          AND R.RQTP_CODE = '009'
          AND R.RQTT_CODE = '004';
 
-      SET @X = '<Process><Request rqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row rwno="1" fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
-      SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
-      SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-      SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
-      SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
+      --SET @X = '<Process><Request rqid="" rqtpcode="009" rqttcode="004" regncode="" prvncode=""><Request_Row rwno="1" fileno=""><Member_Ship strtdate="" enddate="" prntcont="1" numbmontofer="" numbofattnmont="" numbofattnweek="" attndaytype=""/></Request_Row></Request></Process>';
+      --SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
+      --SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+      --SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@strtdate)[1] with sql:variable("@StrtDate")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@enddate)[1] with sql:variable("@EndDate")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbmontofer)[1] with sql:variable("@NumbMontOfer")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnmont)[1] with sql:variable("@NumbOfAttnMont")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@numbofattnweek)[1] with sql:variable("@NumbOfAttnWeek")');
+      --SET @X.modify('replace value of (/Process/Request/Request_Row/Member_Ship/@attndaytype)[1] with sql:variable("@AttnDayType")');
+      
+      SET @X = (
+         SELECT @Rqid AS '@rqid',
+                '009' AS '@rqtpcode',
+                '004' AS '@rqttcode',
+                @RegnCode AS '@regncode',
+                @PrvnCode AS '@prvncode',
+                (
+                  SELECT @FileNo AS '@fileno',
+                         1 AS '@rwno',
+                         (
+                           SELECT @StrtDate AS '@strtdate',
+                                  @EndDate AS '@enddate',
+                                  1 AS '@prntcont',
+                                  @NumbMontOfer AS '@numbmontofer',
+                                  @NumbOfAttnMont AS '@numbofattnmont',
+                                  @NumbOfAttnWeek AS '@numbofattnweek',
+                                  @AttnDayType AS '@attndaytype'                         
+                              FOR XML PATH('Member_Ship'), TYPE
+                         )
+                     FOR XML PATH('Request_Row'), TYPE                     
+                )
+            FOR XML PATH('Request'), ROOT('Process')
+      );
       EXEC UCC_SAVE_P @X;
       
       -- 1396/11/18 * اضافه شدن تاریخ تعطیلی ها در سیستم
@@ -475,6 +522,10 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = 1
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,FGPB_CTGY_CODE_DNRM = @CtgyCode
+            ,FGPB_MTOD_CODE_DNRM = @MtodCode
+            ,FGPB_CBMT_CODE_DNRM = @CbmtCode
+            ,FGPB_COCH_FILE_NO = @CochFileNo
             ,END_DATE = DATEADD(DAY, @HldyNumb, END_DATE)
             ,NUMB_OF_ATTN_MONT = NUMB_OF_ATTN_MONT * @SharGlobCont
             ,SUM_ATTN_MONT_DNRM = @SumAttnMont -- در این قسمت باید بررسی شود که نفرهای قبلی آیا از گزینه استخر استفاده کرده اند یا خیر

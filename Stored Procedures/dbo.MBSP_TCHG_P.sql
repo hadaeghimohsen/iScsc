@@ -41,16 +41,20 @@ BEGIN
 	         ,@RqroRwno = @X.query('//Request_Row').value('(Request_Row/@rwno)[1]', 'SMALLINT')
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT');	         
 	   
-      DECLARE @StrtDate DATE
-             ,@EndDate  DATE
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME
              ,@PrntCont SMALLINT
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
              ,@SumNumbAttnMont INT
-             ,@AttnDayType VARCHAR(3);
+             ,@AttnDayType VARCHAR(3)
+             ,@StrtTime TIME(0)
+             ,@EndTime TIME(0);
       
-      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
-            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATE')
+      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATETIME')
+            ,@StrtTime = r.query('Member_Ship').value('(Member_Ship/@strttime)[1]', 'TIME(0)')
+            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATETIME')
+            ,@EndTime  = r.query('Member_Ship').value('(Member_Ship/@endtime)[1]',  'TIME(0)')
             ,@PrntCont = r.query('Member_Ship').value('(Member_Ship/@prntcont)[1]', 'SMALLINT')
             ,@NumbMontOfer = r.query('Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')            
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
@@ -59,11 +63,15 @@ BEGIN
         FROM @X.nodes('//Request_Row') Rqrv(r)
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
-      IF @StrtDate IN ('1900-01-01', '0001-01-01') OR @EndDate IN ('1900-01-01', '0001-01-01')
+      IF CAST(@StrtDate AS DATE) IN ('1900-01-01', '0001-01-01') OR CAST(@EndDate AS DATE) IN ('1900-01-01', '0001-01-01')
       BEGIN
          SET @StrtDate = GETDATE();
          SET @EndDate = DATEADD(day, 30, @StrtDate);
       END
+      
+      -- 1401/07/18 * روز نابودی نظام جمهوری اسلامی ایران هست هوراااا
+      SELECT @StrtDate = CAST(@StrtDate AS DATETIME) + CAST(@StrtTime AS DATETIME),
+             @EndDate = CAST(@EndDate AS DATETIME) + CAST(@EndTime AS DATETIME);      
       
       IF NOT EXISTS(SELECT * FROM Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RQRO_RWNO = @RqroRwno AND FIGH_FILE_NO = @FileNo AND RECT_CODE = '002')
          EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '002', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, 0, @AttnDayType;

@@ -23,8 +23,21 @@ BEGIN
               @ToBd DATE,
               @isCtgy BIT,
               @CtgyCode BIGINT,
-              @isNumbLastDay BIT,
-              @NumbLastDay INT,
+              @isCoch BIT,
+              @CochFileNo BIGINT,
+              @isFromNumbLastDay BIT,
+              @FromNumbLastDay INT,
+              @isToNumbLastDay BIT,
+              @ToNumbLastDay INT,
+              
+              @isStrtCyclDate BIT,
+              @FromStrtCyclDate DATE,
+              @ToStrtCyclDate DATE,
+              
+              @isEndCyclDate BIT,
+              @FromEndCyclDate DATE,
+              @ToEndCyclDate DATE,
+              
               @isNumbInvDir BIT,
               @NumbInvDir INT,
               @isNumbInvNDir BIT,
@@ -64,7 +77,12 @@ BEGIN
             <Category code="1"/>
             <Category code="2"/>
          </Categories>
-         <EndCycle isnumblastday="1" numblastday="10"/>
+         <Coaches iscoch="1">
+            <Coach fileno="1"/>
+            <Coach fileno="2"/>
+         </Coaches>
+         <EndCycle isfromnumblastday="1" fromnumblastday="10" istonumblastday="1" tonumblastday="10"/>
+         <Cycle isstrtcycldate="1" fromstrtcycldate="" tostrtcycldate="" isendcycldate="1" fromendcycldate="" toendcycldate=""/>
          <Inviting isnumbinvdir="1" numbinvdir="3" isnumbinvndir="0" numbinvndir="" isfrominv="0" frominv="" />
          <Deposit isnumbdpst="1" numbdpst="" issumdpst="" sumdpst="" isfromdpst="" fromdpst=""/>
          <Payment isnumbpymt="1" numbpymt="" issumpymt="" sumpymt="" isfrompymt="" frompymt=""/>
@@ -98,8 +116,18 @@ BEGIN
              @isToBd = @x.query('//BirthDate').value('(BirthDate/@istobd)[1]', 'BIT'),
              @ToBd = @x.query('//BirthDate').value('(BirthDate/@tobd)[1]', 'DATE'),
              
-             @isNumbLastDay = @x.query('//EndCycle').value('(EndCycle/@isnumblastday)[1]', 'BIT'),             
-             @NumbLastDay = @x.query('//EndCycle').value('(EndCycle/@numblastday)[1]', 'INT'),
+             @isFromNumbLastDay = @x.query('//EndCycle').value('(EndCycle/@isfromnumblastday)[1]', 'BIT'),             
+             @FromNumbLastDay = @x.query('//EndCycle').value('(EndCycle/@fromnumblastday)[1]', 'INT'),
+             @isToNumbLastDay = @x.query('//EndCycle').value('(EndCycle/@istonumblastday)[1]', 'BIT'),             
+             @ToNumbLastDay = @x.query('//EndCycle').value('(EndCycle/@tonumblastday)[1]', 'INT'),
+             
+             @isStrtCyclDate = @x.query('//Cycle').value('(Cycle/@isstrtcycldate)[1]', 'BIT'),             
+             @FromStrtCyclDate = @x.query('//Cycle').value('(Cycle/@fromstrtcycldate)[1]', 'DATE'),
+             @ToStrtCyclDate = @x.query('//Cycle').value('(Cycle/@tostrtcycldate)[1]', 'DATE'),
+             
+             @isEndCyclDate = @x.query('//Cycle').value('(Cycle/@isendcycldate)[1]', 'BIT'),             
+             @FromEndCyclDate = @x.query('//Cycle').value('(Cycle/@fromendcycldate)[1]', 'DATE'),
+             @ToEndCyclDate = @x.query('//Cycle').value('(Cycle/@toendcycldate)[1]', 'DATE'),
              
              @isNumbInvDir = @x.query('//Inviting').value('(Inviting/@isnumbinvdir)[1]', 'BIT'),
              @NumbInvDir = @x.query('//Inviting').value('(Inviting/@numbinvdir)[1]', 'INT'),
@@ -123,6 +151,8 @@ BEGIN
              @FromPymt = @x.query('//Payment').value('(Payment/@frompymt)[1]', 'DATE'),
              
              @isCtgy = @x.query('//Categories').value('(Categories/@isctgy)[1]', 'BIT'),
+             
+             @isCoch = @x.query('//Coaches').value('(Coaches/@iscoch)[1]', 'BIT'),
              
              @isOrgn = @x.query('//Organs').value('(Organs/@isorgn)[1]', 'BIT'),
              
@@ -165,13 +195,19 @@ BEGIN
 	           
 	   
 	   -- Prepare data
-	   DELETE dbo.Advertising_Campaign WHERE ADVP_CODE = @AdvpCode;
+	   DELETE dbo.Advertising_Campaign WHERE ADVP_CODE = @AdvpCode AND RECD_STAT = '002';
 	   
 	   -- Processing Filter on Record(s)
 	   DECLARE C$Servs CURSOR FOR
 	      SELECT FILE_NO, SEX_TYPE_DNRM, SUNT_BUNT_DEPT_ORGN_CODE + SUNT_BUNT_DEPT_CODE + SUNT_BUNT_CODE + SUNT_CODE,
 	             BRTH_DATE_DNRM
-	        FROM dbo.[VF$Last_Info_Fighter](NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	        FROM dbo.[VF$Last_Info_Fighter](NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+	       WHERE CELL_PHON_DNRM IS NOT NULL
+	         AND (CASE 
+	               WHEN SUBSTRING(CELL_PHON_DNRM, 1, 1) = '9'  AND LEN(CELL_PHON_DNRM) = 10 THEN 1
+	               WHEN SUBSTRING(CELL_PHON_DNRM, 1, 2) = '09' AND LEN(CELL_PHON_DNRM) = 11 THEN 1
+	               ELSE 0
+	              END) = 1 ;
 	   
 	   OPEN [C$Servs];
 	   L$LOOPC$SERVS:
@@ -201,7 +237,7 @@ BEGIN
 	   END
 	   
 	   -- گام سوم چک کردن تعداد روزهایی که مشتری دیگر برای تمدید به مجموعه مراجعه نکرده است
-	   IF (@isNumbLastDay = 1)
+	   IF (@isfromNumbLastDay = 1)
 	   BEGIN
 	      IF NOT EXISTS (
 	              SELECT * 
@@ -209,7 +245,7 @@ BEGIN
 	               WHERE ms.FIGH_FILE_NO = @FileNo
 	                 AND ms.RECT_CODE = '004'
 	                 AND ms.VALD_TYPE = '002'
-	                 AND DATEDIFF(DAY, ms.END_DATE, GETDATE()) >= @NumbLastDay
+	                 AND DATEDIFF(DAY, ms.END_DATE, GETDATE()) >= @FromNumbLastDay
 	                 AND ms.RWNO = (
 	                     SELECT MAX(msm.RWNO)
 	                       FROM dbo.Member_Ship msm
@@ -217,6 +253,53 @@ BEGIN
 	                        AND ms.RECT_CODE = msm.RECT_CODE
 	                        AND ms.VALD_TYPE = msm.VALD_TYPE
 	                 )
+	             )
+	         GOTO L$LOOPC$SERVS;
+	   END 
+	   IF (@isToNumbLastDay = 1)
+	   BEGIN
+	      IF NOT EXISTS (
+	              SELECT * 
+	                FROM dbo.Member_Ship ms
+	               WHERE ms.FIGH_FILE_NO = @FileNo
+	                 AND ms.RECT_CODE = '004'
+	                 AND ms.VALD_TYPE = '002'
+	                 AND DATEDIFF(DAY, ms.END_DATE, GETDATE()) <= @ToNumbLastDay
+	                 AND ms.RWNO = (
+	                     SELECT MAX(msm.RWNO)
+	                       FROM dbo.Member_Ship msm
+	                      WHERE ms.FIGH_FILE_NO = msm.FIGH_FILE_NO
+	                        AND ms.RECT_CODE = msm.RECT_CODE
+	                        AND ms.VALD_TYPE = msm.VALD_TYPE
+	                 )
+	             )
+	         GOTO L$LOOPC$SERVS;
+	   END 
+	   
+	   -- اگر مشتری در تاریخ هایی *تاریخ شروع دوره* که قرار داده اید تمدید کرده باشد
+	   IF (@isStrtCyclDate = 1)
+	   BEGIN
+	      IF NOT EXISTS (
+	              SELECT * 
+	                FROM dbo.Member_Ship ms
+	               WHERE ms.FIGH_FILE_NO = @FileNo
+	                 AND ms.RECT_CODE = '004'
+	                 AND ms.VALD_TYPE = '002'
+	                 AND CAST(ms.STRT_DATE AS DATE) BETWEEN @FromStrtCyclDate AND @ToStrtCyclDate	                 
+	             )
+	         GOTO L$LOOPC$SERVS;
+	   END 	   
+	   
+	   -- اگر مشتری در تاریخ هایی *تاریخ پایان دوره* که قرار داده اید تمدید کرده باشد
+	   IF (@isEndCyclDate = 1)
+	   BEGIN
+	      IF NOT EXISTS (
+	              SELECT * 
+	                FROM dbo.Member_Ship ms
+	               WHERE ms.FIGH_FILE_NO = @FileNo
+	                 AND ms.RECT_CODE = '004'
+	                 AND ms.VALD_TYPE = '002'
+	                 AND CAST(ms.END_DATE AS DATE) BETWEEN @FromEndCyclDate AND @ToEndCyclDate
 	             )
 	         GOTO L$LOOPC$SERVS;
 	   END 
@@ -328,6 +411,26 @@ BEGIN
 	                 AND fp.CTGY_CODE IN (
 	                     SELECT r.query('.').value('(Category/@code)[1]', 'BIGINT')
 	                       FROM @X.nodes('//Category') t(r)
+	                 )
+	             )
+	         GOTO L$LOOPC$SERVS; 
+	   END;
+	   
+	   -- انتخاب سرپرست
+	   IF (@isCoch = 1)
+	   BEGIN
+	      IF NOT EXISTS (
+	              SELECT *
+	                FROM dbo.Member_Ship ms, dbo.Fighter_Public fp
+	               WHERE ms.FIGH_FILE_NO = @FileNo
+	                 AND ms.RECT_CODE = '004'
+	                 AND ms.VALD_TYPE = '002'
+	                 AND ms.FIGH_FILE_NO = fp.FIGH_FILE_NO
+	                 AND ms.FGPB_RWNO_DNRM = fp.RWNO
+	                 AND ms.FGPB_RECT_CODE_DNRM = fp.RECT_CODE	                 
+	                 AND fp.COCH_FILE_NO IN (
+	                     SELECT r.query('.').value('(Coach/@fileno)[1]', 'BIGINT')
+	                       FROM @X.nodes('//Coach') t(r)
 	                 )
 	             )
 	         GOTO L$LOOPC$SERVS; 

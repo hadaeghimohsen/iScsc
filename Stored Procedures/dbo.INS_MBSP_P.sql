@@ -13,8 +13,8 @@ CREATE PROCEDURE [dbo].[INS_MBSP_P]
   ,@FileNo BIGINT
   ,@RectCode VARCHAR(3)
   ,@Type     VARCHAR(3)
-  ,@StrtDate DATE
-  ,@EndDate  DATE
+  ,@StrtDate DATETIME
+  ,@EndDate  DATETIME
   ,@PrntCont SMALLINT
   ,@NumbMontOfer INT
   ,@NumbOfAttnMont INT

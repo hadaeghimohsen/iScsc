@@ -20,6 +20,8 @@ BEGIN
       DELETE dbo.Account_Detail;
       DELETE dbo.Aggregation_Operation;
       DELETE dbo.Aggregation_Operation_Detail;
+      DELETE dbo.Report_Temporary;
+      DELETE dbo.Report_Action_Parameter;
       DELETE dbo.Dresser_Attendance;
       DELETE dbo.Dresser;
       DELETE dbo.Attendance;
@@ -109,16 +111,16 @@ BEGIN
 		
 		INSERT INTO dbo.Expense_Item ( CODE ,RQTP_CODE ,RQTT_CODE ,EPIT_DESC ,TYPE ) VALUES (0, '001', '001', N'شهریه', '001');
 		
-		EXEC dbo.INS_MTOD_P @Mtod_Desc = N'فروشگاه اینترنتی',@Mtod_Code = 0,@Epit_Type = '001',@Dflt_Stat = '001',@Mtod_Stat = '002',@Chck_Attn_Alrm = '001',@Natl_Code = '',@Shar_Stat = '001';
+		EXEC dbo.INS_MTOD_P @Mtod_Desc = N'فروشگاه اینترنتی',@Mtod_Code = NULL,@Epit_Type = '001',@Dflt_Stat = '001',@Mtod_Stat = '002',@Chck_Attn_Alrm = '001',@Natl_Code = '',@Shar_Stat = '001';
 		
 		DECLARE @MtodCode BIGINT;
 		SELECT TOP 1 @MtodCode = CODE FROM dbo.Method;
-		EXEC [dbo].[INS_CTGY_P] @Mtod_Code = @MtodCode, @Ctgy_Desc = N'سبد خرید', @Epit_Type = '001', @Numb_Of_Attn_Mont = 0, @Numb_Cycl_Day = 0, @Numb_Mont_Ofer = 0, @Pric = 0, @Dflt_Stat = '001', @Ctgy_Stat = '002', @Gust_Numb = 0;
+		EXEC [dbo].[INS_CTGY_P] @Mtod_Code = @MtodCode, @Name = NULL, @Ctgy_Desc = N'سبد خرید', @Ordr = NULL, @Epit_Type = '001', @Numb_Of_Attn_Mont = 0, @Numb_Cycl_Day = 0, @Numb_Mont_Ofer = 0, @Prvt_Coch_Expn = NULL, @Pric = 0, @Dflt_Stat = '001', @Ctgy_Stat = '002', @Gust_Numb = 0, @Natl_Code = NULL;
 		
-		DECLARE @Xtemp XML = '<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی آقایان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>001</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
+		DECLARE @Xtemp XML = N'<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی آقایان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>001</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
 		EXEC [dbo].[ADM_MSAV_F] @X = @Xtemp;
 		
-		SET @Xtemp = '<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی بانوان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>002</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
+		SET @Xtemp = N'<Process><Request rqid="0" rqtpcode="001" rqttcode="003"><Fighter fileno="0"><Frst_Name>عمومی بانوان</Frst_Name><Last_Name>مربی</Last_Name><Fath_Name/><Coch_Deg/><Coch_Crtf_Date>2022-06-17</Coch_Crtf_Date><Gudg_Deg/><glob_Code/><Sex_Type>002</Sex_Type><Natl_Code>0</Natl_Code><Brth_Date>2022-06-17</Brth_Date><Cell_Phon/><Tell_Phon/><Type>003</Type><Post_Adrs/><Emal_Adrs/><Insr_Numb/><Insr_Date>2021-06-17</Insr_Date><Educ_Deg/><Mtod_Code>'+ CAST(@MtodCode AS VARCHAR(30)) + '</Mtod_Code><Dise_Code/><Calc_Expn_Type/><Blod_grop/><Fngr_Prnt/><Dpst_Acnt_Slry_Bank/><Dpst_Acnt_Slry/><Chat_Id/></Fighter></Request></Process>';
 		EXEC [dbo].[ADM_MSAV_F] @X = @Xtemp;
    END
    

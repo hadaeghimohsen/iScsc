@@ -206,6 +206,7 @@ BEGIN
              ,@LastName NVARCHAR(250)
              ,@FathName NVARCHAR(250)
              --,@SexType  VARCHAR(3)
+             ,@NatlCodeChck BIT             
              ,@NatlCode VARCHAR(10)
              ,@BrthDate DATE
              ,@CellPhon VARCHAR(11)
@@ -291,8 +292,10 @@ BEGIN
              ,@Cmnt NVARCHAR(4000)             
              ,@Password VARCHAR(250)
              ,@RefralCode BIGINT
-             ,@StrtDate DATE
-             ,@EndDate DATE
+             ,@StrtDate DATETIME
+             ,@StrtTime TIME(0)
+             ,@EndDate DATETIME
+             ,@EndTime TIME(0)
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
              ,@NumbOfAttnWeek INT
@@ -306,6 +309,7 @@ BEGIN
             ,@LastName = @X.query('//Last_Name').value('.', 'NVARCHAR(250)')
             ,@FathName = @X.query('//Fath_Name').value('.', 'NVARCHAR(250)')
             --,@SexType  = @X.query('//Sex_Type').value('.', 'VARCHAR(3)')
+            ,@NatlCodeChck = @X.query('//Natl_Code').value('(Natl_Code/@chckvald)[1]', 'BIT')
             ,@NatlCode = @X.query('//Natl_Code').value('.', 'VARCHAR(10)')
             ,@BrthDate = @X.query('//Brth_Date').value('.', 'Date')
             ,@CellPhon = @X.query('//Cell_Phon').value('.', 'VARCHAR(11)')
@@ -347,13 +351,19 @@ BEGIN
             ,@Password = @x.query('//Pass_Word').value('.', 'VARCHAR(250)')            
             ,@RefralCode = @x.query('//Ref_Code').value('.', 'BIGINT')            
             ,@StrtDate = @x.query('//Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
+            ,@StrtTime = @x.query('//Member_Ship').value('(Member_Ship/@strttime)[1]', 'TIME(0)')
             ,@EndDate = @x.query('//Member_Ship').value('(Member_Ship/@enddate)[1]', 'DATE')
+            ,@EndTime = @x.query('//Member_Ship').value('(Member_Ship/@endtime)[1]', 'TIME(0)')
             ,@NumbMontOfer = @x.query('//Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')
             ,@NumbOfAttnMont = @x.query('//Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
             ,@NumbOfAttnWeek = @x.query('//Member_Ship').value('(Member_Ship/@numbofattnweek)[1]', 'INT')
             ,@AttnDayType = @x.query('//Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)');
             
             --,@CochCrtfDate = @X.query('//Coch_Crtf_Date').value('.', 'DATE');
+      -- 1401/07/18 * روز نابودی نظام جمهوری اسلامی ایران هست هوراااا
+      SELECT @StrtDate = CAST(@StrtDate AS DATETIME) + CAST(@StrtTime AS DATETIME),
+             @EndDate = CAST(@EndDate AS DATETIME) + CAST(@EndTime AS DATETIME);
+             
       SELECT @ActvTag = ISNULL(ACTV_TAG_DNRM, '101') FROM Fighter WHERE FILE_NO = @FileNo;
       -- Begin Check Validate
       IF LEN(@FrstName)        = 0 RAISERROR (N'برای فیلد "نام" اطلاعات وارد نشده' , 16, 1);
@@ -415,6 +425,12 @@ BEGIN
       IF LEN(@CellPhon)        = 0 RAISERROR (N'برای فیلد "موبایل" اطلاعات وارد نشده' , 16, 1);
       IF EXISTS(SELECT * FROM dbo.Settings s, dbo.Club_Method cm WHERE s.CLUB_CODE = cm.CLUB_CODE AND cm.CODE = @CbmtCode AND ISNULL(s.INPT_NATL_CODE_STAT, '002') = '002')
 		IF LEN(@NatlCode)        = 0 RAISERROR (N'برای فیلد "کد ملی" اطلاعات وارد نشده' , 16, 1);
+      
+      -- 1401/06/17 * Check Valdiation NatlCode
+      IF @NatlCodeChck = 1
+      BEGIN
+         IF dbo.CHK_NATL_U(@NatlCode) = 0 RAISERROR (N'صحت اطلاعات برای فیلد "کد ملی" درست وارد نشده' , 16, 1);
+      END 
       
       -- 1399/07/18 * چک کردن اینکه شماره کارت وارد شده معتبر میباشد یا خیر
       DECLARE @RecdNumb BIGINT;
@@ -690,7 +706,8 @@ BEGIN
              @NumbOfAttnWeek = @NumbOfAttnWeek,
              @AttnDayType = @AttnDayType;
       END
-      BEGIN                
+               
+      BEGIN 
          -- اگر در ثبت موقت باشیم و برای نوع درخواست و متقاضی آیین نامه هزینه داری داشته باشیم درخواست را به فرم اعلام هزینه ارسال میکنیم            
          IF EXISTS(
             SELECT *
@@ -822,7 +839,7 @@ BEGIN
             DELETE Payment
              WHERE RQST_RQID = @Rqid;            
          END  
-      END      
+      END
       COMMIT TRAN T1;
    END TRY
    BEGIN CATCH

@@ -28,6 +28,7 @@ BEGIN
       DECLARE @Code BIGINT,
               @FileNo BIGINT,
               @CellPhon VARCHAR(11),
+              @FgdcCode BIGINT,
               @MsgbText NVARCHAR(MAX),
               @LineType VARCHAR(3) = '001';
 
@@ -45,7 +46,7 @@ BEGIN
 	   -- 1401/05/15 * ثبت کد تخفیف مشتریان
 	   IF @FileNo IS NOT NULL
 	   BEGIN	   
-	      MERGE dbo.Fighter_Discount_Card T
+	      /*MERGE dbo.Fighter_Discount_Card T
 	      USING (SELECT p.RECD_TYPE,
 	                    p.EXPR_DATE,
 	                    p.DISC_CODE,
@@ -64,7 +65,34 @@ BEGIN
 	          CAST(T.EXPR_DATE AS DATE) >= CAST(GETDATE() AS DATE))
 	      WHEN NOT MATCHED THEN 
 	         INSERT (ADVP_CODE, FIGH_FILE_NO, CODE, RECD_TYPE, DISC_CODE, EXPR_DATE, STAT, MTOD_CODE, CTGY_CODE, RQTP_CODE, DSCT_AMNT, DSCT_TYPE, DSCT_DESC, TEMP_TMID)
-	         VALUES (@AdvpCode, @FileNo, 0, s.RECD_TYPE, s.DISC_CODE, s.EXPR_DATE, '002', s.MTOD_CODE, s.CTGY_CODE, s.RQTP_CODE, s.DSCT_AMNT, s.DSCT_TYPE, s.ADVP_NAME, @Tmid);
+	         VALUES (@AdvpCode, @FileNo, 0, s.RECD_TYPE, s.DISC_CODE, s.EXPR_DATE, '002', s.MTOD_CODE, s.CTGY_CODE, s.RQTP_CODE, s.DSCT_AMNT, s.DSCT_TYPE, s.ADVP_NAME, @Tmid);*/
+	      
+	      IF NOT EXISTS(
+	         SELECT *
+	           FROM dbo.Fighter_Discount_Card fd, dbo.Advertising_Parameter a
+	          WHERE fd.FIGH_FILE_NO = @FileNo
+	            AND a.CODE = @AdvpCode
+	            AND a.CODE = fd.ADVP_CODE
+	            AND fd.RECD_TYPE = a.RECD_TYPE
+	            AND fd.RQST_RQID IS NULL
+	            AND CAST(fd.EXPR_DATE AS DATE) >= CAST(GETDATE() AS DATE)
+	      )
+	      BEGIN
+	         INSERT INTO dbo.Fighter_Discount_Card ( ADVP_CODE ,FIGH_FILE_NO ,CODE ,RECD_TYPE ,DISC_CODE ,EXPR_DATE ,STAT ,MTOD_CODE ,CTGY_CODE ,DSCT_AMNT ,DSCT_TYPE ,RQTP_CODE ,DSCT_DESC ,TEMP_TMID )
+	         SELECT a.CODE, @FileNo, dbo.GNRT_NVID_U(), a.RECD_TYPE, a.DISC_CODE, a.EXPR_DATE, a.STAT, a.MTOD_CODE, a.CTGY_CODE, a.DSCT_AMNT, a.DSCT_TYPE, a.RQTP_CODE, a.ADVP_NAME, a.TEMP_TMID
+	           FROM dbo.Advertising_Parameter a
+	          WHERE a.CODE = @AdvpCode;
+	      
+	         SELECT TOP 1 
+	                @FgdcCode = fg.CODE,
+	                @CellPhon = f.CELL_PHON_DNRM
+	           FROM dbo.Fighter_Discount_Card fg, dbo.Fighter f
+	          WHERE fg.ADVP_CODE = @AdvpCode
+	            AND fg.FIGH_FILE_NO = @FileNo
+	            AND fg.RQST_RQID IS NULL	         
+	            AND fg.FIGH_FILE_NO = f.FILE_NO
+	          ORDER BY fg.CRET_DATE DESC;	      
+	      END;
 	   END
 	   
 	   -- IF Send Notification SMS
@@ -75,6 +103,7 @@ BEGIN
                dbo.GET_TEXT_F(
                   (SELECT @FileNo AS '@fileno'
                          ,@AdvpCode AS '@advpcode'
+                         ,@FgdcCode AS '@fgdccode'
                          ,@Tmid AS '@tmid'
                      FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
          

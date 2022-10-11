@@ -50,8 +50,8 @@ BEGIN
       IF @@FETCH_STATUS <> 0
          GOTO EndFetchRqrv;
       
-      DECLARE @StrtDate DATE
-             ,@EndDate  DATE
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME
              ,@PrntCont SMALLINT
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT

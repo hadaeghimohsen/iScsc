@@ -98,8 +98,8 @@ BEGIN
            ,@RqroRwno OUT;
       END
       
-      DECLARE @StrtDate DATE
-             ,@EndDate  DATE
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME             
              ,@PrntCont SMALLINT
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
@@ -113,8 +113,8 @@ BEGIN
       SET @NumbOfAttnWeek = 0;
       SET @AttnDayType = '001';
       
-      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
-            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATE')
+      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATETIME')
+            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATETIME')
             ,@PrntCont = r.query('Member_Ship').value('(Member_Ship/@prntcont)[1]', 'SMALLINT')
             ,@NumbMontOfer = r.query('Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')            
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
@@ -123,7 +123,7 @@ BEGIN
         FROM @X.nodes('//Request_Row') Rqrv(r)
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
-      IF @StrtDate IN ('1900-01-01', '0001-01-01') OR @EndDate IN ('1900-01-01', '0001-01-01')
+      IF CAST(@StrtDate AS DATE) IN ('1900-01-01', '0001-01-01') OR CAST(@EndDate AS DATE) IN ('1900-01-01', '0001-01-01')
       BEGIN
          DECLARE @FgpbType VARCHAR(3);
          SELECT @FgpbType = FGPB_TYPE_DNRM

@@ -43,6 +43,14 @@ BEGIN
       SET @Amnt_Type = '002';
    IF @Stat IS NULL 
       SET @Stat = '002';
+   
+   -- 1401/07/16 * روز اعتصابات سراسری ایران و سرنگونی حکومت آخوندی ضحاک
+   IF @Expn_Code IS NULL AND 
+      EXISTS ( SELECT * FROM dbo.Request r WHERE r.RQID = @Pymt_Rqst_Rqid AND r.RQTP_CODE IN ('001', '009'))
+      SELECT @Expn_Code = pd.EXPN_CODE
+        FROM dbo.Payment_Detail pd
+       WHERE pd.PYMT_RQST_RQID = @Pymt_Rqst_Rqid
+         AND pd.PYMT_CASH_CODE = @Pymt_Cash_Code;
       
    INSERT INTO dbo.Payment_Discount ( PYMT_CASH_CODE ,PYMT_RQST_RQID ,RQRO_RWNO ,EXPN_CODE ,AMNT ,AMNT_TYPE ,STAT ,PYDS_DESC ,ADVC_CODE ,FGDC_CODE )
    VALUES  ( @Pymt_Cash_Code ,@Pymt_Rqst_Rqid ,@Rqro_Rwno ,@Expn_Code ,@Amnt ,@Amnt_Type ,@Stat ,@Pyds_Desc ,@Advc_Code ,@Fgdc_Code );

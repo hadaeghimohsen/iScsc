@@ -46,12 +46,12 @@ BEGIN
 	         ,@FileNo   = @X.query('//Request_Row').value('(Request_Row/@fileno)[1]', 'BIGINT')
 	         ,@CbmtCode = @X.query('//Member_Ship').value('(Member_Ship/@cbmtcode)[1]', 'BIGINT')
 	         ,@CtgyCode = @X.query('//Member_Ship').value('(Member_Ship/@ctgycode)[1]', 'BIGINT')
-	         ,@EditPymt = @X.query('//Member_Ship').value('(Member_Ship/@editpymt)[1]', 'BIGINT');
+	         ,@EditPymt = @X.query('//Member_Ship').value('(Member_Ship/@editpymt)[1]', 'VARCHAR(3)');
 	   
 	   SET @OrgnRqid = @Rqid;
 	   
-      DECLARE @StrtDate002 DATE
-             ,@EndDate002  DATE
+      DECLARE @StrtDate002 DATETIME
+             ,@EndDate002  DATETIME
              ,@PrntCont002 SMALLINT
              ,@NumbMontOfer002 INT
              ,@NumbOfAttnMont002 INT
@@ -59,14 +59,17 @@ BEGIN
              ,@AttnDayType002 VARCHAR(3)
              ,@NewFgpbRwno INT;
      
-     DECLARE  @StrtDate004 DATE
-             ,@EndDate004  DATE
+     DECLARE  @StrtDate004 DATETIME
+             ,@EndDate004  DATETIME
              ,@PrntCont004 SMALLINT
              ,@NumbMontOfer004 INT
              ,@NumbOfAttnMont004 INT
              ,@SumNumbAttnMont004 INT
              ,@AttnDayType004 VARCHAR(3)
              ,@OldFgpbRwno INT;
+      
+      DECLARE @PrvnCode VARCHAR(3)
+             ,@RegnCode VARCHAR(3);
       
       SELECT @StrtDate002 = STRT_DATE
             ,@EndDate002 = END_DATE
@@ -98,20 +101,13 @@ BEGIN
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002';
       
-      UPDATE dbo.Member_Ship
-         SET STRT_DATE = @StrtDate002
-            ,END_DATE = @EndDate002
-            ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont002
-            ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont002
-            ,NUMB_MONT_OFER = @NumbMontOfer002
-       WHERE RQRO_RQST_RQID = @Rqid
-         AND RECT_CODE = '004';
-      
       -- 1396/11/08 * بررسی اینکه آیا برنامه کلاسی عوض شده است یا خیر
       DECLARE @OldCbmtCode BIGINT,
-              @OldCtgyCode BIGINT;
+              @OldCtgyCode BIGINT,
+              @OldRqid BIGINT;
       SELECT @OldCbmtCode = fp.CBMT_CODE
             ,@OldCtgyCode = fp.CTGY_CODE
+            ,@OldRqid = fp.RQRO_RQST_RQID
         FROM dbo.Member_Ship m, dbo.Fighter_Public fp
        WHERE m.RQRO_RQST_RQID = @Rqid
          AND m.RECT_CODE = '004'
@@ -119,11 +115,11 @@ BEGIN
          AND m.FGPB_RECT_CODE_DNRM = fp.RECT_CODE
          AND m.FIGH_FILE_NO = fp.FIGH_FILE_NO;
       
+      --1401/07/16 * روز سرنگونی حکومت کثیف آخوندی
+            
       IF (@CbmtCode != @OldCbmtCode) OR (@CtgyCode != @OldCtgyCode)
       BEGIN
-         DECLARE @PrvnCode VARCHAR(3)
-                ,@RegnCode VARCHAR(3);
-         
+         /*
          SELECT @PrvnCode = REGN_PRVN_CODE
                ,@RegnCode = REGN_CODE
            FROM dbo.Fighter
@@ -145,25 +141,26 @@ BEGIN
             AND R.RQTT_CODE = '004'
             AND CAST(R.RQST_DATE AS DATE) = CAST(GETDATE() AS DATE)
             AND r.CRET_BY = UPPER(SUSER_NAME());
-         
+         */
          UPDATE dbo.Fighter_Public
             SET CBMT_CODE = @CbmtCode
+               ,MTOD_CODE = (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCode)
                ,COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
                ,CTGY_CODE = @CtgyCode
-          WHERE RQRO_RQST_RQID = @Rqid
+          WHERE RQRO_RQST_RQID = @OldRqid--@Rqid
             AND FIGH_FILE_NO = @FileNo;
          
          UPDATE dbo.Fighter
             SET CTGY_CODE_DNRM = @CtgyCode
           WHERE FILE_NO = @FileNo;
-         
+         /*
          SET @X = '<Process><Request rqid="" rqtpcode="002" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""></Request_Row></Request></Process>';
          SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
          SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
          SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
          SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
          EXEC PBL_SAVE_F @X;
-
+         */         
          DECLARE @FgpbRwno INT
                 ,@CochFileNo BIGINT;
          
@@ -171,23 +168,41 @@ BEGIN
          SELECT @FgpbRwno = RWNO
                ,@CochFileNo = COCH_FILE_NO
            FROM dbo.Fighter_Public
-          WHERE RQRO_RQST_RQID = @Rqid
-            AND RECT_CODE = '004'; 
-         
-         -- 1399/12/25 * بدست آورده شماره جدید ردیف عمومی مشتری
-         SET @NewFgpbRwno = @FgpbRwno;
-         
-         UPDATE dbo.Member_Ship
-            SET FGPB_RWNO_DNRM = @FgpbRwno
-          WHERE RQRO_RQST_RQID = @OrgnRqid
+          WHERE RQRO_RQST_RQID = @OldRqid--@Rqid
             AND RECT_CODE = '004';
          
-         UPDATE dbo.Payment_Detail
-            SET CBMT_CODE_DNRM = @CbmtCode
-               ,FIGH_FILE_NO = @CochFileNo
-               --,CTGY_CODE_DNRM = @CtgyCode
-          WHERE PYMT_RQST_RQID = @OrgnRqid;          
+         -- 1399/12/25 * بدست آورده شماره جدید ردیف عمومی مشتری
+         --SET @NewFgpbRwno = @FgpbRwno;
+         
+         --UPDATE dbo.Member_Ship
+         --   SET FGPB_RWNO_DNRM = @FgpbRwno
+         -- WHERE RQRO_RQST_RQID = @OrgnRqid
+         --   AND RECT_CODE = '004';
+         
+         UPDATE pd
+            SET pd.CBMT_CODE_DNRM = @CbmtCode
+               ,pd.FIGH_FILE_NO = @CochFileNo
+               ,pd.CTGY_CODE_DNRM = @CtgyCode
+               ,pd.MTOD_CODE_DNRM = e2.MTOD_CODE
+               ,pd.EXPN_CODE = e2.CODE
+               ,pd.EXPN_PRIC = CASE @EditPymt WHEN '002' THEN e2.PRIC ELSE pd.EXPN_PRIC END 
+           FROM dbo.Payment_Detail pd, dbo.Expense e1, dbo.Expense e2
+          WHERE PYMT_RQST_RQID IN (@OrgnRqid, @OldRqid)
+            AND e1.EXTP_CODE = e2.EXTP_CODE
+            AND e1.CODE = pd.EXPN_CODE            
+            AND e2.CTGY_CODE = @CtgyCode;         
       END
+      
+      --1401/07/16 * روز سرنگونی حکومت اخوندی      
+      UPDATE dbo.Member_Ship
+         SET STRT_DATE = @StrtDate002
+            ,END_DATE = @EndDate002
+            ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont002
+            ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont002
+            ,NUMB_MONT_OFER = @NumbMontOfer002
+       WHERE RQRO_RQST_RQID = @Rqid
+         AND RECT_CODE = '004';
+
       
       IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '020' AND STAT = '002')        
       BEGIN

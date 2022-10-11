@@ -127,8 +127,8 @@ BEGIN
            ,@RqroRwno OUT;
       END
       
-      DECLARE @StrtDate DATE
-             ,@EndDate  DATE
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME
              ,@PrntCont SMALLINT
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
@@ -145,8 +145,8 @@ BEGIN
       SET @AttnDayType = '001';
       SET @NewFngrPrnt = '';
       
-      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATE')
-            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATE')
+      SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATETIME')
+            ,@EndDate  = r.query('Member_Ship').value('(Member_Ship/@enddate)[1]',  'DATETIME')
             ,@PrntCont = r.query('Member_Ship').value('(Member_Ship/@prntcont)[1]', 'SMALLINT')
             ,@NumbMontOfer = r.query('Member_Ship').value('(Member_Ship/@numbmontofer)[1]', 'INT')            
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
@@ -202,7 +202,7 @@ BEGIN
             AND EXPN_CODE IS NOT NULL;
       END;
       
-      IF @StrtDate IN ('1900-01-01', '0001-01-01') OR @EndDate IN ('1900-01-01', '0001-01-01')
+      IF CAST(@StrtDate AS DATE) IN ('1900-01-01', '0001-01-01') OR CAST(@EndDate AS DATE) IN ('1900-01-01', '0001-01-01')
       BEGIN
          DECLARE @FgpbType VARCHAR(3);
          SELECT @FgpbType = FGPB_TYPE_DNRM
@@ -250,6 +250,8 @@ BEGIN
                ,@NumbOfAttnWeek = M.NUMB_OF_ATTN_WEEK
                ,@NumbMontOfer = ISNULL(@NumbMontOfer, NUMB_MONT_OFER)
                --,@EndDate = DATEADD(DAY, NUMB_OF_DAYS_DNRM, @StrtDate)
+               ,@StrtDate = @StrtDate + CAST(CAST(m.STRT_DATE AS TIME(0)) AS DATETIME)
+               ,@EndDate = @EndDate + CAST(CAST(m.END_DATE AS TIME(0)) AS DATETIME)
            FROM dbo.Fighter F, dbo.Member_Ship M
           WHERE F.FILE_NO = M.FIGH_FILE_NO
             AND F.MBSP_RWNO_DNRM = M.RWNO

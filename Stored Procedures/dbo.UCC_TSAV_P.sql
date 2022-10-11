@@ -51,8 +51,8 @@ BEGIN
        WHERE PYMT_RQST_RQID = @Rqid
          AND @x.query('//Payment').value('(Payment/@setondebt)[1]', 'BIT') = 0;
 
-      DECLARE @StrtDate DATE
-             ,@EndDate  DATE
+      DECLARE @StrtDate DATETIME
+             ,@EndDate  DATETIME
              ,@PrntCont SMALLINT
              ,@NumbMontOfer INT
              ,@NumbOfAttnMont INT
@@ -369,6 +369,10 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @FgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,FGPB_CTGY_CODE_DNRM = @CtgyCode
+            ,FGPB_MTOD_CODE_DNRM = @MtodCode
+            ,FGPB_CBMT_CODE_DNRM = @CbmtCode
+            ,FGPB_COCH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)            
             ,END_DATE = DATEADD(DAY, @HldyNumb, END_DATE)
             ,NUMB_OF_ATTN_MONT = NUMB_OF_ATTN_MONT * @SharGlobCont
             ,SUM_ATTN_MONT_DNRM = @SumAttnMont -- در این قسمت باید بررسی شود که نفرهای قبلی آیا از گزینه استخر استفاده کرده اند یا خیر

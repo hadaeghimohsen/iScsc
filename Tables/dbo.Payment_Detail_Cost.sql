@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].[Payment_Detail_Cost]
 (
 [PYDT_CODE] [bigint] NULL,
+[EXCO_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
 [RWNO] [smallint] NULL,
 [INIT_AMNT_DNRM] [bigint] NULL,
@@ -77,6 +78,8 @@ GO
 ALTER TABLE [dbo].[Payment_Detail_Cost] ADD CONSTRAINT [PK_Payment_Detail_Cost] PRIMARY KEY CLUSTERED  ([CODE]) ON [BLOB]
 GO
 ALTER TABLE [dbo].[Payment_Detail_Cost] ADD CONSTRAINT [FK_PDCO_APBS] FOREIGN KEY ([PYDT_APBS_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[Payment_Detail_Cost] ADD CONSTRAINT [FK_PDCO_EXCO] FOREIGN KEY ([EXCO_CODE]) REFERENCES [dbo].[Expense_Cost] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Detail_Cost] ADD CONSTRAINT [FK_PDCO_PYDT] FOREIGN KEY ([PYDT_CODE]) REFERENCES [dbo].[Payment_Detail] ([CODE]) ON DELETE CASCADE
 GO
