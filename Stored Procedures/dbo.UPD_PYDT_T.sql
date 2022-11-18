@@ -26,6 +26,8 @@ CREATE PROCEDURE [dbo].[UPD_PYDT_T]
   ,@EXPR_DATE DATETIME
   ,@From_Numb BIGINT
   ,@To_Numb BIGINT
+  ,@Exts_Code BIGINT
+  ,@Exts_Rsrv_Date DATETIME
 AS
 BEGIN
 
@@ -45,7 +47,9 @@ UPDATE [dbo].[Payment_Detail]
         ,CBMT_CODE_DNRM = @Cbmt_Code_Dnrm
         ,EXPR_DATE = @EXPR_DATE
         ,FROM_NUMB = @From_Numb
-        ,TO_NUMB = @To_Numb        
+        ,TO_NUMB = @To_Numb
+        ,EXTS_CODE = @Exts_Code
+        ,EXTS_RSRV_DATE = @Exts_Rsrv_Date
  WHERE PYMT_RQST_RQID = @PYMT_RQST_RQID
    AND PYMT_CASH_CODE = @PYMT_CASH_CODE
    AND RQRO_RWNO = @RQRO_RWNO

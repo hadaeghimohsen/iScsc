@@ -18,22 +18,28 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
    
-   PRINT 'Fuck'
-   
    DECLARE @RpacType VARCHAR(3),
            @FromDate DATE,
            @ToDate DATE,
            @CochFileNo BIGINT,
            @CbmtCode BIGINT,
            @RecdOwnr VARCHAR(250),
-           @RpapCode BIGINT;
+           @RpapCode BIGINT,
+           @SuntCode VARCHAR(4),
+           @SuntBuntCode VARCHAR(2),
+           @SuntBuntDeptCode VARCHAR(2),
+           @SuntBuntDeptOrgnCode VARCHAR(2);
    
    SELECT @RpacType = @X.query('.').value('(Parameter/@rpactype)[1]', 'VARCHAR(3)')
          ,@FromDate = @X.query('.').value('(Parameter/@fromdate)[1]', 'DATE')
          ,@ToDate   = @X.query('.').value('(Parameter/@todate)[1]', 'DATE')
          ,@CochFileNo = @X.query('.').value('(Parameter/@cochfileno)[1]', 'BIGINT')
          ,@CbmtCode = @X.query('.').value('(Parameter/@cbmtcode)[1]', 'BIGINT')
-         ,@RecdOwnr = @X.query('.').value('(Parameter/@recdownr)[1]', 'VARCHAR(250)');
+         ,@RecdOwnr = @X.query('.').value('(Parameter/@recdownr)[1]', 'VARCHAR(250)')
+         ,@SuntCode = @X.query('.').value('(Parameter/@suntcode)[1]', 'VARCHAR(4)')
+         ,@SuntBuntCode = @X.query('.').value('(Parameter/@suntbuntcode)[1]', 'VARCHAR(2)')
+         ,@SuntBuntDeptCode = @X.query('.').value('(Parameter/@suntbuntdeptcode)[1]', 'VARCHAR(2)')
+         ,@SuntBuntDeptOrgnCode = @X.query('.').value('(Parameter/@suntbuntdeptorgncode)[1]', 'VARCHAR(2)');
    
    MERGE dbo.Report_Action_Parameter T
    USING (SELECT UPPER(SUSER_NAME()) AS CRET_BY, @RpacType AS RPAC_TYPE) S
@@ -48,19 +54,24 @@ BEGIN
     WHERE CRET_BY = UPPER(SUSER_NAME())
       AND RPAC_TYPE = @RpacType;
    
+   UPDATE dbo.Report_Action_Parameter
+      SET FROM_DATE = @FromDate
+         ,TO_DATE = @ToDate
+         ,COCH_FILE_NO = @CochFileNo
+         ,CBMT_CODE = @CbmtCode
+         ,RECD_OWNR = @RecdOwnr
+         ,SUNT_CODE = @SuntCode
+         ,SUNT_BUNT_CODE = @SuntBuntCode
+         ,SUNT_BUNT_DEPT_CODE = @SuntBuntDeptCode
+         ,SUNT_BUNT_DEPT_ORGN_CODE = @SuntBuntDeptOrgnCode
+    WHERE CRET_BY = UPPER(SUSER_NAME())
+      AND RPAC_TYPE = @RpacType;
+      
+   DELETE dbo.Report_Temporary WHERE RPAP_CODE = @RpapCode;
+   
    -- گزارش کلاسی سرپرستان
    IF @RpacType = '001'
-   BEGIN
-      UPDATE dbo.Report_Action_Parameter
-         SET FROM_DATE = @FromDate
-            ,TO_DATE = @ToDate
-            ,COCH_FILE_NO = @CochFileNo
-            ,CBMT_CODE = @CbmtCode
-            ,RECD_OWNR = @RecdOwnr
-       WHERE CRET_BY = UPPER(SUSER_NAME())
-         AND RPAC_TYPE = @RpacType;
-      
-      DELETE dbo.Report_Temporary WHERE RPAP_CODE = @RpapCode;      
+   BEGIN            
       /*
       INSERT INTO dbo.Report_Temporary
       ( CODE ,RPAP_CODE ,RQST_RQID ,COCH_FILE_NO ,CBMT_CODE ,FIGH_FILE_NO ,
@@ -166,6 +177,16 @@ BEGIN
       DELETE dbo.Report_Temporary
        WHERE RPAP_CODE = @RpapCode
          AND COCH_FILE_NO IS NULL;
+   END
+   -- گزارش عملکرد افراد سازمانی
+   ELSE IF @RpacType = '002' 
+   BEGIN
+      INSERT INTO dbo.Report_Temporary ( CODE ,RPAP_CODE ,FIGH_FILE_NO )
+      SELECT dbo.GNRT_NVID_U(), @RpapCode, f.FILE_NO
+        FROM dbo.V#Fighter f, dbo.Report_Action_Parameter a
+       WHERE a.CODE = @RpapCode
+         AND f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM + f.SUNT_BUNT_DEPT_CODE_DNRM + f.SUNT_BUNT_CODE_DNRM + f.SUNT_CODE_DNRM = 
+             a.SUNT_BUNT_DEPT_ORGN_CODE + a.SUNT_BUNT_DEPT_CODE + a.SUNT_BUNT_CODE + a.SUNT_CODE;
    END 
    
    -- Insert statements for procedure here

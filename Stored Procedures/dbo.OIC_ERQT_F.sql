@@ -64,7 +64,8 @@ BEGIN
    	       ,@NatlCode VARCHAR(10)
    	       ,@CellPhon VARCHAR(11)
    	       ,@SuntCode VARCHAR(4)
-   	       ,@ServNo NVARCHAR(50);
+   	       ,@ServNo NVARCHAR(50)
+   	       ,@CochFileNo BIGINT;
    	       
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@RqstRqid = @X.query('//Request').value('(Request/@rqstrqid)[1]'    , 'BIGINT')
@@ -89,7 +90,8 @@ BEGIN
 	         ,@NatlCode = @X.query('//Fighter_Public').value('(Fighter_Public/@natlcode)[1]', 'VARCHAR(10)')
 	         ,@CellPhon = @X.query('//Fighter_Public').value('(Fighter_Public/@cellphon)[1]', 'VARCHAR(11)')
 	         ,@SuntCode = @X.query('//Fighter_Public').value('(Fighter_Public/@suntcode)[1]', 'VARCHAR(4)')
-	         ,@ServNo   = @X.query('//Fighter_Public').value('(Fighter_Public/@servno)[1]', 'NVARCHAR(50)');
+	         ,@ServNo   = @X.query('//Fighter_Public').value('(Fighter_Public/@servno)[1]', 'NVARCHAR(50)')
+	         ,@CochFileNo = @X.query('//Fighter_Public').value('(Fighter_Public/@cochfileno)[1]', 'BIGINT');
       
       IF @FileNo = 0 OR @FileNo IS NULL 
          SELECT TOP 1 @FileNo = FILE_NO
@@ -102,6 +104,7 @@ BEGIN
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END      
       IF @RqstRqid = 0 SET @RqstRqid = NULL;
+      IF @CochFileNo = 0 SET @CochFileNo = NULL;
       
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code , @CntyCode = REGN_PRVN_CNTY_CODE
         FROM Fighter
@@ -158,40 +161,43 @@ BEGIN
       
       
       -- 1396/08/08 * اگر هزینه برای مشترک آزاد ثبت میشود می توانیم اطلاعات مشتری را ثبت کنیم
+      IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM = '005')
       BEGIN
-         IF EXISTS(SELECT * FROM dbo.Fighter WHERE FILE_NO = @FileNo AND FGPB_TYPE_DNRM = '005')
-         BEGIN
-            IF @SuntCode IS NULL OR @SuntCode = ''
-               SET @SuntCode = '0000';
-               
-            IF NOT EXISTS(SELECT * FROM dbo.Fighter_Public WHERE RQRO_RQST_RQID = @Rqid AND FIGH_FILE_NO = @FileNo)
-               INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE, [TYPE])
-               Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', ISNULL(@FrstName, ''), ISNULL(@LastName, ''), @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, FGPB_TYPE_DNRM
-                 FROM dbo.Fighter
-                WHERE FILE_NO = @FileNo;
-            ELSE
-               UPDATE dbo.Fighter_Public
-                  SET
-                     FRST_NAME = ISNULL(@FrstName, '')
-                    ,LAST_NAME = ISNULL(@LastName, '')
-                    ,CELL_PHON = @CellPhon
-                    ,NATL_CODE = @NatlCode
-                    ,SUNT_BUNT_DEPT_ORGN_CODE = '00'
-                    ,SUNT_BUNT_DEPT_CODE = '00'
-                    ,SUNT_BUNT_CODE = '00'
-                    ,SUNT_CODE = @SuntCode
-                    ,SERV_NO = @ServNo
-                WHERE RQRO_RQST_RQID = @Rqid
-                  AND FIGH_FILE_NO = @FileNo
-                  AND RECT_CODE = '001';
-         END
+         L$INSFP:
+         IF @SuntCode IS NULL OR @SuntCode = ''
+            SET @SuntCode = '0000';
+            
+         IF NOT EXISTS(SELECT * FROM dbo.Fighter_Public WHERE RQRO_RQST_RQID = @Rqid AND FIGH_FILE_NO = @FileNo)
+            INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE, [TYPE], COCH_FILE_NO)
+            Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', ISNULL(@FrstName, ''), ISNULL(@LastName, ''), @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, FGPB_TYPE_DNRM, @CochFileNo
+              FROM dbo.Fighter
+             WHERE FILE_NO = @FileNo;
          ELSE
-         BEGIN
-            DELETE dbo.Fighter_Public
+            UPDATE dbo.Fighter_Public
+               SET
+                  FRST_NAME = ISNULL(@FrstName, '')
+                 ,LAST_NAME = ISNULL(@LastName, '')
+                 ,CELL_PHON = @CellPhon
+                 ,NATL_CODE = @NatlCode
+                 ,SUNT_BUNT_DEPT_ORGN_CODE = '00'
+                 ,SUNT_BUNT_DEPT_CODE = '00'
+                 ,SUNT_BUNT_CODE = '00'
+                 ,SUNT_CODE = @SuntCode
+                 ,SERV_NO = @ServNo
+                 ,COCH_FILE_NO = @CochFileNo
              WHERE RQRO_RQST_RQID = @Rqid
+               AND FIGH_FILE_NO = @FileNo
                AND RECT_CODE = '001';
-         END      
       END
+      ELSE
+      BEGIN
+         -- 1401/08/21 * اگر شماره سرپرست خالی باشد همان روال قبل ولی اگر شماره سرپرست پر باشد باید ردیف عمومی ایجاد کنیم
+         IF @CochFileNo IS NOT NULL GOTO L$INSFP;
+         
+         DELETE dbo.Fighter_Public
+          WHERE RQRO_RQST_RQID = @Rqid
+            AND RECT_CODE = '001';
+      END      
       
       BEGIN                
       -- اگر در ثبت موقت باشیم و برای نوع درخواست و متقاضی آیین نامه هزینه داری داشته باشیم درخواست را به فرم اعلام هزینه ارسال میکنیم            

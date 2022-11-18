@@ -10,6 +10,7 @@ GO
 CREATE PROCEDURE [dbo].[UPD_CEXC_P]
 	-- Add the parameters for the stored procedure here
    @Code      BIGINT
+  ,@Expn_Code BIGINT
   ,@Coch_File_No BIGINT
   ,@Epit_Code BIGINT
   ,@Rqtt_Code VARCHAR(3)
@@ -91,6 +92,7 @@ BEGIN
          ,COCH_DEG     = @Coch_Deg
          ,PRCT_VALU    = @Prct_Valu
          ,STAT         = @Stat
+         ,EXPN_CODE    = @Expn_Code
          ,EXTP_CODE    = @Extp_Code
          ,MTOD_CODE    = @Mtod_Code
          ,CTGY_CODE    = @Ctgy_Code

@@ -23,9 +23,12 @@ BEGIN
              ,@Qnty SMALLINT
              ,@FighFileNo BIGINT
              ,@CbmtCodeDnrm BIGINT
+             ,@MbspFilNo BIGINT
+             ,@MbspRwno SMALLINT             
              ,@MtodCode BIGINT
              ,@CtgyCode BIGINT
              ,@Exprdate DATE;
+             
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -35,6 +38,7 @@ BEGIN
             ,@Qnty = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@qnty)[1]', 'SMALLINT')
             --,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT')
             ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT')
+            ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
             ,@Exprdate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE');
       
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
@@ -47,6 +51,19 @@ BEGIN
            FROM dbo.Club_Method
           WHERE code = @CbmtCodeDnrm;
       
+      -- 1401/07/23 * روز سرنگونی حکومت کثیف آخوندی
+      IF @MbspRwno != 0
+      BEGIN      
+         SELECT @MbspFilNo = FIGH_FILE_NO
+           FROM dbo.Request_Row
+          WHERE RQST_RQID = @Rqid;
+      END 
+      ELSE
+      BEGIN
+         SET @MbspFilNo = NULL;
+         SET @MbspRwno = NULL;
+      END 
+      
       -- 1397/02/31 
       SELECT @MtodCode = MTOD_CODE
             ,@CtgyCode = CTGY_CODE
@@ -54,8 +71,8 @@ BEGIN
        WHERE CODE = @PymtPydtExpnCode;
       
       IF NOT EXISTS(SELECT * FROM Payment_Detail WHERE PYMT_CASH_CODE = @PymtCashCode AND PYMT_RQST_RQID = @Rqid AND EXPN_CODE = @PymtPydtExpnCode)
-         INSERT INTO Payment_Detail (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, EXPN_PRIC, CODE, PYDT_DESC, QNTY, FIGH_FILE_NO, CBMT_CODE_DNRM, EXPR_DATE)
-         VALUES                     (@PymtCashCode, @Rqid, 1, @PymtPydtExpnCode, @ExpnPric, dbo.GNRT_NVID_U(), @PydtDesc, @Qnty, @FighFileNo, @CbmtCodeDnrm, @Exprdate);
+         INSERT INTO Payment_Detail (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, EXPN_PRIC, CODE, PYDT_DESC, QNTY, FIGH_FILE_NO, CBMT_CODE_DNRM, EXPR_DATE, MBSP_FIGH_FILE_NO, MBSP_RWNO, MBSP_RECT_CODE)
+         VALUES                     (@PymtCashCode, @Rqid, 1, @PymtPydtExpnCode, @ExpnPric, dbo.GNRT_NVID_U(), @PydtDesc, @Qnty, @FighFileNo, @CbmtCodeDnrm, @Exprdate, @MbspFilNo, @MbspRwno, '004');
       ELSE
          UPDATE Payment_Detail
             SET QNTY += @Qnty
@@ -64,6 +81,9 @@ BEGIN
                ,MTOD_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NOT NULL THEN (SELECT MTOD_CODE FROM dbo.Club_Method WHERE CODE = @CbmtCodeDnrm) ELSE @MtodCode END
                ,CTGY_CODE_DNRM = CASE WHEN @CbmtCodeDnrm IS NULL THEN @CtgyCode END
                ,EXPR_DATE = @Exprdate
+               ,MBSP_FIGH_FILE_NO = @MbspFilNo
+               ,MBSP_RWNO = @MbspRwno
+               ,MBSP_RECT_CODE = CASE @MbspRwno WHEN NULL THEN NULL ELSE '004' END
           WHERE PYMT_CASH_CODE = @PymtCashCode
             AND PYMT_RQST_RQID = @Rqid
             AND EXPN_CODE = @PymtPydtExpnCode;   

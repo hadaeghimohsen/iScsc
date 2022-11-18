@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Payment_Discount]
 [RQRO_RWNO] [smallint] NOT NULL,
 [RWNO] [smallint] NOT NULL CONSTRAINT [DF_Payment_Discount_RWNO] DEFAULT ((0)),
 [FIGH_FILE_NO_DNRM] [bigint] NULL,
+[PYDT_CODE_DNRM] [bigint] NULL,
 [EXPN_CODE] [bigint] NULL,
 [AMNT] [bigint] NULL,
 [AMNT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -92,6 +93,7 @@ BEGIN
          SET CRET_BY = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
             ,FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.PYMT_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
+            ,T.PYDT_CODE_DNRM = (SELECT pd.CODE FROM dbo.Payment_Detail pd WHERE pd.PYMT_RQST_RQID = s.PYMT_RQST_RQID AND pd.EXPN_CODE = s.EXPN_CODE)
             ,RWNO = (SELECT ISNULL(MAX(RWNO), 0) + 1 
                        FROM Payment_Discount
                       WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE AND
@@ -174,6 +176,8 @@ GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_FGDC] FOREIGN KEY ([FGDC_CODE]) REFERENCES [dbo].[Fighter_Discount_Card] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_FIGH] FOREIGN KEY ([FIGH_FILE_NO_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
+GO
+ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_PYDT] FOREIGN KEY ([PYDT_CODE_DNRM]) REFERENCES [dbo].[Payment_Detail] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Discount] ADD CONSTRAINT [FK_PYDS_PYMT] FOREIGN KEY ([PYMT_CASH_CODE], [PYMT_RQST_RQID]) REFERENCES [dbo].[Payment] ([CASH_CODE], [RQST_RQID]) ON DELETE CASCADE
 GO

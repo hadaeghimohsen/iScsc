@@ -60,6 +60,7 @@ CREATE TABLE [dbo].[Fighter]
 [SUNT_BUNT_DEPT_CODE_DNRM] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SUNT_BUNT_CODE_DNRM] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SUNT_CODE_DNRM] [varchar] (4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ORGN_CODE_DNRM] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CORD_X_DNRM] [real] NULL,
 [CORD_Y_DNRM] [real] NULL,
 [SERV_NO_DNRM] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Sub_Unit]
 [BUNT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [CODE] [varchar] (4) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SUNT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[ORGN_CODE_DNRM] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PENT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
@@ -73,7 +74,8 @@ BEGIN
       UPDATE 
       SET MDFY_BY   = UPPER(SUSER_NAME())
          ,MDFY_DATE = GETDATE()
-         ,T.CODE = CASE WHEN LEN(s.CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.CODE, '000'), 4, '0') END; ;
+         ,T.CODE = CASE WHEN LEN(s.CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.CODE, '000'), 4, '0') END,
+         T.ORGN_CODE_DNRM = S.BUNT_DEPT_ORGN_CODE + s.BUNT_DEPT_CODE + s.BUNT_CODE + s.CODE; 
 
 END
 GO

@@ -56,13 +56,18 @@ BEGIN
 	                                     N'ساعت ورود : ' + CONVERT(VARCHAR(5), pd.MDFY_DATE, 8) + N' - ' + 
 	                                     N'ساعت خروج : ' + CONVERT(VARCHAR(5), pd.EXPR_DATE, 8)
 	                                ELSE N''
-	                           END 
+	                           END	                           
 	                     FROM dbo.Payment_Detail pd, dbo.Expense e
 	                    WHERE pd.PYMT_RQST_RQID = @Rqid
 	                      AND pd.CODE = @Code
-	                      AND pd.EXPN_CODE = e.CODE)	                    
+	                      AND pd.EXPN_CODE = e.CODE) + 
+	                   ISNULL((SELECT f.NAME_DNRM
+	                      FROM dbo.Payment_Detail pd, dbo.Fighter f
+	                     WHERE pd.PYMT_RQST_RQID = @Rqid
+	                       AND pd.code = @code
+	                       AND pd.FIGH_FILE_NO = f.FILE_NO), N'')
 	         END 
-	      )
+	      ) 
 	    FROM dbo.Request r
 	   WHERE r.RQID = @Rqid;
 	END 

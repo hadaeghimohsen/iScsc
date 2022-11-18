@@ -204,8 +204,8 @@ BEGIN
             GROUP BY E.CASH_CODE, S.EXPN_CODE) T;
        END
        ELSE
-          INSERT INTO Payment_Detail (PYMT_RQST_RQID, PYMT_CASH_CODE, RQRO_RWNO, EXPN_CODE, Code, QNTY)
-          SELECT @Rqid, Cash_Code, @RqroRwno, Expn_Code, dbo.GNRT_NVID_U(), @Qnty
+          INSERT INTO Payment_Detail (PYMT_RQST_RQID, PYMT_CASH_CODE, RQRO_RWNO, EXPN_CODE, Code, QNTY, PYDT_DESC)
+          SELECT @Rqid, Cash_Code, @RqroRwno, Expn_Code, dbo.GNRT_NVID_U(), @Qnty, EXPN_DESC
           FROM VF$All_Expense_Detail(@PrvnCode, @RegnCode, NULL, @RqtpCode, @RqttCode, NULL, NULL, @MtodCode, @CtgyCode)
           WHERE ADD_QUTS = '001';          
     END

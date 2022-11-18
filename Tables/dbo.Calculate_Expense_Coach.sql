@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].[Calculate_Expense_Coach]
 (
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_Calculate_Expense_Coach_CODE] DEFAULT ((0)),
+[EXPN_CODE] [bigint] NULL,
 [COCH_FILE_NO] [bigint] NULL,
 [EPIT_CODE] [bigint] NULL,
 [RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -92,6 +93,8 @@ GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EPIT] FOREIGN KEY ([EPIT_CODE]) REFERENCES [dbo].[Expense_Item] ([CODE])
+GO
+ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
 GO
 ALTER TABLE [dbo].[Calculate_Expense_Coach] ADD CONSTRAINT [FK_CEXC_EXTP] FOREIGN KEY ([EXTP_CODE]) REFERENCES [dbo].[Expense_Type] ([CODE])
 GO

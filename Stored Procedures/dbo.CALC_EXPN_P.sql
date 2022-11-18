@@ -123,7 +123,7 @@ BEGIN
    DECLARE C$CochFileNo$CalcExpnP CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
              c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, 
-             C.PYMT_STAT, c.RDUC_AMNT, c.EFCT_DATE_TYPE
+             C.PYMT_STAT, ISNULL(c.RDUC_AMNT, 0), c.EFCT_DATE_TYPE
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -163,11 +163,22 @@ BEGIN
              PYDT.CODE, 
              @CochFileNo,
              '001',
-             --(PYDT.EXPN_PRIC * @PrctValu / 100) - ((PYDT.EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
-             (PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) - ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
-             PYMT.SUM_EXPN_PRIC,
-             PYMT.SUM_RCPT_EXPN_PRIC,
-             PYMT.SUM_PYMT_DSCN_DNRM,
+             (
+                (
+                    (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
+                ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                /*- 
+                (
+                   (
+                     (
+                         (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
+                     ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                   ) * @DecrPrct / 100
+                )*/
+             ),
+             (PYDT.EXPN_PRIC * PYDT.QNTY),
+             (PYDT.EXPN_PRIC * PYDT.QNTY) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
+             (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
              @PrctValu,
              @DecrPrct,
              RQRO.RQTP_CODE,
@@ -333,10 +344,10 @@ BEGIN
                 (
                    (
                         pe.EXPN_PRIC
-                     -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                     -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
                      -  (
                              pe.RDUC_AMNT -- سهم باشگاه
-                          -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
+                          -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
                         )
                      
                    ) * @PrctValu / 100 
@@ -345,10 +356,10 @@ BEGIN
                    (
                      (
                            pe.EXPN_PRIC 
-                        -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                        -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
                         -  (
                                 pe.RDUC_AMNT -- سهم باشگاه
-                             -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
+                             -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
                            )
                      ) * @PrctValu / 100 
                    ) * @DecrPrct / 100

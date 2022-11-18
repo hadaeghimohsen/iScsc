@@ -37,6 +37,8 @@ CREATE TABLE [dbo].[Payment_Detail]
 [TO_NUMB] [bigint] NULL,
 [PROF_AMNT_DNRM] [bigint] NULL,
 [DEDU_AMNT_DNRM] [bigint] NULL,
+[EXTS_CODE] [bigint] NULL,
+[EXTS_RSRV_DATE] [datetime] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -341,7 +343,7 @@ BEGIN
    
    -- 1395/12/27 * مبلغ های پرداختی از جدول پرداختی ها مشترک محاسبه و به صورت دینرمال در جدول هزینه قرار میگیرد.
    /*SELECT @SumRcptExpnPric      = ISNULL(SUM(EXPN_PRIC * QNTY), 0),
-          @SumRcptExpnExtrPrct  = ISNULL(SUM(EXPN_EXTR_PRCT * QNTY), 0),
+ @SumRcptExpnExtrPrct  = ISNULL(SUM(EXPN_EXTR_PRCT * QNTY), 0),
           @SumRcptRemnPric      = ISNULL(SUM(REMN_PRIC), 0)   
      FROM Payment_Detail 
     WHERE PYMT_RQST_RQID = @RqstRqid 
@@ -527,6 +529,8 @@ GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_CTGY] FOREIGN KEY ([CTGY_CODE_DNRM]) REFERENCES [dbo].[Category_Belt] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_EXPN] FOREIGN KEY ([EXPN_CODE]) REFERENCES [dbo].[Expense] ([CODE])
+GO
+ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_EXTS] FOREIGN KEY ([EXTS_CODE]) REFERENCES [dbo].[Expense_Type_Step] ([CODE])
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [FK_PYDT_FIGH] FOREIGN KEY ([FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO

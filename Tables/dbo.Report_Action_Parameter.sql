@@ -7,6 +7,11 @@ CREATE TABLE [dbo].[Report_Action_Parameter]
 [RECD_OWNR] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COCH_FILE_NO] [bigint] NULL,
 [CBMT_CODE] [bigint] NULL,
+[SUNT_BUNT_DEPT_ORGN_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_BUNT_DEPT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_BUNT_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SUNT_CODE] [varchar] (4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ORGN_CODE_DNRM] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -67,7 +72,8 @@ BEGIN
    WHEN MATCHED THEN 
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
-         T.MDFY_DATE = GETDATE();
+         T.MDFY_DATE = GETDATE(),
+         T.ORGN_CODE_DNRM = S.SUNT_BUNT_DEPT_ORGN_CODE + S.SUNT_BUNT_DEPT_CODE + s.SUNT_BUNT_CODE + s.SUNT_CODE;
 END
 GO
 ALTER TABLE [dbo].[Report_Action_Parameter] ADD CONSTRAINT [PK_RPAP] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

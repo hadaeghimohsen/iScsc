@@ -35,8 +35,27 @@ AS
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
-    SET NOCOUNT ON;
-   
+   SET NOCOUNT ON;
+
+   -- 1401/07/26 * چک کردن دسترسی حذف پرداختی صورتحساب
+   -- کیرم_تو_بیت_رهبری
+   -- مهسا_امینی
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   -- اگر درخواست هنوز پایانی نشده میتوانیم که ردیف پرداخت را پاک کنیم
+   IF EXISTS(SELECT * FROM dbo.Request r, Deleted d WHERE r.RQID = d.PYMT_RQST_RQID AND r.RQST_STAT = '002')
+   BEGIN
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>262</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 262 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END  
+   END  
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
    --MERGE dbo.Payment T
    --USING (SELECT * FROM Deleted )S
@@ -345,6 +364,22 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 	
+   -- 1401/07/26 * چک کردن دسترسی حذف پرداختی صورتحساب
+   -- کیرم_تو_بیت_رهبری
+   -- مهسا_امینی
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   --SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>263</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+   --EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+   --IF @AP = 0 
+   --BEGIN
+   --   RAISERROR ( N'خطا - عدم دسترسی به ردیف 263 سطوح امینتی', -- Message text.
+   --            16, -- Severity.
+   --            1 -- State.
+   --            );
+   --   RETURN;
+   --END   	
+	
 	-- اگر کاربری بخواهد مبلغ وصولی غیر نقدی را تبدیل به مبلغ وصولی نقدی کند باید چک کنیم که ایا اجازه این کار وجود دارد یا خیر
 	IF EXISTS(
 	   SELECT *
@@ -356,8 +391,8 @@ BEGIN
 	      AND i.RCPT_MTOD = '001' -- نقدی
 	)
 	BEGIN
-	   DECLARE @AP BIT
-          ,@AccessString VARCHAR(250);
+	   --DECLARE @AP BIT
+    --      ,@AccessString VARCHAR(250);
       SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>237</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
       EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
       IF @AP = 0 

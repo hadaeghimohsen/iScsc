@@ -38,7 +38,9 @@ BEGIN
              ,@MbspRwno SMALLINT
              ,@MbspRectCode VARCHAR(3) = '004'
              ,@FromNumb BIGINT
-             ,@ToNumb BIGINT;
+             ,@ToNumb BIGINT
+             ,@ExtsCode BIGINT
+             ,@ExtsRsrvDate DATETIME;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -63,8 +65,22 @@ BEGIN
             ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
             ,@MbspRectCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprectcode)[1]', 'VARCHAR(3)')
             ,@FromNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fromnumb)[1]', 'BIGINT')
-            ,@ToNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tonumb)[1]', 'BIGINT');
+            ,@ToNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tonumb)[1]', 'BIGINT')
+            ,@ExtsCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extscode)[1]', 'BIGINT')
+            ,@ExtsRsrvDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extsrsrvdate)[1]', 'DATETIME');
       
+      -- 1401/07/26 * باید چک شود که آیا شرایط رزرو برقرار میباشد یا خیر
+      -- کیرم_تو_بیت_رهبری
+      -- مهسا_امینی
+      IF @ExtsCode = 0
+         SELECT @ExtsCode = NULL,
+                @ExtsRsrvDate = NULL;
+      ELSE
+      BEGIN
+         IF @ExtsRsrvDate = '1900-01-01' SET @ExtsRsrvDate = GETDATE();
+         PRINT 'Check Validation...';
+      END 
+                
       IF @MbspRwno = 0 OR @MbspRwno IS NULL
          SELECT @MbspFighFileNo = NULL, 
                 @MbspRectCode = NULL,
@@ -188,6 +204,8 @@ BEGIN
             ,MBSP_RECT_CODE = @MbspRectCode
             ,FROM_NUMB = @FromNumb
             ,TO_NUMB = @ToNumb
+            ,EXTS_CODE = @ExtsCode
+            ,EXTS_RSRV_DATE = @ExtsRsrvDate
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;
