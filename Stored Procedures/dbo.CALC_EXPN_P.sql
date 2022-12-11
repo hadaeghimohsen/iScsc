@@ -132,6 +132,8 @@ BEGIN
          /*AND ISNULL(P.Coch_Deg, '000') = ISNULL(C.Coch_Deg, '000')*/
          AND C.Stat = '002'
          AND F.ACTV_TAG_DNRM >= '101'
+         AND C.CALC_TYPE = '001' /* درصدی */
+         AND C.CALC_EXPN_TYPE = '001' /* مبلغ دوره */
          AND (@CochFileNoP IS NULL OR F.File_No = @CochFileNoP)
          AND (@MtodCodeP IS NULL OR c.MTOD_CODE = @MtodCodeP)
          AND (@CtgyCodeP IS NULL OR c.CTGY_CODE = @CtgyCodeP)
@@ -139,9 +141,7 @@ BEGIN
          AND (@CochDegrP IS NULL OR c.COCH_DEG = @CochDegrP)
          AND (@CetpCodeP IS NULL OR c.CALC_TYPE = @CetpCodeP)
          AND (@CxtpCodeP IS NULL OR c.CALC_EXPN_TYPE = @CxtpCodeP)
-         AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP)
-         AND C.CALC_TYPE = '001' /* درصدی */
-         AND c.CALC_EXPN_TYPE = '001' /* مبلغ دوره */;   
+         AND (@RqtpCodeP IS NULL OR c.RQTP_CODE = @RqtpCodeP);         
     
    OPEN C$CochFileNo$CalcExpnP;
    NextC$CochFileNo$CalcExpnP:
@@ -152,225 +152,227 @@ BEGIN
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnP;
       
-      -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
-      INSERT INTO Payment_Expense (
-         Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
-         DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
-         DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
-         MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO, FROM_DATE, TO_DATE, RDUC_AMNT, EFCT_DATE_TYPE,
-         RECT_CODE, RECT_DATE)
-      SELECT dbo.GNRT_NVID_U(),
-             PYDT.CODE, 
-             @CochFileNo,
-             '001',
+   -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
+   INSERT INTO Payment_Expense (
+      Code, PYDT_CODE, COCH_FILE_NO, VALD_TYPE, EXPN_AMNT, EXPN_PRIC, RCPT_PRIC, 
+      DSCN_PRIC, SELF_DSCN_PRIC, CALC_EXPN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
+      DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
+      MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO, FROM_DATE, TO_DATE, RDUC_AMNT, EFCT_DATE_TYPE,
+      RECT_CODE, RECT_DATE)
+   SELECT dbo.GNRT_NVID_U(),
+          PYDT.CODE, 
+          @CochFileNo,
+          '001',
+          (
+             (
+                 (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
+             ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+             /*- 
              (
                 (
-                    (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
-                ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
-                /*- 
-                (
-                   (
-                     (
-                         (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
-                     ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
-                   ) * @DecrPrct / 100
-                )*/
-             ),
-             (PYDT.EXPN_PRIC * PYDT.QNTY),
-             (PYDT.EXPN_PRIC * PYDT.QNTY) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
-             (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
-             @PrctValu,
-             @DecrPrct,
-             RQRO.RQTP_CODE,
-             PYDT.MTOD_CODE_DNRM,
-             PYDT.CTGY_CODE_DNRM,
-             PYMT.CLUB_CODE_DNRM,
-             ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
-             RQRO.RQST_RQID,
-             RQRO.RWNO,
-             '001', -- مبلغ دوره
-             '001', -- درصدی
-             @PymtStat,
-             RQRO.FIGH_FILE_NO,
-             '004',
-             CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
-             /*@FromPymtDate,
-             @ToPymtDate,*/
-             CASE RQST.RQTP_CODE
-               WHEN '001' THEN (SELECT ms.STRT_DATE
-                                  FROM dbo.Member_Ship ms
-                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                   AND ms.RECT_CODE = '004'
-                                   AND ms.RWNO = 1)
-               WHEN '009' THEN (SELECT ms.STRT_DATE
-                                  FROM dbo.Member_Ship ms
-                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                   AND ms.RECT_CODE = '004'
-                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
-                                   AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
-             END ,
-             CASE RQST.RQTP_CODE
-               WHEN '001' THEN (SELECT ms.END_DATE
-                                  FROM dbo.Member_Ship ms
-                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                   AND ms.RECT_CODE = '004'
-                                   AND ms.RWNO = 1)
-               WHEN '009' THEN (SELECT ms.END_DATE
-                                  FROM dbo.Member_Ship ms
-                                 WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                   AND ms.RECT_CODE = '004'
-                                   AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
-                                   AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
-             END ,
-             @RducAmnt,
-             @EfctDateType,
-             '004',
-             NULL
-        FROM Payment_Detail AS PYDT INNER JOIN
-             dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
-             Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
-             Request AS RQST ON RQST.RQID = RQRO.RQST_RQID INNER JOIN 
-             Fighter AS FIGH ON RQRO.FIGH_FILE_NO = FIGH.FILE_NO INNER JOIN
-             Expense AS EXPN ON PYDT.EXPN_CODE = EXPN.CODE INNER JOIN
-             Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
-             Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
-             Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE (PYDT.PAY_STAT = @PymtStat) 
-         AND (RQRO.RECD_STAT = '002') 
-         AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
-         AND (
-                ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
-                  AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
-                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
-                ) OR 
-                ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
-                  AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
-                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)
-                ) OR 
-                ( @EfctDateType = '005' -- تاریخ ایجاد رکورد
-                  AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
-                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
-                ) OR 
-                ( @EfctDateType = '004' -- تاریخ تایید درخواست
-                  AND (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate)
-                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
-                ) OR 
-                ( @EfctDateType = '003' -- تاریخ ثبت درخواست
-                  AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
-                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
-                ) OR 
-                ( @EfctDateType = '002' -- تاریخ پایان دوره
-                  AND (
-                         (
-                            RQST.RQTP_CODE = '001' AND 
-                            EXISTS(
-                              SELECT *
-                                FROM dbo.Member_Ship ms
-                               WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                 AND ms.RECT_CODE = '004'
-                                 AND ms.RWNO = 1
-                                 AND (CAST(ms.END_DATE AS DATE) >= @FromPymtDate)
-                                 AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.END_DATE AS DATE) <= @ToPymtDate)
-                            )
-                         ) OR
-                         (
-                            RQST.RQTP_CODE = '009' AND 
-                            EXISTS(
-                              SELECT *
-                                FROM dbo.Member_Ship ms
-                               WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                 AND ms.RECT_CODE = '004'
-                                 AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
-                                 AND ms.RQRO_RWNO = RQRO.RWNO
-                                 AND (CAST(ms.END_DATE AS DATE) >= @FromPymtDate)
-                                 AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.END_DATE AS DATE) <= @ToPymtDate)
-                            )
-                         ) OR 
-                         (
-                            RQST.RQTP_CODE = '016' AND
-                            (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate) AND 
-                            (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
+                  (
+                      (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100 
+                  ) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                ) * @DecrPrct / 100
+             )*/
+          ),
+          (PYDT.EXPN_PRIC * PYDT.QNTY),
+          (PYDT.EXPN_PRIC * PYDT.QNTY) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
+          (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),          
+          (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
+          (PYDT.EXPN_PRIC * PYDT.QNTY) * @PrctValu / 100,
+          @PrctValu,
+          @DecrPrct,
+          RQRO.RQTP_CODE,
+          PYDT.MTOD_CODE_DNRM,
+          PYDT.CTGY_CODE_DNRM,
+          PYMT.CLUB_CODE_DNRM,
+          ((PYMT.SUM_RCPT_EXPN_PRIC * @PrctValu / 100) * @DecrPrct / 100),
+          RQRO.RQST_RQID,
+          RQRO.RWNO,
+          '001', -- مبلغ دوره
+          '001', -- درصدی
+          @PymtStat,
+          RQRO.FIGH_FILE_NO,
+          '004',
+          CASE WHEN RQRO.RQTP_CODE = '001' THEN 1 WHEN RQRO.RQTP_CODE = '016' THEN (SELECT MBSP_RWNO_DNRM FROM dbo.Fighter WHERE FILE_NO = RQRO.FIGH_FILE_NO) ELSE (SELECT ms.RWNO FROM dbo.Member_Ship ms WHERE ms.RQRO_RQST_RQID = RQRO.RQST_RQID AND ms.RQRO_RWNO = RQRO.RWNO AND ms.RECT_CODE = '004') END,
+          /*@FromPymtDate,
+          @ToPymtDate,*/
+          CASE RQST.RQTP_CODE
+            WHEN '001' THEN (SELECT ms.STRT_DATE
+                               FROM dbo.Member_Ship ms
+                              WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                AND ms.RECT_CODE = '004'
+                                AND ms.RWNO = 1)
+            WHEN '009' THEN (SELECT ms.STRT_DATE
+                               FROM dbo.Member_Ship ms
+                              WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                AND ms.RECT_CODE = '004'
+                                AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                AND ms.RQRO_RWNO = RQRO.RWNO)
+            WHEN '016' THEN rqst.SAVE_DATE
+          END ,
+          CASE RQST.RQTP_CODE
+            WHEN '001' THEN (SELECT ms.END_DATE
+                               FROM dbo.Member_Ship ms
+                              WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                AND ms.RECT_CODE = '004'
+                                AND ms.RWNO = 1)
+            WHEN '009' THEN (SELECT ms.END_DATE
+                               FROM dbo.Member_Ship ms
+                              WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                                AND ms.RECT_CODE = '004'
+                                AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                                AND ms.RQRO_RWNO = RQRO.RWNO)
+            WHEN '016' THEN rqst.SAVE_DATE
+          END ,
+          @RducAmnt,
+          @EfctDateType,
+          '004',
+          NULL
+     FROM Payment_Detail AS PYDT INNER JOIN
+          dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
+          Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
+          Request AS RQST ON RQST.RQID = RQRO.RQST_RQID INNER JOIN 
+          Fighter AS FIGH ON RQRO.FIGH_FILE_NO = FIGH.FILE_NO INNER JOIN
+          Expense AS EXPN ON PYDT.EXPN_CODE = EXPN.CODE INNER JOIN
+          Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
+          Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
+          Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
+    WHERE (PYDT.PAY_STAT = @PymtStat) 
+      AND (RQRO.RECD_STAT = '002') 
+      AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
+      AND (
+             ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
+               AND (CAST(PYDT.ISSU_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.ISSU_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '006' -- تاریخ ویرایش رکورد
+               AND (CAST(PYDT.MDFY_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.MDFY_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '005' -- تاریخ ایجاد رکورد
+               AND (CAST(PYDT.CRET_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(PYDT.CRET_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '004' -- تاریخ تایید درخواست
+               AND (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '003' -- تاریخ ثبت درخواست
+               AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '002' -- تاریخ پایان دوره
+               AND (
+                      (
+                         RQST.RQTP_CODE = '001' AND 
+                         EXISTS(
+                           SELECT *
+                             FROM dbo.Member_Ship ms
+                            WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                              AND ms.RECT_CODE = '004'
+                              AND ms.RWNO = 1
+                              AND (CAST(ms.END_DATE AS DATE) >= @FromPymtDate)
+                              AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.END_DATE AS DATE) <= @ToPymtDate)
                          )
-                      )                      
-                ) OR 
-                ( @EfctDateType = '001' -- تاریخ شروع دوره
-                  AND (
-                         (
-                            RQST.RQTP_CODE = '001' AND 
-                            EXISTS(
-                              SELECT *
-                                FROM dbo.Member_Ship ms
-                               WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                 AND ms.RECT_CODE = '004'
-                                 AND ms.RWNO = 1
-                                 AND (CAST(ms.STRT_DATE AS DATE) >= @FromPymtDate)
-                                 AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.STRT_DATE AS DATE) <= @ToPymtDate)
-                            )
-                         ) OR
-                         (
-                            RQST.RQTP_CODE = '009' AND 
-                            EXISTS(
-                              SELECT *
-                                FROM dbo.Member_Ship ms
-                               WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
-                                 AND ms.RECT_CODE = '004'
-                                 AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
-                                 AND ms.RQRO_RWNO = RQRO.RWNO
-                                 AND (CAST(ms.STRT_DATE AS DATE) >= @FromPymtDate)
-                                 AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.STRT_DATE AS DATE) <= @ToPymtDate)
-                            )
-                         ) OR 
-                         (
-                            RQST.RQTP_CODE = '016' AND
-                            (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate) AND 
-                            (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
+                      ) OR
+                      (
+                         RQST.RQTP_CODE = '009' AND 
+                         EXISTS(
+                           SELECT *
+                             FROM dbo.Member_Ship ms
+                            WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                              AND ms.RECT_CODE = '004'
+                              AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                              AND ms.RQRO_RWNO = RQRO.RWNO
+                              AND (CAST(ms.END_DATE AS DATE) >= @FromPymtDate)
+                              AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.END_DATE AS DATE) <= @ToPymtDate)
                          )
-                      )                      
-                )
-         )
-         AND (PYDT.FIGH_FILE_NO = @CochFileNo)
-         AND (EPIT.CODE = @EpitCode)
-         AND (RQRQ.RQTT_CODE = @RqttCode)
-         AND (pydt.MTOD_CODE_DNRM = @MtodCode)
-         AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
-         AND (RQRO.RQTP_CODE = @RqtpCode)
-         AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
-      
-      -- بروز کردن رکورد هایی که مبلغ کاهش در ردیف آنها لحاظ شده است
-      UPDATE pe
-         SET pe.EXPN_AMNT = (
+                      ) OR 
+                      (
+                         RQST.RQTP_CODE = '016' AND
+                         (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate) AND 
+                         (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
+                      )
+                   )                      
+             ) OR 
+             ( @EfctDateType = '001' -- تاریخ شروع دوره
+               AND (
+                      (
+                         RQST.RQTP_CODE = '001' AND 
+                         EXISTS(
+                           SELECT *
+                             FROM dbo.Member_Ship ms
+                            WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                              AND ms.RECT_CODE = '004'
+                              AND ms.RWNO = 1
+                              AND (CAST(ms.STRT_DATE AS DATE) >= @FromPymtDate)
+                              AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.STRT_DATE AS DATE) <= @ToPymtDate)
+                         )
+                      ) OR
+                      (
+                         RQST.RQTP_CODE = '009' AND 
+                         EXISTS(
+                           SELECT *
+                             FROM dbo.Member_Ship ms
+                            WHERE ms.FIGH_FILE_NO = FIGH.FILE_NO
+                              AND ms.RECT_CODE = '004'
+                              AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
+                              AND ms.RQRO_RWNO = RQRO.RWNO
+                              AND (CAST(ms.STRT_DATE AS DATE) >= @FromPymtDate)
+                              AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(ms.STRT_DATE AS DATE) <= @ToPymtDate)
+                         )
+                      ) OR 
+                      (
+                         RQST.RQTP_CODE = '016' AND
+                         (CAST(RQST.SAVE_DATE AS DATE) >= @FromPymtDate) AND 
+                         (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.SAVE_DATE AS DATE) <= @ToPymtDate)
+                      )
+                   )                      
+             )
+      )
+      AND (PYDT.FIGH_FILE_NO = @CochFileNo)
+      AND (EPIT.CODE = @EpitCode)
+      AND (RQRQ.RQTT_CODE = @RqttCode)
+      AND (pydt.MTOD_CODE_DNRM = @MtodCode)
+      AND (PYDT.CTGY_CODE_DNRM = ISNULL(@CtgyCode, PYDT.CTGY_CODE_DNRM))
+      AND (RQRO.RQTP_CODE = @RqtpCode)
+      AND dbo.PLC_FIGH_U('<Fighter fileno="' + CAST(Figh.FILE_NO AS VARCHAR(30)) + '"/>') = '002';
+   
+   -- بروز کردن رکورد هایی که مبلغ کاهش در ردیف آنها لحاظ شده است
+   UPDATE pe
+      SET pe.EXPN_AMNT = (
+             (
                 (
-                   (
-                        pe.EXPN_PRIC
+                     pe.EXPN_PRIC
+                  -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                  -  (
+                          pe.RDUC_AMNT -- سهم باشگاه
+                       -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
+                     )
+                  
+                ) * @PrctValu / 100 
+             ) - 
+             (
+                (
+                  (
+                        pe.EXPN_PRIC 
                      -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
                      -  (
                              pe.RDUC_AMNT -- سهم باشگاه
                           -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
                         )
-                     
-                   ) * @PrctValu / 100 
-                ) - 
-                (
-                   (
-                     (
-                           pe.EXPN_PRIC 
-                        -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
-                        -  (
-                                pe.RDUC_AMNT -- سهم باشگاه
-                             -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
-                           )
-                     ) * @PrctValu / 100 
-                   ) * @DecrPrct / 100
-                )                
-             )
-        FROM dbo.Payment_Expense pe
-       WHERE COCH_FILE_NO = @CochFileNo
-         AND CALC_EXPN_TYPE = '001' -- مبلع دوره * Cycl Amnt
-         and CALC_TYPE = '001' -- درصدی
-         AND VALD_TYPE = '001'
-         AND RDUC_AMNT > 0;
+                  ) * @PrctValu / 100 
+                ) * @DecrPrct / 100
+             )                
+          )
+     FROM dbo.Payment_Expense pe
+    WHERE COCH_FILE_NO = @CochFileNo
+      AND CALC_EXPN_TYPE = '001' -- مبلع دوره * Cycl Amnt
+      and CALC_TYPE = '001' -- درصدی
+      AND VALD_TYPE = '001'
+      AND RDUC_AMNT > 0;
          
    GOTO NextC$CochFileNo$CalcExpnP;
    EndC$CochFileNo$CalcExpnP:
@@ -1752,6 +1754,27 @@ BEGIN
       AND me.CALC_EXPN_TYPE = '001'
       AND me.DELV_STAT IS NULL;  
    
+   -- 1401/09/18 * #MahsaAmini
+   -- محاسبه کسورات حقوق های محاسبه شده و نهایی کردن مبلغ حقوق ها
+   -- اولین گام لیست پرداختی هایی که پرسنل از حقوق آنها باید کم شود
+   -- Payment_Method IN ( '017' /* کسر از حقوق و پاداش */ )   
+   INSERT INTO dbo.Misc_Expense_Deduction ( PMTD_CODE ,MSEX_CODE ,CODE )
+   SELECT pm.CODE, me.CODE, dbo.GNRT_NVID_U()
+     FROM dbo.Request r, dbo.Request_Row rr, dbo.Misc_Expense me, dbo.Payment_Method pm
+    WHERE r.RQID = rr.RQST_RQID
+      AND rr.FIGH_FILE_NO = me.COCH_FILE_NO
+      AND r.RQID = pm.PYMT_RQST_RQID
+      AND r.RQST_STAT = '002'
+      AND pm.RCPT_MTOD IN ( '017' /* کسر از حقوق و پاداش */)
+      AND me.VALD_TYPE = '001'
+      AND me.CALC_EXPN_TYPE = '001'
+      AND CAST(pm.ACTN_DATE AS DATE) BETWEEN @FromPymtDate AND @ToPymtDate
+      /*AND NOT EXISTS(
+          SELECT *
+            FROM dbo.Misc_Expense_Deduction md
+           WHERE md.PMTD_CODE = pm.CODE
+      )*/;
+      
    --1397/09/04 * برای بروزرسانی مبلغ رکورد های پدر
    UPDATE dbo.Misc_Expense
       SET EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '004')

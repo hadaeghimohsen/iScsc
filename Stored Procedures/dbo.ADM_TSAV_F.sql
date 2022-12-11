@@ -362,6 +362,14 @@ BEGIN
          SET RQST_STAT = '002'
        WHERE RQID = @Rqid;
       
+      -- 1401/09/17 * #MahsaAmini        
+      -- برای ارگان هایی که میخواهیم به مشترکین آنها پورسانت لحاظ شود
+      SET @xTemp = (
+          SELECT @RQID AS '@rqid'
+             FOR XML PATH('Request'), ROOT('OpIran')
+      );
+      EXEC dbo.FINL_RQST_P @X = @xTemp -- xml   
+      
       -- مشخص مربی 
       UPDATE Payment_Detail
          SET FIGH_FILE_NO = @CochFileNo

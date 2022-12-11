@@ -86,7 +86,9 @@ SELECT     f.FILE_NO,
            f.DAD_CHAT_ID_DNRM,
            f.SERV_NO_DNRM,
            f.SEX_TYPE_DNRM,
-           f.REF_CODE_DNRM
+           f.REF_CODE_DNRM,
+           f.LEFT_FILE_NO,
+           f.RIGH_FILE_NO
 FROM       dbo.Fighter f,           
            dbo.Sub_Unit s,
            dbo.[D$FGTP],

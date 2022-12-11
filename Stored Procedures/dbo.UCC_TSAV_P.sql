@@ -161,6 +161,14 @@ BEGIN
          SET RQST_STAT = '002'
        WHERE RQID = @Rqid;
       
+      -- 1401/09/17 * #MahsaAmini 
+      -- برای ارگان هایی که میخواهیم به مشترکین آنها پورسانت لحاظ شود       
+      SET @xTemp = (
+          SELECT @RQID AS '@rqid'
+             FOR XML PATH('Request'), ROOT('OpIran')
+      );
+      EXEC dbo.FINL_RQST_P @X = @xTemp -- xml   
+      
       -- 1395/06/17 * ثبت تغییرات مورد نیاز در مورد سبک و رسته و ساعت کلاسی    
       DECLARE @MtodCode BIGINT
              ,@CtgyCode BIGINT
@@ -180,15 +188,16 @@ BEGIN
             ,@PrvnCode = REGN_PRVN_CODE
         FROM dbo.Fighter
        WHERE FILE_NO = @FileNo;
-      
+
       -- 1396/04/29 * اگر تمدید هزینه دار باشد نام مربی باید در این قسمت بروزرسانی شود
       UPDATE Payment_Detail
          SET FIGH_FILE_NO = (SELECT COCH_FILE_NO FROM dbo.Club_Method WHERE CODE = @CbmtCode)
             ,CBMT_CODE_DNRM = @CbmtCode
        WHERE PYMT_RQST_RQID = @Rqid;
       
-      -- آیا سبک و رسته تغییر کرده است 
-      IF EXISTS(
+      -- 1401/09/18 * #MahsaAmini
+      -- تغییر اطلاعات عمومی مشتری
+      /*IF EXISTS(
          SELECT *
            FROM dbo.Fighter_Public
           WHERE FIGH_FILE_NO = @FileNo
@@ -197,16 +206,35 @@ BEGIN
             AND (ISNULL(MTOD_CODE, 0) <> @MtodCode
                OR ISNULL(CTGY_CODE, 0) <> @CtgyCode 
                OR FNGR_PRNT <> ISNULL(@NewFngrPrnt, FNGR_PRNT))
-      )
+      )*/
       BEGIN
-         SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش اطلاعات عمومی پیرو تمدید مشترک بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید"><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
-         SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
-         SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-         SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
+         SET @X = (
+             SELECT @Rqid AS '@rqstrqid',
+                    '011' AS '@rqtpcode',
+                    '004' AS '@rqttcode',
+                    @RegnCode AS '@regncode',
+                    @PrvnCode AS '@prvncode',
+                    N'درخواست ویرایش اطلاعات عمومی پیرو تمدید مشتری بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید' AS '@rqstdesc',
+                    (
+                      SELECT @FileNo AS '@fileno',
+                             (
+                               SELECT @MtodCode AS '@Mtod_Code',
+                                      @CtgyCode AS '@Ctgy_Code',
+                                      @CbmtCode AS '@Cbmt_Code'
+                                  FOR XML PATH('ChngMtodCtgy'), TYPE
+                             )
+                         FOR XML PATH('Request_Row'), TYPE
+                    )
+               FOR XML PATH('Request'), ROOT('Process')
+         );
+         --SET @X = N'<Process><Request rqstrqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode="" rqstdesc="درخواست ویرایش اطلاعات عمومی پیرو تمدید مشترک بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید"><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
+         --SET @X.modify('replace value of (/Process/Request/@rqstrqid)[1] with sql:variable("@Rqid")');
+         --SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+         --SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
          EXEC CMC_RQST_F @X;
          
          SELECT @Rqid = R.RQID
@@ -216,14 +244,33 @@ BEGIN
             AND R.RQTP_CODE = '011'
             AND R.RQTT_CODE = '004';
 
-         SET @X = '<Process><Request rqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
-         SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
-         SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
-         SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
-         SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
+         SET @X = (
+             SELECT @Rqid AS '@rqid',
+                    '011' AS '@rqtpcode',
+                    '004' AS '@rqttcode',
+                    @RegnCode AS '@regncode',
+                    @PrvnCode AS '@prvncode',
+                    N'درخواست ویرایش اطلاعات عمومی پیرو تمدید مشتری بخاطر عوض شدن نوع گروه و زیر گروه یا کد شناسایی جدید' AS '@rqstdesc',
+                    (
+                      SELECT @FileNo AS '@fileno',
+                             (
+                               SELECT @MtodCode AS '@Mtod_Code',
+                                      @CtgyCode AS '@Ctgy_Code',
+                                      @CbmtCode AS '@Cbmt_Code'
+                                  FOR XML PATH('ChngMtodCtgy'), TYPE
+                             )
+                         FOR XML PATH('Request_Row'), TYPE
+                    )
+               FOR XML PATH('Request'), ROOT('Process')
+         );
+         --SET @X = '<Process><Request rqid="" rqtpcode="011" rqttcode="004" regncode="" prvncode=""><Request_Row fileno=""><ChngMtodCtgy Mtod_Code="" Ctgy_Code="" Cbmt_Code=""/></Request_Row></Request></Process>';
+         --SET @X.modify('replace value of (/Process/Request/@rqid)[1] with sql:variable("@Rqid")');
+         --SET @X.modify('replace value of (/Process/Request/@regncode)[1] with sql:variable("@RegnCode")');
+         --SET @X.modify('replace value of (/Process/Request/@prvncode)[1] with sql:variable("@PrvnCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/@fileno)[1] with sql:variable("@FileNo")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Cbmt_Code)[1] with sql:variable("@CbmtCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Mtod_Code)[1] with sql:variable("@MtodCode")');
+         --SET @X.modify('replace value of (/Process/Request/Request_Row/ChngMtodCtgy/@Ctgy_Code)[1] with sql:variable("@CtgyCode")');      
          EXEC CMC_SAVE_F @X;
          SET @ExistsNewPublic = 1;
       END

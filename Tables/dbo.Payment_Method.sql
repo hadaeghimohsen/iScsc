@@ -1,10 +1,11 @@
 CREATE TABLE [dbo].[Payment_Method]
 (
-[PYMT_CASH_CODE] [bigint] NOT NULL,
-[PYMT_RQST_RQID] [bigint] NOT NULL,
-[RQRO_RQST_RQID] [bigint] NOT NULL,
-[RQRO_RWNO] [smallint] NOT NULL,
-[RWNO] [smallint] NOT NULL,
+[PYMT_CASH_CODE] [bigint] NULL,
+[PYMT_RQST_RQID] [bigint] NULL,
+[RQRO_RQST_RQID] [bigint] NULL,
+[RQRO_RWNO] [smallint] NULL,
+[RWNO] [smallint] NULL,
+[CODE] [bigint] NOT NULL,
 [FIGH_FILE_NO_DNRM] [bigint] NULL,
 [AMNT] [bigint] NULL,
 [RCPT_MTOD] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Payment_Method_RCPT_MTOD] DEFAULT ('001'),
@@ -56,6 +57,32 @@ BEGIN
          RETURN;
       END  
    END  
+   
+   -- 1401/09/12 * اگر کاربر بخواد پرداختی که برای درخواست چاپ فیش انجام داده را پاک کند باید بررسی شود
+   IF EXISTS (
+      SELECT * 
+        FROM dbo.Request r, Deleted d
+       WHERE r.RQID = d.PYMT_RQST_RQID
+         AND EXISTS (
+             SELECT *
+               FROM dbo.Step_History_Detail shd
+              WHERE shd.SHIS_RQST_RQID = r.RQID
+                AND shd.SSTT_MSTT_CODE = 2
+                AND shd.SSTT_CODE = 3  
+             )
+      )
+   BEGIN
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>264</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 264 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END  
+   END 
    -- 1395/12/27 * بروز رسانی جدول هزینه برای ستون جمع مبلغ های دریافتی مشترک
    --MERGE dbo.Payment T
    --USING (SELECT * FROM Deleted )S
@@ -102,7 +129,7 @@ BEGIN
     BEGIN
         DECLARE @MsgbStat VARCHAR(3) ,
             @MsgbText NVARCHAR(MAX) ,
-            @TempMsgbText NVARCHAR(MAX) ,
+  @TempMsgbText NVARCHAR(MAX) ,
             @InsrCnamStat VARCHAR(3) ,
             @ClubName NVARCHAR(250) ,
             @XMsg XML ,
@@ -178,8 +205,8 @@ BEGIN
                                                               @MsgbText
                                                     FOR
                                                       XML PATH('Message') ,
-                                                          TYPE
-                                                    )
+      TYPE
+                                             )
                                         FOR
                                           XML PATH('Contact') ,
                                               TYPE
@@ -329,14 +356,15 @@ BEGIN
        T.RWNO           = S.RWNO)
    WHEN MATCHED THEN
       UPDATE 
-         SET CRET_BY   = UPPER(SUSER_NAME())
-            ,CRET_DATE = GETDATE()
-            ,RWNO      = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.Payment_Method WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE AND PYMT_RQST_RQID = S.PYMT_RQST_RQID AND RQRO_RQST_RQID = S.RQRO_RQST_RQID AND RQRO_RWNO      = S.RQRO_RWNO)
-            ,ACTN_DATE = COALESCE(S.Actn_Date, GETDATE())
-            ,FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.RQRO_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
-            ,T.VALD_TYPE = ISNULL(S.VALD_TYPE, '002');
+         SET T.CRET_BY           = UPPER(SUSER_NAME())
+            ,T.CRET_DATE         = GETDATE()
+            ,T.CODE              = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END 
+            ,T.RWNO              = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.Payment_Method WHERE PYMT_CASH_CODE = S.PYMT_CASH_CODE AND PYMT_RQST_RQID = S.PYMT_RQST_RQID AND RQRO_RQST_RQID = S.RQRO_RQST_RQID AND RQRO_RWNO      = S.RQRO_RWNO)
+            ,T.ACTN_DATE         = COALESCE(S.Actn_Date, GETDATE())
+            ,T.FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.RQRO_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
+            ,T.VALD_TYPE         = ISNULL(S.VALD_TYPE, '002');
    
-   -- اگر مبلغ ذخیره شده صفر باشد   
+ -- اگر مبلغ ذخیره شده صفر باشد   
    DELETE Payment_Method
     WHERE EXISTS(
       SELECT *
@@ -505,9 +533,9 @@ BEGIN
 END
 ;
 GO
-ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [PK_PMTD] PRIMARY KEY CLUSTERED  ([PYMT_CASH_CODE], [PYMT_RQST_RQID], [RQRO_RQST_RQID], [RQRO_RWNO], [RWNO]) ON [PRIMARY]
+ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [PK_PMTD] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
-ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [FK_PMMT_APBS] FOREIGN KEY ([RCPT_TO_OTHR_ACNT]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
+ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [FK_PMTD_APBS] FOREIGN KEY ([RCPT_TO_OTHR_ACNT]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Payment_Method] ADD CONSTRAINT [FK_PMTD_FIGH] FOREIGN KEY ([FIGH_FILE_NO_DNRM]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO

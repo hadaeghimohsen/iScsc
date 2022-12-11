@@ -174,7 +174,8 @@ BEGIN
    -- Insert statements for trigger here
    IF NOT EXISTS(SELECT * FROM inserted) RETURN;
    DECLARE @FileNo BIGINT
-          ,@RqstNumb BIGINT;
+          ,@RqstNumb BIGINT
+          ,@xParam XML;
    
    -- CHECK REQUEST_TYPE/REQUESTER_TYPE PERMISSION
    IF NOT EXISTS(   
@@ -457,7 +458,7 @@ BEGIN
          WHEN MATCHED THEN
             UPDATE
                SET RQST_RQID = NULL
-                  ,FIGH_STAT = '002';
+                  ,FIGH_STAT = '002';         
       END -- IF @RQST_STAT IN ('002', '003')
       
       GOTO L$NextRow;

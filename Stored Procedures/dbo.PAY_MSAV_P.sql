@@ -20,12 +20,13 @@ BEGIN
          AND RWNO = @X.query('Payment').value('(Payment/@rwno)[1]', 'SMALLINT');
    ELSE IF @ActnType = 'InsertUpdate'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, CODE, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1
             ,0
+            ,dbo.GNRT_NVID_U()
             ,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
             ,pm.query('.').value('(Payment_Method/@rcptmtod)[1]', 'VARCHAR(3)') AS RcptMtod
             ,pm.query('.').value('(Payment_Method/@termno)[1]',   'BIGINT') AS TermNo
@@ -88,12 +89,13 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithoutPOS'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, CODE, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1 AS RqroRwno
             ,0 AS Rwno
+            ,dbo.GNRT_NVID_U()
             --,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
             ,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
              - ( 
@@ -125,12 +127,13 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithPOS'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, CODE, AMNT, RCPT_MTOD, TERM_NO, TRAN_NO, CARD_NO, BANK, FLOW_NO, REF_NO, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1
             ,0
+            ,dbo.GNRT_NVID_U()
             ,CASE ISNULL(pm.query('.').value('(Payment_Method/@amnt)[1]', 'BIGINT'), 0)
                  WHEN 0 THEN 
                   (SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
@@ -190,12 +193,13 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithDeposit'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, CODE, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1 AS RqroRwno
             ,0 AS Rwno
+            ,dbo.GNRT_NVID_U()
             ,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
             --,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
             -- - ( 
@@ -222,12 +226,13 @@ BEGIN
    END
    ELSE IF @ActnType = 'CheckoutWithCard2Card'
    BEGIN
-      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
+      INSERT INTO Payment_Method (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RQST_RQID, RQRO_RWNO, RWNO, CODE, AMNT, RCPT_MTOD, ACTN_DATE, VALD_TYPE, RCPT_TO_OTHR_ACNT, RCPT_FILE_PATH)
       SELECT pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AS CashCode
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT') AS RqstRqid
             ,1 AS RqroRwno
             ,0 AS Rwno
+            ,dbo.GNRT_NVID_U()
             --,pm.query('.').value('(Payment_Method/@amnt)[1]',     'BIGINT') AS Amnt
             ,(SELECT SUM_EXPN_PRIC + SUM_EXPN_EXTR_PRCT FROM Payment WHERE CASH_CODE = pm.query('.').value('(Payment_Method/@cashcode)[1]', 'BIGINT') AND RQST_RQID = pm.query('.').value('(Payment_Method/@rqstrqid)[1]', 'BIGINT')) 
              - ( 

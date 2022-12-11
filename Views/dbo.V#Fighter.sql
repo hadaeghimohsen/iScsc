@@ -18,9 +18,14 @@ SELECT     dbo.Fighter.REGN_PRVN_CNTY_CODE, dbo.Fighter.REGN_PRVN_CODE, dbo.Figh
                       dbo.Fighter.SUNT_CODE_DNRM, dbo.Fighter.CORD_X_DNRM, dbo.Fighter.CORD_Y_DNRM, dbo.Fighter.SERV_NO_DNRM, dbo.Fighter.NATL_CODE_DNRM, dbo.Fighter.GLOB_CODE_DNRM, 
                       dbo.Fighter.CHAT_ID_DNRM, dbo.Fighter.MOM_CELL_PHON_DNRM, dbo.Fighter.MOM_TELL_PHON_DNRM, dbo.Fighter.MOM_CHAT_ID_DNRM, dbo.Fighter.DAD_CELL_PHON_DNRM, 
                       dbo.Fighter.DAD_TELL_PHON_DNRM, dbo.Fighter.DAD_CHAT_ID_DNRM, dbo.Fighter.DPST_ACNT_SLRY_BANK_DNRM, dbo.Fighter.DPST_ACNT_SLRY_DNRM, dbo.Fighter.RTNG_NUMB_DNRM, 
-                      dbo.Fighter.CRET_BY, dbo.Fighter.CRET_DATE, dbo.Fighter.MDFY_BY, dbo.Fighter.MDFY_DATE
+                      dbo.Fighter.CRET_BY, dbo.Fighter.CRET_DATE, dbo.Fighter.MDFY_BY, dbo.Fighter.MDFY_DATE, dbo.Fighter.ORGN_CODE_DNRM, dbo.Fighter.LEFT_FILE_NO, dbo.Fighter.RIGH_FILE_NO, 
+                      dbo.Sub_Unit.SUNT_DESC, dbo.D$SXTP.DOMN_DESC AS SEX_DESC
 FROM         dbo.Fighter INNER JOIN
-                      dbo.V#UCFGA ON dbo.Fighter.CLUB_CODE_DNRM = dbo.V#UCFGA.CLUB_CODE
+                      dbo.V#UCFGA ON dbo.Fighter.CLUB_CODE_DNRM = dbo.V#UCFGA.CLUB_CODE INNER JOIN
+                      dbo.Sub_Unit ON dbo.Fighter.SUNT_BUNT_DEPT_ORGN_CODE_DNRM = dbo.Sub_Unit.BUNT_DEPT_ORGN_CODE AND 
+                      dbo.Fighter.SUNT_BUNT_DEPT_CODE_DNRM = dbo.Sub_Unit.BUNT_DEPT_CODE AND dbo.Fighter.SUNT_BUNT_CODE_DNRM = dbo.Sub_Unit.BUNT_CODE AND 
+                      dbo.Fighter.SUNT_CODE_DNRM = dbo.Sub_Unit.CODE INNER JOIN
+                      dbo.D$SXTP ON dbo.Fighter.SEX_TYPE_DNRM = dbo.D$SXTP.VALU
 WHERE     (dbo.Fighter.CONF_STAT = '002') AND (dbo.Fighter.ACTV_TAG_DNRM >= '101') AND (dbo.V#UCFGA.SYS_USER = UPPER(SUSER_NAME()))
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
@@ -28,7 +33,7 @@ Begin DesignProperties =
    Begin PaneConfigurations = 
       Begin PaneConfiguration = 0
          NumPanes = 4
-         Configuration = "(H (1[27] 4[25] 2[29] 3) )"
+         Configuration = "(H (1[40] 4[14] 2[29] 3) )"
       End
       Begin PaneConfiguration = 1
          NumPanes = 3
@@ -102,13 +107,33 @@ Begin DesignProperties =
                Right = 321
             End
             DisplayFlags = 280
-            TopColumn = 37
+            TopColumn = 24
          End
          Begin Table = "V#UCFGA"
             Begin Extent = 
                Top = 6
                Left = 358
                Bottom = 126
+               Right = 530
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "Sub_Unit"
+            Begin Extent = 
+               Top = 244
+               Left = 359
+               Bottom = 411
+               Right = 574
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "D$SXTP"
+            Begin Extent = 
+               Top = 134
+               Left = 359
+               Bottom = 224
                Right = 530
             End
             DisplayFlags = 280
@@ -147,32 +172,32 @@ Begin DesignProperties =
          Width = 1500
          Width = 1500
          Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 1500
-         Width = 15', 'SCHEMA', N'dbo', 'VIEW', N'V#Fighter', NULL, NULL
+         Width = 1500', 'SCHEMA', N'dbo', 'VIEW', N'V#Fighter', NULL, NULL
 GO
-EXEC sp_addextendedproperty N'MS_DiagramPane2', N'00
+EXEC sp_addextendedproperty N'MS_DiagramPane2', N'
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
          Width = 1500
          Width = 1500
          Width = 1500

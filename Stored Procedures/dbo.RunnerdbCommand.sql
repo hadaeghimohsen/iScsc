@@ -16,15 +16,15 @@ BEGIN
    SELECT @CmndCode = @X.query('Router_Command').value('(Router_Command/@cmndcode)[1]', 'VARCHAR(10)');
    
    -- Base Variable
-   DECLARE @FileNo BIGINT          ,@NatlCode VARCHAR(10)         ,@CellPhon VARCHAR(11)   ,@Password VARCHAR(250)
-          ,@Rqid BIGINT            ,@CashCode BIGINT               ,@PymtAmnt BIGINT        ,@AmntType VARCHAR(3)
-          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)       ,@LastName NVARCHAR(250) ,@BrthDate DATE
-          ,@SexType VARCHAR(3)     ,@CbmtCode BIGINT               ,@MtodCode BIGINT        ,@CtgyCode BIGINT          
-          ,@StrtDate DATE          ,@EndDate  DATE                 ,@NumAttnMont INT        ,@FighStat VARCHAR(3)
+   DECLARE @FileNo BIGINT          ,@NatlCode VARCHAR(10)         ,@CellPhon VARCHAR(11)    ,@Password VARCHAR(250)
+          ,@Rqid BIGINT            ,@CashCode BIGINT              ,@PymtAmnt BIGINT         ,@AmntType VARCHAR(3)
+          ,@FngrPrnt VARCHAR(20)   ,@FrstName NVARCHAR(250)       ,@LastName NVARCHAR(250)  ,@BrthDate DATE
+          ,@SexType VARCHAR(3)     ,@CbmtCode BIGINT              ,@MtodCode BIGINT         ,@CtgyCode BIGINT          
+          ,@StrtDate DATE          ,@EndDate  DATE                ,@NumAttnMont INT         ,@FighStat VARCHAR(3)
           ,@ExpnCode BIGINT        ,@ExprDate DATETIME            ,@TarfExtrPrct BIGINT     ,@BrndCode BIGINT
           ,@GropCode BIGINT        ,@GropJoin VARCHAR(50)         ,@ProdType VARCHAR(3)     ,@Code BIGINT
           ,@ServNo NVARCHAR(50)    ,@SuntCode VARCHAR(4)          ,@Rwno SMALLINT           ,@FromNumb BIGINT
-          ,@ToNumb BIGINT;
+          ,@ToNumb BIGINT          ,@RqstRqid BIGINT              ,@CmntDesc NVARCHAR(250)  ,@Stat VARCHAR(3);
    
    -- AccessControl
    DECLARE @AP BIT
@@ -1913,7 +1913,7 @@ BEGIN
              @PymtMtod = @X.query('//Router_Command').value('(Router_Command/@pymtmtod)[1]', 'VARCHAR(3)'),
              @PymtDate = @X.query('//Router_Command').value('(Router_Command/@pymtdate)[1]', 'DATETIME'),
              @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'BIGINT'),
-             @Txid = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'VARCHAR(266)');
+             @Txid = @X.query('//Router_Command').value('(Router_Command/@flowno)[1]', 'VARCHAR(266)');
       
       -- @@First Step Get Fileno from Services
       SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
@@ -2304,6 +2304,109 @@ BEGIN
       L$EndLoop$Pydts113:
       CLOSE [C$Pydts113];
       DEALLOCATE [C$Pydts113];
+   END
+   ELSE IF @CmndCode = '114' /* ثبت مبلغ واریز به کیف پول مشتری بابت خرید */
+   BEGIN
+      -- در این قسمت اول باید متوجه شویم که چه فرآیندی را میخوایم فراخوانی کنیم
+      /*
+      <Router_Command 
+          subsys="5" cmndcode="114" rqstrqid="13981127111545917"           
+          fileno="181326222">        
+        <Deposit stat="002" paiddate="2020-04-07" rcptmtod="014" amnt="10000" resndesc=""/>
+      </Router_Command>
+      */ 
+      
+      SELECT @SubSys = @X.query('//Router_Command').value('(Router_Command/@subsys)[1]', 'INT'),
+             @RqstRqid = @X.query('//Router_Command').value('(Router_Command/@rqstrqid)[1]', 'BIGINT'),
+             @FileNo = @X.query('//Router_Command').value('(Router_Command/@fileno)[1]', 'BIGINT'),
+             @Stat = @X.query('//Deposit').value('(Deposit/@stat)[1]', 'VARCHAR(3)'),
+             @PymtMtod = @X.query('//Deposit').value('(Deposit/@pymtmtod)[1]', 'VARCHAR(3)'),
+             @PymtDate = @X.query('//Deposit').value('(Deposit/@pymtdate)[1]', 'DATETIME'),
+             @Amnt = @X.query('//Deposit').value('(Deposit/@amnt)[1]', 'BIGINT'),
+             @CmntDesc = @X.query('//Deposit').value('(Deposit/@cmntdesc)[1]', 'NVARCHAR(250)');
+      
+      -- @@First Step Get Fileno from Services
+      --SELECT @FileNo = FILE_NO, @FighStat = FIGH_STAT
+      --  FROM dbo.Fighter
+      -- WHERE FILE_NO = @FileNo;
+      
+      -- اگر مشتری قفل باشد عملیات کنسل شده و به صورت اطلاع رسانی به مدیران و کاربران مورد نظر اطلاع رسانی میکنیم
+      --IF @FileNo IS NULL OR ( @FileNo IS NOT NULL AND @FighStat = '001' )
+      --BEGIN
+      --   -- Exce {Event Log} for Ref Sub System
+      --   ----SELECT @xRet = (
+      --   ----      SELECT '002' AS '@needrecall'
+      --   ----            ,@RefSubSys AS '@subsys'
+      --   ----            ,'1000' AS '@cmndcode'                     
+      --   ----            ,@RefCode AS '@refcode'
+      --   ----            ,N'مشترک در وضعیت قفل قرار گرفته است' AS '@logtext'
+      --   ----         FOR XML PATH('Router_Command')
+      --   ----   );
+      --   --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
+      --   --SET @CmndStat = '001'
+      --   --GOTO L$EndSp;
+      --   SET @xTemp = (
+      --       SELECT RQST_RQID AS '@rqid'
+      --         FROM dbo.Fighter
+      --        WHERE FILE_NO = @FileNo
+      --          FOR XML PATH('Request')
+      --   );
+      --   EXEC dbo.CNCL_RQST_F @X = @xTemp -- xml         
+      --END     
+      
+      -- پس در اینجا ما ابتدا به اندازه مبلغ مورد نیاز افزایش اعتبار می زنیم
+      SELECT @x = (
+         SELECT 
+            0 AS '@rqid',
+            @RqstRqid AS '@rqstrqid',
+            @FileNo AS 'Request_Row/@fighfileno',
+            0 AS 'Gain_Loss_Rials/@glid',
+            '002' AS 'Gain_Loss_Rials/@type',
+            @Amnt AS 'Gain_Loss_Rials/@amnt',
+            @PymtDate AS 'Gain_Loss_Rials/@paiddate',
+            @Stat AS 'Gain_Loss_Rials/@dpststat',
+            @CmntDesc AS 'Gain_Loss_Rials/@resndesc',
+            (
+               SELECT 1 AS '@rwno',
+                      @Amnt AS '@amnt',
+                      @PymtMtod AS '@rcptmtod'
+                  FOR XML PATH('Gain_Loss_Rial_Detial'), ROOT('Gain_Loss_Rial_Detials'), TYPE
+            )
+            FOR XML PATH('Request'), ROOT('Process')
+      );
+      EXEC dbo.GLR_TRQT_P @X = @X -- xml
+             
+      SELECT @Rqid = RQID
+        FROM dbo.Request r
+       WHERE r.RQTP_CODE = '020'
+         AND r.RQST_STAT = '001'
+         AND r.RQTT_CODE = '004'
+         AND r.RQST_RQID = @RqstRqid
+         AND r.CRET_BY = UPPER(SUSER_NAME())
+         AND SUB_SYS = 1;
+         
+      SELECT @X = (
+         SELECT @Rqid AS '@rqid'
+            FOR XML PATH('Request'), ROOT('Process')
+      );         
+      EXEC dbo.GLR_TSAV_P @X = @X -- xml  
+      
+      SET @CmndStat = '002';
+      L$EndSp$114:
+      -- اگر عملیات بدون هیچ مشکلی انجام شود
+      IF @CmndStat = '002'
+      BEGIN
+         SELECT @xRet = (
+            SELECT '002' AS '@needrecall'
+                  ,@RefSubSys AS '@subsys'
+                  ,'2000' AS '@cmndcode'
+                  ,@RefCode AS '@refcode'
+                  ,'successfull' AS '@rsltdesc'
+                  ,'002' AS '@rsltcode'
+               FOR XML PATH('Router_Command')
+         );
+         --EXEC dbo.RouterdbCommand @X = @xTemp -- xml
+      END
    END
    L$EndSp:
    COMMIT TRAN RUNR_DBCM_T05;

@@ -12,6 +12,8 @@ CREATE TABLE [dbo].[Payment_Expense]
 [DECR_AMNT_DNRM] [bigint] NULL,
 [RCPT_PRIC] [bigint] NULL,
 [DSCN_PRIC] [bigint] NULL,
+[SELF_DSCN_PRIC] [bigint] NULL,
+[CALC_EXPN_PRIC] [bigint] NULL,
 [CONF_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CONF_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQTP_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -125,6 +127,8 @@ ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQRO] FOREIGN KEY ([
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [FK_PMEX_RQTP] FOREIGN KEY ([RQTP_CODE]) REFERENCES [dbo].[Request_Type] ([CODE])
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ درصد محاسبه شده ناخالص', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CALC_EXPN_PRIC'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'شرح تاییدیه یا تایید نشده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_DESC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت مبلغ محاسبه شده
@@ -132,11 +136,15 @@ EXEC sp_addextendedproperty N'MS_Description', N'وضعیت مبلغ محاسب�
 * اگر هنرجو پرداخت انجام داده باشد ولی هیچ کلاسی در باشگاه حضور نداشته باشد هزینه مربی با وضعیت خاصی نمایش داده میشود که مدیر تصمیم گیرنده هست.
 * اگر هنرجو مبلغی از کلاس خود را پرداخت کرده باشد و از کلاس ها استفاده کرده باشد و بدهی خود را بعد از اتمام دوره تکمیل نکرده باشد باید محاسبه هزینه مربی با وضعیت خاصی مشخص شده باشد.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'CONF_STAT'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ تخفیف داده شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'DSCN_PRIC'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد واحد هر دسته حضوری گروهی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'MIN_NUMB_ATTN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل دسته های گروهی', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'NUMB_PKET_ATTN'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد حضوری های اعمال شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RCPT_NUMB_ATTN'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ پرداخت شده', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RCPT_PRIC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کاهش مبلغ', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RDUC_AMNT'
 GO
@@ -145,6 +153,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'برای اینکه متوجه 
 اگر کد قفل رکورد برای مشخص شدن تاییدیه خورده باشد رکورد قفل شده تا اینکه مشخص شود این ردیف کی باید پرداخت شود.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تاریخ اقدام برای پرداخت حق و دستمزد سرپرست', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ تخفیف پرسنل', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'SELF_DSCN_PRIC'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد کل حضوری اعضا', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'TOTL_NUMB_ATTN'
 GO

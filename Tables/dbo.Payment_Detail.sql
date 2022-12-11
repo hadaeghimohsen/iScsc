@@ -449,20 +449,21 @@ WHERE RQST_RQID = @RqstRqid
       --PRINT @ExpnCode;
       
       SELECT @Rslt = (
-    SELECT @Rqid AS '@rqid'
+         SELECT @Rqid AS '@rqid'
                ,@RqroRwno AS 'Request_Row/@rwno'
                ,@ExpnCode AS 'Request_Row/Expense/@code'
                ,@Qnty AS 'Request_Row/Expense/@qnty'
             FOR XML PATH('Request')
       );
-        
+
       SELECT @Rslt = dbo.PYDS_CHCK_U(@Rslt);
-      
+
       SELECT @Type = @Rslt.query('Result').value('(Result/@type)[1]', 'BIT')
             ,@AmntDsct = @Rslt.query('Result').value('(Result/@amntdsct)[1]', 'BIGINT')
             ,@DsctDesc = @Rslt.query('Result').value('(Result/@dsctdesc)[1]', 'NVARCHAR(500)');
       -- 1395/06/17 * پاک کردن مبلغ های تخفیف محاسبه شده
       -- 1397/10/08 * حذف تمامی تخفیفات محاسباتی
+      
       DELETE dbo.Payment_Discount
        WHERE PYMT_CASH_CODE = @CashCode
          AND PYMT_RQST_RQID = @Rqid
@@ -478,9 +479,10 @@ WHERE RQST_RQID = @RqstRqid
              WHERE PYMT_CASH_CODE = @CashCode
                AND PYMT_RQST_RQID = @Rqid
                AND RQRO_RWNO = @RqroRwno
+               AND AMNT_TYPE = '001'
                AND EXPN_CODE = @ExpnCode
          )
-         BEGIN
+         BEGIN  
             --PRINT 'Insert Begin'
             INSERT INTO Payment_Discount (PYMT_CASH_CODE, PYMT_RQST_RQID, RQRO_RWNO, EXPN_CODE, AMNT, AMNT_TYPE, STAT, PYDS_DESC)
             VALUES (@CashCode, @Rqid, @RqroRwno, @ExpnCode, @AmntDsct, '001', '002', N'محاسبه تخفیفات موسسات و ارگان ها' + ' - ' + ISNULL(@DsctDesc, ''));
@@ -494,6 +496,7 @@ WHERE RQST_RQID = @RqstRqid
              WHERE PYMT_CASH_CODE = @CashCode
                AND PYMT_RQST_RQID = @Rqid
                AND RQRO_RWNO = @RqroRwno
+               AND AMNT_TYPE = '001'
                AND Expn_Code = @ExpnCode;      
             --PRINT 'Update End'
          END

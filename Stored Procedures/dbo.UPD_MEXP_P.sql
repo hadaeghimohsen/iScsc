@@ -10,6 +10,7 @@ GO
 CREATE PROCEDURE [dbo].[UPD_MEXP_P]
 	-- Add the parameters for the stored procedure here
 	@Code BIGINT,
+	@Msex_Code BIGINT,
 	@Club_Code BIGINT,
 	@Epit_Code BIGINT,
 	@Coch_File_No BIGINT,
@@ -43,6 +44,7 @@ BEGIN
       SET CLUB_CODE = @Club_Code
          ,EPIT_CODE = @Epit_Code
          ,COCH_FILE_NO = @Coch_File_No
+         ,MSEX_CODE = @Msex_Code
          ,EXPN_AMNT = @Expn_Amnt
          ,EXPN_DESC = @Expn_Desc
          ,CALC_EXPN_TYPE = @Calc_Expn_Type

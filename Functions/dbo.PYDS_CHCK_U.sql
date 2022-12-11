@@ -21,19 +21,17 @@ BEGIN
 	-- Declare the return variable here
     DECLARE @Rslt XML;
     DECLARE @Rqid BIGINT ,
+            @FileNo BIGINT,
             @RqtpCode VARCHAR(3) ,
             @RqttCode VARCHAR(3) ,
             @RqroRwno SMALLINT ,
             @ExpnCode BIGINT ,
-            @Qnty SMALLINT;
+            @Qnty REAL;
    
     SELECT  @Rqid = @X.query('//Request').value('(Request/@rqid)[1]', 'BIGINT') ,
-            @RqroRwno = @X.query('//Request_Row').value('(Request_Row/@rwno)[1]',
-                                                        'SMALLINT') ,
-            @ExpnCode = @X.query('//Expense').value('(Expense/@code)[1]',
-                                                    'BIGINT') ,
-            @Qnty = @X.query('//Expense').value('(Expense/@qnty)[1]',
-                                                'SMALLINT');
+            @RqroRwno = @X.query('//Request_Row').value('(Request_Row/@rwno)[1]','SMALLINT') ,
+            @ExpnCode = @X.query('//Expense').value('(Expense/@code)[1]','BIGINT') ,
+            @Qnty = @X.query('//Expense').value('(Expense/@qnty)[1]','REAL');
     
     IF NOT (@Rqid IS NULL OR @Rqid = 0)
        SELECT  @RqtpCode = RQTP_CODE ,
@@ -43,6 +41,12 @@ BEGIN
     ELSE
       SELECT @RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
             ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
+    
+    -- 1401/09/18 * #MahsaAmini
+    SELECT @FileNo = FIGH_FILE_NO
+      FROM dbo.Request_Row
+     WHERE RQST_RQID = @Rqid
+       AND RWNO = @RqroRwno;       
     
     DECLARE @SuntBuntDeptOrgnCode VARCHAR(2) ,
         @SuntBuntDeptCode VARCHAR(2) ,
@@ -68,54 +72,44 @@ BEGIN
                 AND RQRO_RWNO = @RqroRwno
                 AND RECT_CODE = '001';      
     END;
-    ELSE
-        IF @RqtpCode IN ( '009' )
-        BEGIN
-            SELECT  @SuntBuntDeptOrgnCode = SUNT_BUNT_DEPT_ORGN_CODE_DNRM ,
-                    @SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE_DNRM ,
-                    @SuntBuntCode = SUNT_BUNT_CODE_DNRM ,
-                    @SuntCode = SUNT_CODE_DNRM ,
-                    @MtodCode = MTOD_CODE_DNRM ,
-                    @CtgyCode = CTGY_CODE_DNRM
-            FROM    Fighter
-            WHERE   RQST_RQID = @Rqid;
-        END;
-        ELSE
-            IF @RqtpCode IN ( '016' )
-                AND @RqttCode IN ( '007' )
-            BEGIN
-                DECLARE @AgopCode BIGINT ,
-                    @Rwno INT;
-                
-                SELECT  @AgopCode = @X.query('//Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@agopcode)[1]',
-                                                              'BIGINT') ,
-                        @Rwno = @X.query('//Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@rwno)[1]',
-                                                            'INT');
-                
-                IF EXISTS ( SELECT  *
-                            FROM    dbo.Fighter f ,
-                                    dbo.Aggregation_Operation_Detail a
-                            WHERE   f.FILE_NO = a.FIGH_FILE_NO
-                                    AND a.AGOP_CODE = @AgopCode
-                                    AND a.RWNO = @Rwno
-                                    AND FGPB_TYPE_DNRM = '001' )
-                BEGIN
-                    SELECT  @SuntBuntDeptOrgnCode = f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM ,
-                            @SuntBuntDeptCode = f.SUNT_BUNT_DEPT_CODE_DNRM ,
-                            @SuntBuntCode = f.SUNT_BUNT_CODE_DNRM ,
-                            @SuntCode = f.SUNT_CODE_DNRM
-                    FROM    dbo.Fighter f ,
-                            dbo.Aggregation_Operation_Detail a
-                    WHERE   f.FILE_NO = a.FIGH_FILE_NO
-                            AND a.AGOP_CODE = @AgopCode
-                            AND a.RWNO = @Rwno;
-                END;
-                
-                SELECT  @MtodCode = MTOD_CODE ,
-                        @CtgyCode = CTGY_CODE
-                FROM    dbo.Expense
-                WHERE   CODE = @ExpnCode;
-            END;
+    ELSE IF @RqtpCode IN ( '009' )
+    BEGIN
+        SELECT  @SuntBuntDeptOrgnCode = SUNT_BUNT_DEPT_ORGN_CODE_DNRM ,
+                @SuntBuntDeptCode = SUNT_BUNT_DEPT_CODE_DNRM ,
+                @SuntBuntCode = SUNT_BUNT_CODE_DNRM ,
+                @SuntCode = SUNT_CODE_DNRM ,
+                @MtodCode = MTOD_CODE_DNRM ,
+                @CtgyCode = CTGY_CODE_DNRM
+        FROM    Fighter
+        WHERE   (RQST_RQID = @Rqid OR FILE_NO = @FileNo);
+    END;
+    ELSE IF @RqtpCode IN ( '016' ) AND @RqttCode IN ( '007' )
+    BEGIN
+       DECLARE @AgopCode BIGINT ,
+           @Rwno INT;
+       
+       SELECT  @AgopCode = @X.query('//Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@agopcode)[1]','BIGINT') ,
+               @Rwno = @X.query('//Aggregation_Operation_Detail').value('(Aggregation_Operation_Detail/@rwno)[1]','INT');
+       
+       IF EXISTS ( SELECT  *
+                   FROM    dbo.Fighter f ,
+                           dbo.Aggregation_Operation_Detail a
+                   WHERE   f.FILE_NO = a.FIGH_FILE_NO
+                           AND a.AGOP_CODE = @AgopCode
+                           AND a.RWNO = @Rwno
+                           AND FGPB_TYPE_DNRM = '001' )
+       BEGIN
+           SELECT @SuntBuntDeptOrgnCode = f.SUNT_BUNT_DEPT_ORGN_CODE_DNRM ,
+                  @SuntBuntDeptCode = f.SUNT_BUNT_DEPT_CODE_DNRM ,
+                  @SuntBuntCode = f.SUNT_BUNT_CODE_DNRM ,
+                  @SuntCode = f.SUNT_CODE_DNRM
+             FROM dbo.Fighter f ,
+                  dbo.Aggregation_Operation_Detail a
+            WHERE f.FILE_NO = a.FIGH_FILE_NO
+                  AND a.AGOP_CODE = @AgopCode
+                  AND a.RWNO = @Rwno;
+       END;
+    END;
     ELSE IF @RqtpCode = '016' AND @RqttCode = '001'
     BEGIN
       -- اگر مهمان آزاد باشد
@@ -135,7 +129,7 @@ BEGIN
                ,@SuntBuntCode = SUNT_BUNT_CODE_DNRM
                ,@SuntCode = SUNT_CODE_DNRM
            FROM dbo.Fighter
-          WHERE RQST_RQID = @Rqid;
+          WHERE (RQST_RQID = @Rqid OR FILE_NO = @FileNo);
       END      
     END
     
@@ -146,7 +140,9 @@ BEGIN
             AND REGL_STAT = '002';
    
     SELECT  @EpitCode = Et.EPIT_CODE ,
-            @CovrDsct = COVR_DSCT
+            @CovrDsct = COVR_DSCT,
+            @MtodCode = E.MTOD_CODE,
+            @CtgyCode = E.CTGY_CODE
     FROM    Expense E ,
             Expense_Type Et ,
             Request_Requester Rr

@@ -25,7 +25,8 @@ CREATE PROCEDURE [dbo].[INS_BCDS_P]
    @DSCT_DESC NVARCHAR(500),
    @FROM_DATE DATE,
    @TO_DATE DATE,
-   @CTGY_CODE BIGINT
+   @CTGY_CODE BIGINT,
+   @EXPN_CODE BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -77,10 +78,10 @@ BEGIN
    IF @ACTN_TYPE IS NULL 
       RAISERROR(N'نوع تخفیف مشخصی وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @FROM_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005', '009', '010' ) AND @FROM_DATE IS NULL
       RAISERROR(N'فیلد "از تاریخ" وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @TO_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005', '009', '010' ) AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
    
    IF @RQTP_CODE IS NULL 
@@ -96,28 +97,28 @@ BEGIN
      FROM dbo.Regulation
     WHERE REGL_STAT = '002'
       AND [TYPE] = '001';
-
-   IF (
-      SELECT COUNT(*)
-        FROM dbo.Basic_Calculate_Discount T
-       WHERE T.SUNT_Code                = @SUNT_Code AND
-             T.SUNT_Bunt_Code           = @SUNT_Bunt_Code AND
-             T.SUNT_BUNT_Dept_Code      = @SUNT_BUNT_Dept_Code AND
-             T.SUNT_Bunt_Dept_Orgn_Code = @SUNT_Bunt_Dept_Orgn_Code AND
-             T.REGL_YEAR                = @REGL_YEAR AND
-             T.REGL_CODE                = @REGL_CODE AND
-             T.EPIT_CODE                = @EPIT_CODE AND
-             T.RQTP_CODE                = @RQTP_CODE AND 
-             T.RQTT_CODE                = @RQTT_CODE AND
-             t.CTGY_CODE                = @CTGY_CODE
-   ) >= 1 
-   BEGIN
-      RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
-               16, -- Severity.
-               1 -- State.
-               );
-      RETURN;
-   END;
+   
+   --IF (
+   --   SELECT COUNT(*)
+   --     FROM dbo.Basic_Calculate_Discount T
+   --    WHERE T.SUNT_Code                = @SUNT_Code AND
+   --          T.SUNT_Bunt_Code           = @SUNT_Bunt_Code AND
+   --          T.SUNT_BUNT_Dept_Code      = @SUNT_BUNT_Dept_Code AND
+   --          T.SUNT_Bunt_Dept_Orgn_Code = @SUNT_Bunt_Dept_Orgn_Code AND
+   --          T.REGL_YEAR                = @REGL_YEAR AND
+   --          T.REGL_CODE                = @REGL_CODE AND
+   --          T.EPIT_CODE                = @EPIT_CODE AND
+   --          T.RQTP_CODE                = @RQTP_CODE AND 
+   --          T.RQTT_CODE                = @RQTT_CODE AND
+   --          t.CTGY_CODE                = @CTGY_CODE
+   --) >= 1 
+   --BEGIN
+   --   RAISERROR ( N'تخفیف برای  تعرفه مورد نظر قبلا وارد شده دیگر قادر به وارد کردن مقدار تخفیف جدید نیستید', -- Message text.
+   --            16, -- Severity.
+   --            1 -- State.
+   --            );
+   --   RETURN;
+   --END;
 
    INSERT INTO dbo.Basic_Calculate_Discount
            ( SUNT_BUNT_DEPT_ORGN_CODE ,
@@ -138,7 +139,8 @@ BEGIN
              DSCT_DESC ,
              FROM_DATE ,
              TO_DATE ,
-             CTGY_CODE            
+             CTGY_CODE,
+             EXPN_CODE          
            )
    VALUES  ( @SUNT_BUNT_DEPT_ORGN_CODE , -- SUNT_BUNT_DEPT_ORGN_CODE - varchar(2)
              @SUNT_BUNT_DEPT_CODE , -- SUNT_BUNT_DEPT_CODE - varchar(2)
@@ -158,7 +160,8 @@ BEGIN
              @DSCT_DESC ,
              @FROM_DATE ,
              @TO_DATE ,
-             @CTGY_CODE
+             @CTGY_CODE,
+             @EXPN_CODE
            );
    
 END

@@ -27,7 +27,8 @@ CREATE PROCEDURE [dbo].[UPD_BCDS_P]
    @DSCT_DESC NVARCHAR(500),
    @FROM_DATE DATE,
    @TO_DATE DATE ,
-   @CTGY_CODE BIGINT
+   @CTGY_CODE BIGINT,
+   @EXPN_CODE BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -78,10 +79,10 @@ BEGIN
    IF @ACTN_TYPE IS NULL 
       RAISERROR(N'نوع تخفیف مشخصی وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @FROM_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005', '009', '010' ) AND @FROM_DATE IS NULL
       RAISERROR(N'فیلد "از تاریخ" وارد نشده', 16, 1);
    
-   IF @ACTN_TYPE NOT IN ( '001', '004', '005' ) AND @TO_DATE IS NULL
+   IF @ACTN_TYPE NOT IN ( '001', '004', '005', '009', '010' ) AND @TO_DATE IS NULL
       RAISERROR(N'فیلد "تا تاریخ" وارد نشده', 16, 1);   
    
    IF @RQTP_CODE IS NULL
@@ -106,6 +107,7 @@ BEGIN
          ,FROM_DATE = @FROM_DATE
          ,TO_DATE = @TO_DATE
          ,CTGY_CODE = @CTGY_CODE
+         ,EXPN_CODE = @EXPN_CODE
     WHERE SUNT_BUNT_DEPT_ORGN_CODE = @SUNT_BUNT_DEPT_ORGN_CODE
       AND SUNT_BUNT_DEPT_CODE = @SUNT_BUNT_DEPT_CODE
       AND SUNT_BUNT_CODE = @SUNT_BUNT_CODE

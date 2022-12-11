@@ -220,17 +220,48 @@ BEGIN
    */
    
    -- UPDATE FIGHTER TABLE
+   --MERGE dbo.Fighter T
+   --USING (SELECT * FROM INSERTED I 
+   --        WHERE I.RWNO = (SELECT MAX(RWNO) 
+   --                          FROM MEMBER_SHIP M 
+   --                         WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
+   --                               M.TYPE IN ( '001', '004' ) AND
+			--					          M.VALD_TYPE = '002' AND
+   --                               M.RECT_CODE    = '004' AND 
+   --                               CAST(m.STRT_DATE AS DATE) = (
+   --                                 SELECT MAX(CAST(ms.STRT_DATE AS DATE))
+   --                                   FROM dbo.Member_Ship ms
+   --                                  WHERE ms.FIGH_FILE_NO = m.FIGH_FILE_NO
+   --                                    AND ms.TYPE IN ('001', '004')
+   --                                    AND ms.VALD_TYPE = '002'
+   --                                    AND m.RECT_CODE = '004'
+   --                               ))) S
+   --ON (T.FILE_NO   = S.FIGH_FILE_NO AND
+   --    S.TYPE IN ('001', '004') AND
+	  --  S.VALD_TYPE = '002' AND 
+   --    S.RECT_CODE = '004')
+   --WHEN MATCHED THEN
+   --   UPDATE 
+   --      SET MBSP_RWNO_DNRM = S.RWNO
+   --         ,MBSP_END_DATE = S.End_Date
+   --         ,MBSP_STRT_DATE = S.Strt_Date;
    MERGE dbo.Fighter T
-   USING (SELECT * FROM INSERTED I 
-           WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
-                            WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
-                                  M.TYPE IN ( '001', '004' ) AND
-								          M.VALD_TYPE = '002' AND
-                                  M.RECT_CODE    = '004')) S
-   ON (T.FILE_NO   = S.FIGH_FILE_NO AND
-       S.TYPE IN ('001', '004') AND
-	    S.VALD_TYPE = '002' AND 
-       S.RECT_CODE = '004')
+   USING (SELECT TOP 1 
+                 M.RWNO, M.STRT_DATE, M.END_DATE, M.FIGH_FILE_NO
+            FROM MEMBER_SHIP M, Inserted I
+           WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
+                 M.TYPE IN ( '001', '004' ) AND
+		           M.VALD_TYPE = '002' AND
+                 M.RECT_CODE    = '004' AND 
+                 CAST(m.STRT_DATE AS DATE) = (
+                   SELECT MAX(CAST(ms.STRT_DATE AS DATE))
+                     FROM dbo.Member_Ship ms
+                    WHERE ms.FIGH_FILE_NO = m.FIGH_FILE_NO
+                      AND ms.TYPE IN ('001', '004')
+                      AND ms.VALD_TYPE = '002'
+                      AND m.RECT_CODE = '004'
+                 )) S
+   ON (T.FILE_NO   = S.FIGH_FILE_NO)
    WHEN MATCHED THEN
       UPDATE 
          SET MBSP_RWNO_DNRM = S.RWNO
@@ -238,52 +269,52 @@ BEGIN
             ,MBSP_STRT_DATE = S.Strt_Date;
    
    -- رکورد مربوط به جلسه خصوصی با مربی
-   MERGE dbo.Fighter T
-   USING (SELECT * FROM INSERTED I 
-           WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
-                            WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
-                                  M.TYPE = '003' AND
-								          m.VALD_TYPE = '002' AND 
-                                  M.RECT_CODE    = '004')) S
-   ON (T.FILE_NO   = S.FIGH_FILE_NO AND
-       S.TYPE = '003' AND
-	    S.VALD_TYPE = '002' AND 
-       S.RECT_CODE = '004')
-   WHEN MATCHED THEN
-      UPDATE 
-         SET MBCO_RWNO_DNRM = S.RWNO;
+   --MERGE dbo.Fighter T
+   --USING (SELECT * FROM INSERTED I 
+   --        WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
+   --                         WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
+   --                               M.TYPE = '003' AND
+			--					          m.VALD_TYPE = '002' AND 
+   --                               M.RECT_CODE    = '004')) S
+   --ON (T.FILE_NO   = S.FIGH_FILE_NO AND
+   --    S.TYPE = '003' AND
+	  --  S.VALD_TYPE = '002' AND 
+   --    S.RECT_CODE = '004')
+   --WHEN MATCHED THEN
+   --   UPDATE 
+   --      SET MBCO_RWNO_DNRM = S.RWNO;
    
    -- رکورد مربوط به بلوکه کردن تاریخ حضور
-   MERGE dbo.Fighter T
-   USING (SELECT * FROM INSERTED I 
-           WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
-                            WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
-                                  M.TYPE = '005' AND
-								          m.VALD_TYPE = '002' AND 
-                                  M.RECT_CODE    = '004')) S
-   ON (T.FILE_NO   = S.FIGH_FILE_NO AND
-       S.TYPE = '005' AND
-	    s.VALD_TYPE = '002' AND 
-       S.RECT_CODE = '004')
- WHEN MATCHED THEN
-      UPDATE 
-         SET MBFZ_RWNO_DNRM = S.RWNO;
+ --  MERGE dbo.Fighter T
+ --  USING (SELECT * FROM INSERTED I 
+ --          WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
+ --                           WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
+ --                                 M.TYPE = '005' AND
+	--							          m.VALD_TYPE = '002' AND 
+ --                                 M.RECT_CODE    = '004')) S
+ --  ON (T.FILE_NO   = S.FIGH_FILE_NO AND
+ --      S.TYPE = '005' AND
+	--    s.VALD_TYPE = '002' AND 
+ --      S.RECT_CODE = '004')
+ --WHEN MATCHED THEN
+ --     UPDATE 
+ --        SET MBFZ_RWNO_DNRM = S.RWNO;
    
    -- رکورد مربوط به جلسه مشاوره
-   MERGE dbo.Fighter T
-   USING (SELECT * FROM INSERTED I 
-           WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
-                            WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
-                                  M.TYPE = '006' AND
-								          m.VALD_TYPE = '002' AND 
-                                  M.RECT_CODE    = '004')) S
-   ON (T.FILE_NO   = S.FIGH_FILE_NO AND
-       S.TYPE = '006' AND
-	    s.VALD_TYPE = '002' AND 
-       S.RECT_CODE = '004')
-   WHEN MATCHED THEN
-      UPDATE 
-         SET MBSM_RWNO_DNRM = S.RWNO;
+   --MERGE dbo.Fighter T
+   --USING (SELECT * FROM INSERTED I 
+   --        WHERE I.RWNO = (SELECT MAX(RWNO) FROM MEMBER_SHIP M 
+   --                         WHERE M.FIGH_FILE_NO = I.FIGH_FILE_NO AND 
+   --                               M.TYPE = '006' AND
+			--					          m.VALD_TYPE = '002' AND 
+   --                               M.RECT_CODE    = '004')) S
+   --ON (T.FILE_NO   = S.FIGH_FILE_NO AND
+   --    S.TYPE = '006' AND
+	  --  s.VALD_TYPE = '002' AND 
+   --    S.RECT_CODE = '004')
+   --WHEN MATCHED THEN
+   --   UPDATE 
+   --      SET MBSM_RWNO_DNRM = S.RWNO;
    
    -- اگر تعداد ردیف ها بیشتر باشد نیازی به چک کردن پیامک ندارد
    IF ((SELECT COUNT(*) FROM Inserted WHERE Inserted.RECT_CODE = '004') > 1) RETURN;

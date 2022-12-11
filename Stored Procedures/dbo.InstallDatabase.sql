@@ -44,8 +44,8 @@ BEGIN
       DELETE dbo.Physical_Fitness;
       DELETE dbo.Test;
       DELETE dbo.Request_Regulation_History;
-      DELETE dbo.Payment_Detail;
       DELETE dbo.Payment_Discount;
+      DELETE dbo.Payment_Detail;
       DELETE dbo.Payment_Method;
       DELETE dbo.Payment_Check;
       DELETE dbo.Payment;
@@ -81,7 +81,7 @@ BEGIN
       DELETE dbo.User_Club_Fgac;
       DELETE dbo.User_Region_Fgac;
       DELETE dbo.Settings;
-      UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL;
+      UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL, SEND_INFO = '001', CEL1_PHON = NULL;
       DELETE dbo.Club;
    END;
    

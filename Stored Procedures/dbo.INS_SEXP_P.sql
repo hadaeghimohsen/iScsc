@@ -60,6 +60,16 @@ BEGIN
       RETURN;
     END*/
     
+    -- 1401/09/17 * MahsaAmini
+    DELETE dbo.Payment_Discount
+     WHERE PYMT_RQST_RQID = @Rqid
+       AND PYDT_CODE_DNRM IN (
+           SELECT pd.CODE
+             FROM dbo.Payment_Detail pd
+            WHERE pd.PYMT_RQST_RQID = @Rqid
+              AND pd.ADD_QUTS = '001'
+       );
+    
     DELETE Payment_Detail 
      WHERE PYMT_RQST_RQID = @Rqid
        AND ADD_QUTS = '001';
