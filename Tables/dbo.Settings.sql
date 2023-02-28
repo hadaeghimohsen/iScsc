@@ -70,7 +70,11 @@ CREATE TABLE [dbo].[Settings]
 [SND4_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SND5_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SND6_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[REST_ATTN_NUMB_BY_YEAR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[SND7_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SND8_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SND9_PATH] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[REST_ATTN_NUMB_BY_YEAR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ATTN_NOT_INSR_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -109,6 +113,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان تاخیر زم
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'ورود و خروج افراد مهمان در طول دوره باشد یا محدود به همان روز باشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_GUST_NUMB_TYPE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'نحوه برخورد با مشتریانی که بیمه ندارند', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_NOT_INSR_STAT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'چاپ ژتون تردد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'ATTN_PRNT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع ورودی داده بارکد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'BAR_CODE_DATA_TYPE'
@@ -146,6 +152,12 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'اجرا کردن کوئری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'RUN_QURY'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'آیا جلسات مشترکین به اشتراک گذاشته شود.', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SHAR_MBSP_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مسیر آدرس فایل تولد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND7_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'آدرس بازگویی مدت زمان استفاده از سالن', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND8_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'فایل صوتی مبلغ بدهی مشتری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND9_PATH'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تمدید مشترکین با تاریخ معتبر', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'TRY_VALD_SBMT'
 GO

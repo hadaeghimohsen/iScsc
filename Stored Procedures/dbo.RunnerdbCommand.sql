@@ -426,13 +426,13 @@ BEGIN
         Amnt_Type VARCHAR(3) '../@amnttype',
         Pymt_Mtod VARCHAR(3) '../@pymtmtod',
         Pymt_Date DATETIME '../@pymtdate',
-        Amnt BIGINT '../@amnt',
+        Amnt DECIMAL(18, 2) '../@amnt',
         Txid VARCHAR(266) '../@txid',
         Tarf_Code VARCHAR(100) './@tarfcode',
         Tarf_Date DATE './@tarfdate',
-        Expn_Pric BIGINT './@expnpric',
-        Extr_Prct BIGINT './@extrprct',
-        Dscn_Pric BIGINT './@dscnpric',
+        Expn_Pric DECIMAL(18, 2) './@expnpric',
+        Extr_Prct DECIMAL(18, 2) './@extrprct',
+        Dscn_Pric DECIMAL(18, 2) './@dscnpric',
         Rqtp_Code VARCHAR(3) './@rqtpcode',
         Numb REAL './@numb',
         Expn_Desc NVARCHAR(250) '.'
@@ -440,8 +440,8 @@ BEGIN
       ORDER BY Rqtp_Code;
       
       DECLARE @CrntUser VARCHAR(250), @SubSys INT, @RefSubSys INT, @RefCode BIGINT, @RefNumb VARCHAR(15), @ChatId BIGINT, @PymtMtod VARCHAR(3), @PymtDate DATETIME,
-              @Amnt BIGINT, @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfName NVARCHAR(250), @TarfDate DATE, @ExpnPric BIGINT,
-              @ExtrPrct BIGINT, @DscnPric BIGINT, @PydsDesc NVARCHAR(250), @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
+              @Amnt DECIMAL(18, 2), @Txid VARCHAR(266), @TarfCode VARCHAR(100), @TarfName NVARCHAR(250), @TarfDate DATE, @ExpnPric DECIMAL(18, 2),
+              @ExtrPrct DECIMAL(18, 2), @DscnPric DECIMAL(18, 2), @PydsDesc NVARCHAR(250), @RqtpCode VARCHAR(3), @Numb real, @ExpnDesc NVARCHAR(250);              
       
       OPEN [C$Expns];
       L$Loop$Expns:
@@ -1156,9 +1156,9 @@ BEGIN
            WITH (
             Tarf_Code VARCHAR(100) './@tarfcode',
             Tarf_Date DATE './@tarfdate',
-            Expn_Pric BIGINT './@expnpric',
-            Extr_Prct BIGINT './@extrprct',
-            Dscn_Pric BIGINT './@dscnpric',
+            Expn_Pric DECIMAL(18, 2) './@expnpric',
+            Extr_Prct DECIMAL(18, 2) './@extrprct',
+            Dscn_Pric DECIMAL(18, 2) './@dscnpric',
             Rqtp_Code VARCHAR(3) './@rqtpcode',
             Numb REAL './@numb',
             Expn_Desc NVARCHAR(250) '.'
@@ -1253,7 +1253,7 @@ BEGIN
            WITH (
             Actn_Date DATETIME './@actndate',
             Rcpt_Mtod VARCHAR(3) './@rcptmtod',
-            Amnt BIGINT './@amnt',
+            Amnt DECIMAL(18, 2) './@amnt',
             Flow_No VARCHAR(20) './@flowno'
            );
       
@@ -1270,7 +1270,7 @@ BEGIN
                 (
                   SELECT @CashCode AS '@cashcode',
                          @Rqid AS '@rqstrqid',
-                         @Amnt AS '@amnt',
+                         CAST(@Amnt AS BIGINT) AS '@amnt',
                          @PymtMtod AS '@rcptmtod',
                          @Txid AS '@refno',
                          @PymtDate AS '@actndate'
@@ -1294,7 +1294,7 @@ BEGIN
          SELECT *
            FROM OPENXML(@docHandle, N'//Payment_Discount')
            WITH (            
-            Amnt BIGINT './@amnt',
+            Amnt DECIMAL(18, 2) './@amnt',
             Pyds_Desc NVARCHAR(250) './@pydsdesc'
            );
       
@@ -2377,12 +2377,15 @@ BEGIN
       EXEC dbo.GLR_TRQT_P @X = @X -- xml
              
       SELECT @Rqid = RQID
-        FROM dbo.Request r
-       WHERE r.RQTP_CODE = '020'
+        FROM dbo.Request r, dbo.Request_Row rr
+       WHERE r.RQID = rr.RQST_RQID
+         AND rr.FIGH_FILE_NO = @FileNo
+         AND r.RQTP_CODE = '020'
          AND r.RQST_STAT = '001'
          AND r.RQTT_CODE = '004'
-         AND r.RQST_RQID = @RqstRqid
+         AND ISNULL(r.RQST_RQID, 0) = ISNULL(@RqstRqid, 0)
          AND r.CRET_BY = UPPER(SUSER_NAME())
+         AND CAST(r.RQST_DATE AS DATE) = CAST(GETDATE() AS DATE)
          AND SUB_SYS = 1;
          
       SELECT @X = (

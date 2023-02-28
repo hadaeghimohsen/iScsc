@@ -2,7 +2,7 @@ CREATE TABLE [dbo].[Gain_Loss_Rail_Detail]
 (
 [GLRL_GLID] [bigint] NOT NULL,
 [RWNO] [smallint] NOT NULL,
-[AMNT] [bigint] NULL,
+[AMNT] [decimal] (18, 2) NULL,
 [RCPT_MTOD] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [TERM_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [TRAN_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

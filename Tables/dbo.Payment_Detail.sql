@@ -278,6 +278,50 @@ BEGIN
    IF @@FETCH_STATUS <> 0
       GOTO L$EndFetch;
    
+   -- اگر قیمت توسط کاربر بخواهد کمتر از مقدار آیین نامه ثبت شود باید دسترسی کاربر را چک کنیم
+	IF EXISTS(
+	   SELECT *
+	     FROM Inserted i, dbo.Expense d
+	    WHERE i.EXPN_CODE = d.CODE
+	      AND ISNULL(i.EXPN_PRIC, 0) < ISNULL(d.PRIC, 0)
+	)
+	BEGIN
+	   DECLARE @AP BIT
+             ,@AccessString VARCHAR(250);
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>265</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 265 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+	END 
+	
+	-- اگر قیمت توسط کاربر بخواهد بیشتر از مقدار آیین نامه ثبت شود باید دسترسی کاربر را چک کنیم
+	IF EXISTS(
+	   SELECT *
+	     FROM Inserted i, dbo.Expense d
+	    WHERE i.EXPN_CODE = d.CODE
+	      AND ISNULL(i.EXPN_PRIC, 0) > ISNULL(d.PRIC, 0)
+	)
+	BEGIN
+	   --DECLARE @AP BIT
+    --         ,@AccessString VARCHAR(250);
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>266</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 266 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+	END 
+   
    SET @RqstRqid = @Rqid;
    
    ---------------

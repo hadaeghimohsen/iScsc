@@ -22,7 +22,8 @@ CREATE PROCEDURE [dbo].[INS_CTGY_P]
 	@Dflt_Stat VARCHAR(3),
 	@Ctgy_Stat VARCHAR(3),
 	@Gust_Numb INT,
-	@Natl_Code VARCHAR(2)
+	@Natl_Code VARCHAR(2),
+	@Rwrd_Attn_Pric BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -48,7 +49,12 @@ BEGIN
        WHERE c.MTOD_CODE = @Mtod_Code;
    END 
    
-   INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB, NATL_CODE)
-   VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb, @Natl_Code);
+   IF ISNULL(@Gust_Numb, 0) = 0 AND ISNULL(@Numb_Of_Attn_Mont, 0) > 0
+      SET @Gust_Numb = @Numb_Of_Attn_Mont;
+   
+   SET @Rwrd_Attn_Pric = ISNULL(@Rwrd_Attn_Pric, 0);
+   
+   INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB, NATL_CODE, RWRD_ATTN_PRIC)
+   VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb, @Natl_Code, @Rwrd_Attn_Pric);
 END
 GO

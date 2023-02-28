@@ -49,7 +49,9 @@ BEGIN
              ,@SumNumbAttnMont INT
              ,@AttnDayType VARCHAR(3)
              ,@StrtTime TIME(0)
-             ,@EndTime TIME(0);
+             ,@EndTime TIME(0)
+             ,@ResnApbsCode BIGINT
+             ,@ResnDesc NVARCHAR(500);
       
       SELECT @StrtDate = r.query('Member_Ship').value('(Member_Ship/@strtdate)[1]', 'DATETIME')
             ,@StrtTime = r.query('Member_Ship').value('(Member_Ship/@strttime)[1]', 'TIME(0)')
@@ -60,6 +62,8 @@ BEGIN
             ,@NumbOfAttnMont = r.query('Member_Ship').value('(Member_Ship/@numbofattnmont)[1]', 'INT')
             ,@SumNumbAttnMont = r.query('Member_Ship').value('(Member_Ship/@sumnumbattnmont)[1]', 'INT')
             ,@AttnDayTYpe = r.query('Member_Ship').value('(Member_Ship/@attndaytype)[1]', 'VARCHAR(3)')
+            ,@ResnApbsCode = r.query('Member_Ship').value('(Member_Ship/@resnapbscode)[1]', 'BIGINT')
+            ,@ResnDesc = r.query('Member_Ship').value('(Member_Ship/@resndesc)[1]', 'NVARCHAR(500)')
         FROM @X.nodes('//Request_Row') Rqrv(r)
        WHERE r.query('.').value('(Request_Row/@fileno)[1]', 'BIGINT') = @fileno;
       
@@ -82,6 +86,8 @@ BEGIN
          SET SUM_ATTN_MONT_DNRM = @SumNumbAttnMont
             ,FGPB_RWNO_DNRM = CASE WHEN FGPB_RWNO_DNRM IS NULL THEN (SELECT FGPB_RWNO_DNRM FROM dbo.Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RECT_CODE = '004') ELSE Member_Ship.FGPB_RWNO_DNRM END
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,RESN_APBS_CODE = @ResnApbsCode
+            ,RESN_DESC = @ResnDesc
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002';
          

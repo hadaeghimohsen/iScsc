@@ -106,7 +106,7 @@ BEGIN
       
       DECLARE @ChngType VARCHAR(3),
               @DebtType VARCHAR(3),
-              @Amnt INT,
+              @Amnt DECIMAL(18, 2),
               @Prct INT,
               @AgreDate DATETIME,
               @PaidDate DATETIME,
@@ -120,7 +120,7 @@ BEGIN
               
       SELECT @ChngType = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@chngtype)[1]', 'VARCHAR(3)')
 	         ,@DebtType = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@debttype)[1]', 'VARCHAR(3)')
-	         ,@Amnt     = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@amnt)[1]', 'INT')
+	         ,@Amnt     = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@amnt)[1]', 'DECIMAL(18, 2)')
 	         ,@Prct     = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@prct)[1]', 'INT')
 	         --,@AgreDate = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@agredate)[1]', 'DATETIME')
 	         ,@PaidDate = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@paiddate)[1]', 'DATETIME')
@@ -288,12 +288,12 @@ BEGIN
 	      
 	      DECLARE C$Glrd CURSOR FOR
 	         SELECT r.query('.').value('(Gain_Loss_Rial_Detial/@rwno)[1]', 'SMALLINT')
-	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@amnt)[1]', 'BIGINT')
+	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@amnt)[1]', 'DECIMAL(18, 2)')
 	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@rcptmtod)[1]', 'VARCHAR(3)')
 	           FROM @X.nodes('//Gain_Loss_Rial_Detial') T(r);
 	      
 	      DECLARE @GlrdRwno SMALLINT
-	             ,@GlrdAmnt BIGINT
+	             ,@GlrdAmnt DECIMAL(18, 2)
 	             ,@GlrdRcptMtod VARCHAR(3);
 	             
 	      OPEN [C$Glrd];

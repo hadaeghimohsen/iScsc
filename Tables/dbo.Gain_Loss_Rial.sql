@@ -8,7 +8,7 @@ CREATE TABLE [dbo].[Gain_Loss_Rial]
 [CONF_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHNG_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DEBT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[AMNT] [int] NULL,
+[AMNT] [decimal] (18, 2) NULL,
 [PRCT] [int] NULL,
 [AGRE_DATE] [datetime] NULL,
 [PAID_DATE] [datetime] NULL,

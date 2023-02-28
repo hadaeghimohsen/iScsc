@@ -26,7 +26,7 @@ BEGIN
       AND P.RQST_RQID = D.PYMT_RQST_RQID
       AND D.PYMT_RQST_RQID = Rr.RQST_RQID
       AND D.RQRO_RWNO = Rr.RWNO
-      AND R.RQST_STAT IN ('001', '002')
+      AND R.RQST_STAT IN (/*'001',*/ '002')
       AND F.CONF_STAT = '002'
       --AND D.PAY_STAT = '001'
       AND P.PYMT_STAT != '002'
@@ -42,7 +42,7 @@ BEGIN
       AND P.RQST_RQID = D.PYMT_RQST_RQID
       AND D.PYMT_RQST_RQID = Rr.RQST_RQID
       AND D.RQRO_RWNO = Rr.RWNO
-      AND R.RQST_STAT IN ('001', '002')
+      AND R.RQST_STAT IN (/*'001',*/ '002')
       AND F.CONF_STAT = '002'
       AND D.STAT = '002'
       --AND D.PAY_STAT = '001'
@@ -59,7 +59,7 @@ BEGIN
       AND P.RQST_RQID = D.PYMT_RQST_RQID
       AND D.PYMT_RQST_RQID = Rr.RQST_RQID
       AND D.RQRO_RWNO = Rr.RWNO
-      AND R.RQST_STAT IN ('001', '002')
+      AND R.RQST_STAT IN (/*'001',*/ '002')
       AND F.CONF_STAT = '002'
       --AND D.PAY_STAT = '001'
       AND p.PYMT_STAT != '002'

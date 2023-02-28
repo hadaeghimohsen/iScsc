@@ -18,6 +18,7 @@ CREATE TABLE [dbo].[Club_Method]
 [CLAS_TIME] [int] NULL,
 [AMNT] [bigint] NULL,
 [NATL_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DURT_ATTN_SOND_PATH] [varchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -188,6 +189,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'محدودیت در نظر گرفتن ظرفیت کلاس', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'CPCT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کلاس پیش فرض', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'DFLT_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'فایل صوتی مدت زمان حضور', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'DURT_ATTN_SOND_PATH'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مشخص کردن کد تعرفه', 'SCHEMA', N'dbo', 'TABLE', N'Club_Method', 'COLUMN', N'NATL_CODE'
 GO

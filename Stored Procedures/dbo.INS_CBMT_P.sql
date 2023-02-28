@@ -24,7 +24,8 @@ CREATE PROCEDURE [dbo].[INS_CBMT_P]
    @Cbmt_Time_Stat VARCHAR(3),
    @Clas_Time     INT,
    @Amnt         BIGINT,
-   @Natl_Code    VARCHAR(3)
+   @Natl_Code    VARCHAR(3),
+   @Durt_Attn_Sond_Path VARCHAR(500)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -64,7 +65,7 @@ BEGIN
         FROM dbo.Club_Method c;       
    END 
    
-   INSERT Club_Method (CLUB_CODE, MTOD_CODE, COCH_FILE_NO, STRT_TIME, END_TIME, MTOD_STAT, DAY_TYPE, SEX_TYPE, CBMT_DESC, DFLT_STAT, CPCT_NUMB, CPCT_STAT, CBMT_TIME, CBMT_TIME_STAT, CLAS_TIME, AMNT, NATL_CODE)
-   VALUES (@Club_Code, @Mtod_Code, @Coch_File_No, @Strt_Time, @End_Time, '002', @Day_Type, @Sex_Type, @Cbmt_Desc, @Dflt_Stat, @Cpct_Numb, @Cpct_Stat, @Cbmt_Time, @Cbmt_Time_Stat, @Clas_Time, @Amnt, @Natl_Code);
+   INSERT Club_Method (CLUB_CODE, MTOD_CODE, COCH_FILE_NO, STRT_TIME, END_TIME, MTOD_STAT, DAY_TYPE, SEX_TYPE, CBMT_DESC, DFLT_STAT, CPCT_NUMB, CPCT_STAT, CBMT_TIME, CBMT_TIME_STAT, CLAS_TIME, AMNT, NATL_CODE, DURT_ATTN_SOND_PATH)
+   VALUES (@Club_Code, @Mtod_Code, @Coch_File_No, @Strt_Time, @End_Time, '002', @Day_Type, @Sex_Type, @Cbmt_Desc, @Dflt_Stat, @Cpct_Numb, @Cpct_Stat, @Cbmt_Time, @Cbmt_Time_Stat, @Clas_Time, @Amnt, @Natl_Code, @Durt_Attn_Sond_Path);
 END
 GO

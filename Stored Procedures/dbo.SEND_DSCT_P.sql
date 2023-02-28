@@ -30,7 +30,13 @@ BEGIN
               @CellPhon VARCHAR(11),
               @FgdcCode BIGINT,
               @MsgbText NVARCHAR(MAX),
-              @LineType VARCHAR(3) = '001';
+              @LineType VARCHAR(3) = '001',
+              @ParmSendType VARCHAR(3);
+      
+      -- 1401/11/15
+      SELECT @ParmSendType = ISNULL(PARM_SEND_TYPE, '003')
+        FROM dbo.Advertising_Parameter
+       WHERE CODE = @AdvpCode;
 
 	   DECLARE C$Advc CURSOR FOR
 	      SELECT a.CODE, a.FIGH_FILE_NO, a.CELL_PHON
@@ -76,7 +82,7 @@ BEGIN
 	            AND fd.RECD_TYPE = a.RECD_TYPE
 	            AND fd.RQST_RQID IS NULL
 	            AND CAST(fd.EXPR_DATE AS DATE) >= CAST(GETDATE() AS DATE)
-	      )
+	      ) AND @ParmSendType IN ('001', '003')
 	      BEGIN
 	         INSERT INTO dbo.Fighter_Discount_Card ( ADVP_CODE ,FIGH_FILE_NO ,CODE ,RECD_TYPE ,DISC_CODE ,EXPR_DATE ,STAT ,MTOD_CODE ,CTGY_CODE ,DSCT_AMNT ,DSCT_TYPE ,RQTP_CODE ,DSCT_DESC ,TEMP_TMID )
 	         SELECT a.CODE, @FileNo, dbo.GNRT_NVID_U(), a.RECD_TYPE, a.DISC_CODE, a.EXPR_DATE, a.STAT, a.MTOD_CODE, a.CTGY_CODE, a.DSCT_AMNT, a.DSCT_TYPE, a.RQTP_CODE, a.ADVP_NAME, a.TEMP_TMID
@@ -96,7 +102,7 @@ BEGIN
 	   END
 	   
 	   -- IF Send Notification SMS
-	   IF @SendSmsStat = 1
+	   IF @SendSmsStat = 1 AND @ParmSendType IN ('002', '003')
 	   BEGIN
 	      -- 1401/03/28
          SET @MsgbText =                               

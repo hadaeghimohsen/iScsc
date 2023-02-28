@@ -97,6 +97,51 @@ BEGIN
 	CLOSE [C$OP$RFBD];
 	DEALLOCATE [C$OP$RFBD];
 	
+	-------------- Attendance Reward
+	-- Local Params
+	DECLARE @AttnCode BIGINT;	
+	SELECT @AttnCode = @X.query('//Attendance').value('(Attendance/@code)[1]', 'BIGINT');
+	
+	-- اولین مرحله محاسبه مربوط به پورسانت برای مشتریان بابت خریدهایی که از مغازه انجام میشود
+	DECLARE C$OP$ARWD CURSOR FOR
+	   SELECT a.FIGH_FILE_NO, cb.RWRD_ATTN_PRIC, da.DOMN_DESC
+	     FROM dbo.Attendance a, dbo.Category_Belt cb, 
+	          dbo.Regulation rg, dbo.[D$ATYP] da
+	    WHERE a.code = @AttnCode
+	      AND a.CTGY_CODE_DNRM = cb.CODE
+	      AND rg.REGL_STAT = '002'
+	      AND rg.[TYPE] = '001'
+	      AND rg.AMNT_TYPE = da.VALU;
+	
+	OPEN [C$OP$ARWD];
+	L$Loop$ARWD:
+	FETCH [C$OP$ARWD] INTO @FileNo, @Amnt, @AmntTypeDesc;
+	
+	IF @@FETCH_STATUS <> 0
+	   GOTO L$EndLoop$ARWD;
+	
+   -- Save amount in Service's Wallet
+	SET @XTemp = (
+	    SELECT 5 AS '@subsys',
+	           114 AS '@cmndcode',
+	           @FileNo AS '@fileno',
+	           (
+	             SELECT '002' AS '@stat',
+	                    GETDATE() AS '@pymtdate',
+	                    '015' AS '@pymtmtod',
+	                    @Amnt AS '@amnt',
+	                    N'واریز پاداش مشتریان منظم ' + dbo.GET_NTOF_U(@Amnt) + N' ' + @AmntTypeDesc AS '@cmntdesc'
+	                FOR XML PATH('Deposit'), TYPE
+	           )
+	       FOR XML PATH('Router_Command')	           
+	);
+	EXEC dbo.RunnerdbCommand @X = @XTemp, @xRet = @XTemp OUTPUT;
+	
+	GOTO L$Loop$ARWD;
+	L$EndLoop$ARWD:
+	CLOSE [C$OP$ARWD];
+	DEALLOCATE [C$OP$ARWD];
+	
 	
 	COMMIT TRAN [T$FINL_RQST_P];
 	END TRY

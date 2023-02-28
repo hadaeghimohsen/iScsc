@@ -13,6 +13,7 @@ CREATE TABLE [dbo].[Advertising_Parameter]
 [NUMB_LAST_DAY] [int] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [TEMP_TMID] [bigint] NULL,
+[PARM_SEND_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -81,6 +82,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'گروه', 'SCHEMA', N'dbo', 'TABLE', N'Advertising_Parameter', 'COLUMN', N'MTOD_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد روز گذشته', 'SCHEMA', N'dbo', 'TABLE', N'Advertising_Parameter', 'COLUMN', N'NUMB_LAST_DAY'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نحوه ارسال رکورد های تخفیف', 'SCHEMA', N'dbo', 'TABLE', N'Advertising_Parameter', 'COLUMN', N'PARM_SEND_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع رکورد تخفیف', 'SCHEMA', N'dbo', 'TABLE', N'Advertising_Parameter', 'COLUMN', N'RECD_TYPE'
 GO

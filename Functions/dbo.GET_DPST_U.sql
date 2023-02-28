@@ -14,8 +14,8 @@ CREATE FUNCTION [dbo].[GET_DPST_U]
 RETURNS BIGINT
 AS
 BEGIN
-   DECLARE @SumDpstAmnt BIGINT
-          ,@SumPymtAmnt BIGINT;
+   DECLARE @SumDpstAmnt DECIMAL(18, 2)
+          ,@SumPymtAmnt DECIMAL(18, 2);
    
    -- مبلغ کل سپرده گذاری شده موجود
    SELECT @SumDpstAmnt = 

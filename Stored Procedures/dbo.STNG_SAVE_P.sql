@@ -54,7 +54,7 @@ BEGIN
 	             ,@PortNumb INT
 	             ,@AttnCompConct VARCHAR(30)
 	             ,@Atn1EvntActnType VARCHAR(3)
-                 ,@IPAdr2 VARCHAR(15)
+                ,@IPAdr2 VARCHAR(15)
 	             ,@PortNum2 INT
 	             ,@AttnCompCnc2 VARCHAR(30)	             
 	             ,@Atn2EvntActnType VARCHAR(3)
@@ -65,30 +65,30 @@ BEGIN
 	             ,@DebtClngStat VARCHAR(3)
 	             ,@MostDebtClngAmnt BIGINT
 	             ,@ExprDebtDay INT
-                 ,@DebtChckStat VARCHAR(3)
-                 ,@PermmEntrDebtServNumb int
-                 ,@TryValdSbmt VARCHAR(3)                
-                 ,@GateAttnStat VARCHAR(3)
-                 ,@GateCommPortName VARCHAR(30)
-                 ,@GateBandRate INT
-                 ,@GateTimeClos INT
-                 ,@GateEntrOpen VARCHAR(3)
-                 ,@GateExitOpen VARCHAR(3)
-                 ,@ExpnExtrStat VARCHAR(3)
-                 ,@ExpnCommPortName VARCHAR(30)
-                 ,@ExpnBandRate INT
-                 ,@RunQury VARCHAR(3)
-                 ,@AttnPrntStat VARCHAR(3)
-                 ,@SharMbspStat VARCHAR(3)
-                 ,@RunRbot VARCHAR(3)
-                 ,@ClerZero VARCHAR(3)
-                 ,@HldyCont INT
-                 ,@DuplNatlCode VARCHAR(3)
-                 ,@DuplCellPhon VARCHAR(3)
-                 ,@InptNatlCodeStat VARCHAR(3)
-                 ,@InptCellPhonStat VARCHAR(3)
-                 ,@IPAdr3 VARCHAR(15)
-                 ,@PortNum3 INT
+                ,@DebtChckStat VARCHAR(3)
+                ,@PermmEntrDebtServNumb int
+                ,@TryValdSbmt VARCHAR(3)                
+                ,@GateAttnStat VARCHAR(3)
+                ,@GateCommPortName VARCHAR(30)
+                ,@GateBandRate INT
+                ,@GateTimeClos INT
+                ,@GateEntrOpen VARCHAR(3)
+                ,@GateExitOpen VARCHAR(3)
+                ,@ExpnExtrStat VARCHAR(3)
+                ,@ExpnCommPortName VARCHAR(30)
+                ,@ExpnBandRate INT
+                ,@RunQury VARCHAR(3)
+                ,@AttnPrntStat VARCHAR(3)
+                ,@SharMbspStat VARCHAR(3)
+                ,@RunRbot VARCHAR(3)
+                ,@ClerZero VARCHAR(3)
+                ,@HldyCont INT
+                ,@DuplNatlCode VARCHAR(3)
+                ,@DuplCellPhon VARCHAR(3)
+                ,@InptNatlCodeStat VARCHAR(3)
+                ,@InptCellPhonStat VARCHAR(3)
+                ,@IPAdr3 VARCHAR(15)
+                ,@PortNum3 INT
 	             ,@AttnCompCnc3 VARCHAR(30)
 	             ,@Atn4EvntActnType VARCHAR(3)
 	             ,@AttnGustNumbType VARCHAR(3)
@@ -99,6 +99,9 @@ BEGIN
 	             ,@Snd4Path NVARCHAR(4000)
 	             ,@Snd5Path NVARCHAR(4000)
 	             ,@Snd6Path NVARCHAR(4000)
+	             ,@Snd7Path NVARCHAR(4000)
+	             ,@Snd8Path NVARCHAR(4000)
+	             ,@Snd9Path NVARCHAR(4000)
 	             ,@RestAttnNumbByYear VARCHAR(3);
 	             
       	
@@ -179,6 +182,9 @@ BEGIN
 	             ,@Snd4Path = @X.query('//Settings').value('(Settings/@snd4path)[1]', 'NVARCHAR(4000)')
 	             ,@Snd5Path = @X.query('//Settings').value('(Settings/@snd5path)[1]', 'NVARCHAR(4000)')
 	             ,@Snd6Path = @X.query('//Settings').value('(Settings/@snd6path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd7Path = @X.query('//Settings').value('(Settings/@snd7path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd8Path = @X.query('//Settings').value('(Settings/@snd8path)[1]', 'NVARCHAR(4000)')
+	             ,@Snd9Path = @X.query('//Settings').value('(Settings/@snd9path)[1]', 'NVARCHAR(4000)')
 	             
 	             ,@RestAttnNumbByYear = @X.query('//Settings').value('(Settings/@restattnnumbbyyear)[1]', 'VARCHAR(3)');
          
@@ -272,7 +278,10 @@ BEGIN
                   ,SND3_PATH = @Snd3Path
                   ,SND4_PATH = @Snd4Path
                   ,SND5_PATH = @Snd5Path
-                  ,SND6_PATH = @Snd6Path
+                  ,SND6_PATH = @Snd6Path                  
+                  ,SND7_PATH = @Snd7Path
+                  ,SND8_PATH = @Snd8Path
+                  ,SND9_PATH = @Snd9Path
                   
                   ,REST_ATTN_NUMB_BY_YEAR = @RestAttnNumbByYear
              WHERE CLUB_CODE = @ClubCode;

@@ -50,6 +50,7 @@ BEGIN
 	   
 	   SET @OrgnRqid = @Rqid;
 	   
+	   -- دسترسی به اطلاعات جدید
       DECLARE @StrtDate002 DATETIME
              ,@EndDate002  DATETIME
              ,@PrntCont002 SMALLINT
@@ -57,8 +58,11 @@ BEGIN
              ,@NumbOfAttnMont002 INT
              ,@SumNumbAttnMont002 INT
              ,@AttnDayType002 VARCHAR(3)
-             ,@NewFgpbRwno INT;
+             ,@NewFgpbRwno INT
+             ,@ResnApbsCode002 BIGINT
+             ,@ResnDesc002 NVARCHAR(500);
      
+     -- دسترسی به اطلاعات قبلی
      DECLARE  @StrtDate004 DATETIME
              ,@EndDate004  DATETIME
              ,@PrntCont004 SMALLINT
@@ -66,38 +70,49 @@ BEGIN
              ,@NumbOfAttnMont004 INT
              ,@SumNumbAttnMont004 INT
              ,@AttnDayType004 VARCHAR(3)
-             ,@OldFgpbRwno INT;
+             ,@OldFgpbRwno INT
+             ,@ResnApbsCode004 BIGINT
+             ,@ResnDesc004 NVARCHAR(500);
       
       DECLARE @PrvnCode VARCHAR(3)
              ,@RegnCode VARCHAR(3);
       
+      -- دسترسی به اطلاعات جدید
       SELECT @StrtDate002 = STRT_DATE
             ,@EndDate002 = END_DATE
             ,@NumbOfAttnMont002 = NUMB_OF_ATTN_MONT
             ,@SumNumbAttnMont002 = SUM_ATTN_MONT_DNRM
             ,@NumbMontOfer002 = NUMB_MONT_OFER
+            ,@ResnApbsCode002 = RESN_APBS_CODE
+            ,@ResnDesc002 = RESN_DESC
         FROM dbo.Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002'
          AND FIGH_FILE_NO = @FileNo;
       
+      -- دسترسی به اطلاعات قبلی
       SELECT @StrtDate004 = STRT_DATE
             ,@EndDate004 = END_DATE
             ,@NumbOfAttnMont004 = NUMB_OF_ATTN_MONT
             ,@SumNumbAttnMont004 = SUM_ATTN_MONT_DNRM
             ,@NumbMontOfer004 = NUMB_MONT_OFER
             ,@OldFgpbRwno = FGPB_RWNO_DNRM
+            ,@ResnApbsCode004 = RESN_APBS_CODE
+            ,@ResnDesc004 = RESN_DESC
         FROM dbo.Member_Ship
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004'
          AND FIGH_FILE_NO = @FileNo;
       
+      -- جاگذاری اطلاعات قبلی به جای جدید
       UPDATE dbo.Member_Ship
          SET STRT_DATE = @StrtDate004
             ,END_DATE = @EndDate004
             ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont004
             ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont004
             ,NUMB_MONT_OFER = @NumbMontOfer004
+            ,RESN_APBS_CODE = @ResnApbsCode004
+            ,RESN_DESC = @ResnDesc004
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '002';
       
@@ -194,15 +209,17 @@ BEGIN
       END
       
       --1401/07/16 * روز سرنگونی حکومت اخوندی      
+      -- جاگذاری اطلاعات جدید به جای قبلی
       UPDATE dbo.Member_Ship
          SET STRT_DATE = @StrtDate002
             ,END_DATE = @EndDate002
             ,NUMB_OF_ATTN_MONT = @NumbOfAttnMont002
             ,SUM_ATTN_MONT_DNRM = @SumNumbAttnMont002
             ,NUMB_MONT_OFER = @NumbMontOfer002
+            ,RESN_APBS_CODE = @ResnApbsCode002
+            ,RESN_DESC = @ResnDesc002
        WHERE RQRO_RQST_RQID = @Rqid
          AND RECT_CODE = '004';
-
       
       IF EXISTS(SELECT * FROM dbo.Message_Broadcast WHERE MSGB_TYPE = '020' AND STAT = '002')        
       BEGIN
@@ -354,6 +371,8 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = @OldFgpbRwno
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,RESN_APBS_CODE = @ResnApbsCode004
+            ,RESN_DESC = @ResnDesc004
        WHERE RQRO_RQST_RQID = @Rqid;
        
       -- چیزی که شده
@@ -361,6 +380,8 @@ BEGIN
       UPDATE dbo.Member_Ship
          SET FGPB_RWNO_DNRM = ISNULL(@NewFgpbRwno, @OldFgpbRwno)
             ,FGPB_RECT_CODE_DNRM = '004'
+            ,RESN_APBS_CODE = @ResnApbsCode002
+            ,RESN_DESC = @ResnDesc002
        WHERE RQRO_RQST_RQID = @Rqid;
       
       UPDATE Request

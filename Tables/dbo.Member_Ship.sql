@@ -29,6 +29,8 @@ CREATE TABLE [dbo].[Member_Ship]
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NEW_FNGR_PRNT] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RTNG_NUMB_DNRM] [smallint] NULL,
+[RESN_APBS_CODE] [bigint] NULL,
+[RESN_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -234,7 +236,7 @@ BEGIN
    --                                  WHERE ms.FIGH_FILE_NO = m.FIGH_FILE_NO
    --                                    AND ms.TYPE IN ('001', '004')
    --                                    AND ms.VALD_TYPE = '002'
-   --                                    AND m.RECT_CODE = '004'
+   --                          AND m.RECT_CODE = '004'
    --                               ))) S
    --ON (T.FILE_NO   = S.FIGH_FILE_NO AND
    --    S.TYPE IN ('001', '004') AND
@@ -259,7 +261,7 @@ BEGIN
                     WHERE ms.FIGH_FILE_NO = m.FIGH_FILE_NO
                       AND ms.TYPE IN ('001', '004')
                       AND ms.VALD_TYPE = '002'
-                      AND m.RECT_CODE = '004'
+                      AND ms.RECT_CODE = '004'
                  )) S
    ON (T.FILE_NO   = S.FIGH_FILE_NO)
    WHEN MATCHED THEN
@@ -426,7 +428,7 @@ BEGIN
    BEGIN
       DECLARE @LineType VARCHAR(3)
              ,@Cel1Phon VARCHAR(11)
-             ,@Cel2Phon VARCHAR(11)
+          ,@Cel2Phon VARCHAR(11)
              ,@Cel3Phon VARCHAR(11)
              ,@Cel4Phon VARCHAR(11)
              ,@Cel5Phon VARCHAR(11)
@@ -523,7 +525,7 @@ BEGIN
                                    FOR XML PATH('Message'), TYPE 
                             ) 
                         FOR XML PATH('Contact'), TYPE
-                   )                   
+                   )    
               FOR XML PATH('Contacts'), ROOT('Process')                            
          );
          EXEC dbo.MSG_SEND_P @X = @XMsg -- xml                  
@@ -613,7 +615,7 @@ BEGIN
                EXEC iRoboTech.dbo.INS_SRRM_P @SRBT_SERV_FILE_NO = @RoboServFileNo, -- bigint
                    @SRBT_ROBO_RBID = 391, -- bigint
                    @RWNO = 0, -- bigint
-                   @SRMG_RWNO = NULL, -- bigint
+            @SRMG_RWNO = NULL, -- bigint
                    @Ordt_Ordr_Code = NULL, -- bigint
                    @Ordt_Rwno = NULL, -- bigint
                    @MESG_TEXT = @MsgbText, -- nvarchar(max)
@@ -637,6 +639,8 @@ GO
 ALTER TABLE [dbo].[Member_Ship] ADD CONSTRAINT [MBSP_PK] PRIMARY KEY CLUSTERED  ([FIGH_FILE_NO], [RWNO], [RECT_CODE]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Member_Ship] ADD CONSTRAINT [UK_MBSP] UNIQUE NONCLUSTERED  ([FIGH_FILE_NO], [RECT_CODE], [RWNO]) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Member_Ship] ADD CONSTRAINT [FK_MBSP_APBS] FOREIGN KEY ([RESN_APBS_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
 GO
 ALTER TABLE [dbo].[Member_Ship] ADD CONSTRAINT [FK_MBSP_CBMT] FOREIGN KEY ([FGPB_CBMT_CODE_DNRM]) REFERENCES [dbo].[Club_Method] ([CODE])
 GO
