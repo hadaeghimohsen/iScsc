@@ -37,7 +37,7 @@ BEGIN
       UPDATE 
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
-            ,CODE      = dbo.Gnrt_Nvid_U()
+            ,CODE      = CASE s.CODE WHEN 0 THEN dbo.Gnrt_Nvid_U() ELSE s.CODE END
             ,DRES_NUMB = CASE WHEN S.DRES_NUMB = 0 OR S.DRES_NUMB IS NULL  THEN (SELECT COUNT(Code) FROM Dresser WHERE COMA_CODE = S.COMA_CODE) ELSE S.DRES_NUMB END;
 END
 ;

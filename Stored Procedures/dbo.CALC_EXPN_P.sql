@@ -54,7 +54,8 @@ BEGIN
 	       ,@RducAmnt     BIGINT
 	       ,@EfctDateType VARCHAR(3)
 	       ,@MinAttnStat  VARCHAR(3)
-	       ,@ExprPayDay   INT;
+	       ,@ExprPayDay   INT
+	       ,@ForeGivnAttnNumb INT;
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -180,7 +181,7 @@ BEGIN
           (PYDT.EXPN_PRIC * PYDT.QNTY) - (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),
           (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.STAT = '002'),          
           (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
-          CASE WHEN ISNULL(pydt.PROF_AMNT_DNRM, 0) > 0 THEN pydt.PROF_AMNT_DNRM else (PYDT.EXPN_PRIC * PYDT.QNTY) END * @PrctValu / 100,
+          (CASE WHEN ISNULL(pydt.PROF_AMNT_DNRM, 0) > 0 THEN pydt.PROF_AMNT_DNRM else (PYDT.EXPN_PRIC * PYDT.QNTY) END - ISNULL(@RducAmnt, 0)) * @PrctValu / 100,
           @PrctValu,
           @DecrPrct,
           RQRO.RQTP_CODE,
@@ -210,7 +211,7 @@ BEGIN
                                 AND ms.RECT_CODE = '004'
                                 AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                 AND ms.RQRO_RWNO = RQRO.RWNO)
-            WHEN '016' THEN rqst.SAVE_DATE
+            WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
           END ,
           CASE RQST.RQTP_CODE
             WHEN '001' THEN (SELECT ms.END_DATE
@@ -224,7 +225,7 @@ BEGIN
                                 AND ms.RECT_CODE = '004'
                                 AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                 AND ms.RQRO_RWNO = RQRO.RWNO)
-            WHEN '016' THEN rqst.SAVE_DATE
+            WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
           END ,
           @RducAmnt,
           @EfctDateType,
@@ -264,6 +265,10 @@ BEGIN
              ( @EfctDateType = '003' -- تاریخ ثبت درخواست
                AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
                AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
+             ) OR 
+             ( @EfctDateType = '008' -- تاریخ فاکتور
+               AND (CAST(RQST.INVC_DATE AS DATE) >= @FromPymtDate)
+               AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.INVC_DATE AS DATE) <= @ToPymtDate)
              ) OR 
              ( @EfctDateType = '002' -- تاریخ پایان دوره
                AND (
@@ -347,25 +352,25 @@ BEGIN
       SET pe.EXPN_AMNT = (
              (
                 (
-                     CASE WHEN ISNULL(pe.PROF_AMNT, 0) > 0 THEN pe.PROF_AMNT ELSE pe.EXPN_PRIC END 
-                  -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
-                  -  (
+                     pe.CALC_EXPN_PRIC--(CASE WHEN ISNULL(pe.PROF_AMNT, 0) > 0 THEN pe.PROF_AMNT ELSE pe.EXPN_PRIC END - ISNULL(pe.RDUC_AMNT, 0))
+                  -  (ISNULL(pe.SELF_DSCN_PRIC, 0))--(SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                  /*-  (
                           pe.RDUC_AMNT -- سهم باشگاه
                        -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
-                     )
+                     )*/
                   
-                ) * @PrctValu / 100 
+                ) --* @PrctValu / 100 
              ) - 
              (
                 (
                   (
-                        CASE WHEN ISNULL(pe.PROF_AMNT, 0) > 0 THEN pe.PROF_AMNT ELSE pe.EXPN_PRIC END 
-                     -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
-                     -  (
+                        pe.CALC_EXPN_PRIC--(CASE WHEN ISNULL(pe.PROF_AMNT, 0) > 0 THEN pe.PROF_AMNT ELSE pe.EXPN_PRIC END - ISNULL(pe.RDUC_AMNT, 0))
+                     -  (ISNULL(pe.SELF_DSCN_PRIC, 0))--(SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002') -- تخفیف خود مربی
+                     /*-  (
                              pe.RDUC_AMNT -- سهم باشگاه
                           -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.PYDT_CODE_DNRM = pe.PYDT_CODE AND pd.AMNT_TYPE != '005' AND pd.STAT = '002') -- تخفیف باشگاه
-                        )
-                  ) * @PrctValu / 100 
+                        )*/
+                  ) --* @PrctValu / 100 
                 ) * @DecrPrct / 100
              )                
           )
@@ -460,7 +465,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              CASE RQST.RQTP_CODE
                WHEN '001' THEN (SELECT ms.END_DATE
@@ -474,7 +479,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              @EfctDateType,
              '004',
@@ -511,6 +516,10 @@ BEGIN
                 ( @EfctDateType = '003' -- تاریخ ثبت درخواست
                   AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
+                ) OR 
+                ( @EfctDateType = '008' -- تاریخ فاکتور
+                  AND (CAST(RQST.INVC_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.INVC_DATE AS DATE) <= @ToPymtDate)
                 ) OR 
                 ( @EfctDateType = '002' -- تاریخ پایان دوره
                   AND (
@@ -624,7 +633,7 @@ BEGIN
    DECLARE C$CochFileNo$CalcExpnPT CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
              c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT,
-             c.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY
+             c.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY, C.FORE_GIVN_ATTN_NUMB
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -648,7 +657,7 @@ BEGIN
    NextC$CochFileNo$CalcExpnPT:
    FETCH NEXT FROM C$CochFileNo$CalcExpnPT INTO 
    @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, @MtodCode, 
-   @CtgyCode, @CalcType, @PymtStat, @EfctDateType, @MinAttnStat, @ExprPayDay;
+   @CtgyCode, @CalcType, @PymtStat, @EfctDateType, @MinAttnStat, @ExprPayDay, @ForeGivnAttnNumb;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPT;
@@ -659,7 +668,8 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
          MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
+         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE, PROF_AMNT, DEDU_AMNT,
+         SELF_DSCN_PRIC, RDUC_AMNT)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -697,7 +707,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              CASE RQST.RQTP_CODE
                WHEN '001' THEN (SELECT ms.END_DATE
@@ -711,7 +721,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              @EfctDateType,
              CASE 
@@ -778,7 +788,11 @@ BEGIN
                           AND ms.RQRO_RWNO = RQRO.RWNO
                     )
                ELSE NULL
-             END 
+             END,
+             CASE WHEN ISNULL(PYDT.PROF_AMNT_DNRM, 0) > 0 THEN PYDT.PROF_AMNT_DNRM ELSE (PYDT.EXPN_PRIC * PYDT.QNTY) END,
+             PYDT.DEDU_AMNT_DNRM,
+             (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
+             @RducAmnt
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -812,6 +826,10 @@ BEGIN
                   AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
                 ) OR 
+                ( @EfctDateType = '008' -- تاریخ فاکتور
+                  AND (CAST(RQST.INVC_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.INVC_DATE AS DATE) <= @ToPymtDate)
+                ) OR                 
                 ( @EfctDateType = '002' -- تاریخ پایان دوره
                   AND (
                          (
@@ -894,8 +912,24 @@ BEGIN
           (
             (pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
             (((pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100) * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM
+          ) * CASE 
+                  WHEN ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM) >= 0 THEN 
+                     (ms.NUMB_OF_ATTN_MONT - ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM))
+                  ELSE
+                     (ms.NUMB_OF_ATTN_MONT)
+              END 
           -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
+          pe.CALC_EXPN_PRIC = 
+          (
+            (pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100  - 
+            (((pe.EXPN_PRIC / ms.NUMB_OF_ATTN_MONT) * @PrctValu / 100) * @DecrPrct / 100)
+          ) * CASE 
+                  WHEN ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM) >= 0 THEN 
+                     (ms.NUMB_OF_ATTN_MONT - ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM))
+                  ELSE
+                     (ms.NUMB_OF_ATTN_MONT)
+              END,
+          ---  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی          
           pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
           pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms
@@ -924,7 +958,7 @@ BEGIN
    DECLARE C$CochFileNo$CalcExpnPO CURSOR FOR
       SELECT C.Coch_File_No, C.Epit_Code, C.Rqtt_Code, C.Prct_Valu,
              c.RQTP_CODE, c.MTOD_CODE, c.CTGY_CODE, C.CALC_TYPE, C.PYMT_STAT,
-             C.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY
+             C.EFCT_DATE_TYPE, c.MIN_ATTN_STAT, c.EXPR_PAY_DAY, c.FORE_GIVN_ATTN_NUMB
         FROM Fighter F, Fighter_Public P, Calculate_Expense_Coach C
        WHERE F.File_No = C.Coch_File_No
          AND F.File_No = P.Figh_File_No 
@@ -949,7 +983,7 @@ BEGIN
    FETCH NEXT FROM C$CochFileNo$CalcExpnPO INTO 
       @CochFileNo, @EpitCode, @RqttCode, @PrctValu, @RqtpCode, 
       @MtodCode, @CtgyCode, @CalcType, @PymtStat,@EfctDateType,
-      @MinAttnStat, @ExprPayDay;
+      @MinAttnStat, @ExprPayDay, @ForeGivnAttnNumb;
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnPO;
@@ -960,7 +994,8 @@ BEGIN
          DSCN_PRIC, PRCT_VALU, DECR_PRCT_VALU, RQTP_CODE, MTOD_CODE, CTGY_CODE, CLUB_CODE, 
          DECR_AMNT_DNRM, RQRO_RQST_RQID, RQRO_RWNO, CALC_EXPN_TYPE, CALC_TYPE, PYMT_STAT, 
          MBSP_FIGH_FILE_NO, MBSP_RECT_CODE, MBSP_RWNO,
-         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE)
+         FROM_DATE, TO_DATE,EFCT_DATE_TYPE, RECT_CODE, RECT_DATE, PROF_AMNT, DEDU_AMNT, SELF_DSCN_PRIC,
+         RDUC_AMNT)
       SELECT dbo.GNRT_NVID_U(),
              PYDT.CODE, 
              @CochFileNo,
@@ -998,7 +1033,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              CASE RQST.RQTP_CODE
                WHEN '001' THEN (SELECT ms.END_DATE
@@ -1012,7 +1047,7 @@ BEGIN
                                    AND ms.RECT_CODE = '004'
                                    AND ms.RQRO_RQST_RQID = RQRO.RQST_RQID
                                    AND ms.RQRO_RWNO = RQRO.RWNO)
-               WHEN '016' THEN rqst.SAVE_DATE
+               WHEN '016' THEN ISNULL(rqst.Invc_Date, rqst.SAVE_DATE)
              END ,
              @EfctDateType,
              CASE 
@@ -1079,7 +1114,11 @@ BEGIN
                           AND ms.RQRO_RWNO = RQRO.RWNO
                     )
                ELSE NULL
-             END
+             END,
+             CASE WHEN ISNULL(PYDT.PROF_AMNT_DNRM, 0) > 0 THEN PYDT.PROF_AMNT_DNRM ELSE (PYDT.EXPN_PRIC * PYDT.QNTY) END,
+             PYDT.DEDU_AMNT_DNRM,
+             (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = RQST.RQID AND pd.PYDT_CODE_DNRM = PYDT.CODE AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
+             @RducAmnt
         FROM Payment_Detail AS PYDT INNER JOIN
              dbo.Payment AS PYMT ON PYMT.CASH_CODE = PYDT.PYMT_CASH_CODE AND PYMT.RQST_RQID = PYDT.PYMT_RQST_RQID INNER JOIN
              Request_Row AS RQRO ON PYDT.PYMT_RQST_RQID = RQRO.RQST_RQID AND PYDT.RQRO_RWNO = RQRO.RWNO INNER JOIN
@@ -1113,6 +1152,10 @@ BEGIN
                   AND (CAST(RQST.RQST_DATE AS DATE) >= @FromPymtDate)
                   AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.RQST_DATE AS DATE) <= @ToPymtDate)
                 ) OR 
+                ( @EfctDateType = '008' -- تاریخ فاکتور
+                  AND (CAST(RQST.INVC_DATE AS DATE) >= @FromPymtDate)
+                  AND (@ToPymtDate IN ('1900-01-01', '0001-01-01') OR CAST(RQST.INVC_DATE AS DATE) <= @ToPymtDate)
+                ) OR                 
                 ( @EfctDateType = '002' -- تاریخ پایان دوره
                   AND (
                          (
@@ -1195,8 +1238,24 @@ BEGIN
           (
             @PrctValu - 
             (@PrctValu * @DecrPrct / 100)
-          ) * ms.SUM_ATTN_MONT_DNRM
+          ) * CASE 
+                  WHEN ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM) >= 0 THEN 
+                     (ms.NUMB_OF_ATTN_MONT - ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM))
+                  ELSE
+                     (ms.NUMB_OF_ATTN_MONT)
+              END 
           -  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
+          pe.CALC_EXPN_PRIC = 
+          (
+            @PrctValu - 
+            (@PrctValu * @DecrPrct / 100)
+          ) * CASE 
+                  WHEN ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM) >= 0 THEN 
+                     (ms.NUMB_OF_ATTN_MONT - ((ms.NUMB_OF_ATTN_MONT - ISNULL(@ForeGivnAttnNumb, 0)) - ms.SUM_ATTN_MONT_DNRM))
+                  ELSE
+                     (ms.NUMB_OF_ATTN_MONT)
+              END, 
+          ---  (SELECT ISNULL(SUM(pd.AMNT), 0) FROM dbo.Payment_Discount pd WHERE pd.PYMT_RQST_RQID = pe.RQRO_RQST_RQID AND pd.AMNT_TYPE = '005' AND pd.STAT = '002'), -- تخفیف خود مربی
           pe.TOTL_NUMB_ATTN = ms.NUMB_OF_ATTN_MONT,
           pe.RCPT_NUMB_ATTN = ms.SUM_ATTN_MONT_DNRM
      FROM dbo.Payment_Expense pe, dbo.Member_Ship ms

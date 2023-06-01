@@ -86,6 +86,26 @@ Begin DesignProperties =
          Left = 0
       End
       Begin Tables = 
+         Begin Table = "D$ATYP"
+            Begin Extent = 
+               Top = 32
+               Left = 561
+               Bottom = 122
+               Right = 721
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "p"
+            Begin Extent = 
+               Top = 47
+               Left = 910
+               Bottom = 167
+               Right = 1122
+            End
+            DisplayFlags = 280
+            TopColumn = 30
+         End
          Begin Table = "r"
             Begin Extent = 
                Top = 98
@@ -102,26 +122,6 @@ Begin DesignProperties =
                Left = 512
                Bottom = 301
                Right = 726
-            End
-            DisplayFlags = 280
-            TopColumn = 0
-         End
-         Begin Table = "p"
-            Begin Extent = 
-               Top = 10
-               Left = 512
-               Bottom = 130
-               Right = 724
-            End
-            DisplayFlags = 280
-            TopColumn = 30
-         End
-         Begin Table = "D$ATYP"
-            Begin Extent = 
-               Top = 11
-               Left = 809
-               Bottom = 101
-               Right = 969
             End
             DisplayFlags = 280
             TopColumn = 0
@@ -160,9 +160,9 @@ Begin DesignProperties =
          Width = 1500
          Width = 1500
          Width = 1500
-         Width ', 'SCHEMA', N'dbo', 'VIEW', N'V#Request', NULL, NULL
+         Width', 'SCHEMA', N'dbo', 'VIEW', N'V#Request', NULL, NULL
 GO
-EXEC sp_addextendedproperty N'MS_DiagramPane2', N'= 1500
+EXEC sp_addextendedproperty N'MS_DiagramPane2', N' = 1500
          Width = 1500
          Width = 1500
          Width = 1500

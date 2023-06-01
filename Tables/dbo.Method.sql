@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Method]
 [MTOD_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHCK_ATTN_ALRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SHAR_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SHOW_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -132,7 +133,8 @@ BEGIN
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
             ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
-            ,T.NATL_CODE = CASE WHEN LEN(s.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '000'), 3, '0') END; 
+            ,T.NATL_CODE = CASE WHEN LEN(s.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '000'), 3, '0') END
+            ,T.SHOW_STAT = ISNULL(s.SHOW_STAT, '002');
             
                        
    DECLARE @MtodCode BIGINT;
@@ -170,4 +172,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد بین المللی', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'NATL_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'آیا می توان به صورت اشتراکی جمع خانوادگی استفاده کنند یا خیر', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'SHAR_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نمایش گروه در فضاهای خاص', 'SCHEMA', N'dbo', 'TABLE', N'Method', 'COLUMN', N'SHOW_STAT'
 GO

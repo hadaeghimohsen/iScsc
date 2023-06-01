@@ -23,7 +23,8 @@ CREATE PROCEDURE [dbo].[UPD_CTGY_P]
 	@Ctgy_Stat VARCHAR(3),
 	@Gust_Numb INT,
 	@Natl_Code VARCHAR(2),
-	@Rwrd_Attn_Pric BIGINT
+	@Rwrd_Attn_Pric BIGINT,
+	@Show_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -56,6 +57,7 @@ BEGIN
          ,GUST_NUMB = @Gust_Numb
          ,NATL_CODE = @Natl_Code
          ,RWRD_ATTN_PRIC = @Rwrd_Attn_Pric
+         ,SHOW_STAT = @Show_Stat
     WHERE CODE = @Code;
 END
 GO

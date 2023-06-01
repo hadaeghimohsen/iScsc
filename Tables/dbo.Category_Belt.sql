@@ -10,10 +10,6 @@ CREATE TABLE [dbo].[Category_Belt]
 [BLUE] [smallint] NULL,
 [NATL_CODE] [varchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EPIT_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CRET_DATE] [datetime] NULL,
-[MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[MDFY_DATE] [datetime] NULL,
 [NUMB_OF_ATTN_MONT] [int] NULL,
 [PRVT_COCH_EXPN] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NUMB_CYCL_DAY] [int] NULL,
@@ -22,7 +18,12 @@ CREATE TABLE [dbo].[Category_Belt]
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CTGY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GUST_NUMB] [int] NULL,
-[RWRD_ATTN_PRIC] [bigint] NULL
+[RWRD_ATTN_PRIC] [bigint] NULL,
+[SHOW_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CRET_DATE] [datetime] NULL,
+[MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MDFY_DATE] [datetime] NULL
 ) ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -147,7 +148,8 @@ BEGIN
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
             ,T.EPIT_TYPE = CASE WHEN S.EPIT_TYPE IS NULL THEN '001' ELSE S.EPIT_TYPE END
-            ,T.NATL_CODE = CASE WHEN LEN(S.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '00'), 2, '0') END;
+            ,T.NATL_CODE = CASE WHEN LEN(S.NATL_CODE) = 0 THEN NULL ELSE dbo.GET_LPAD_U(ISNULL(S.NATL_CODE, '00'), 2, '0') END
+            ,T.SHOW_STAT = ISNULL(s.SHOW_STAT, '002');
             
    /*DECLARE @CtgyCode BIGINT;
    DECLARE C$NewCtgy CURSOR FOR
@@ -205,4 +207,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'کد بین المللی', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'NATL_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'پاداش حضور مشتری در دوره', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'RWRD_ATTN_PRIC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نمایش نرخ ها در فضاهای خاص', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'SHOW_STAT'
 GO

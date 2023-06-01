@@ -261,14 +261,17 @@ BEGIN
    -- 1401/11/27 * #MahsaAmini        
    -- برای ارگان هایی که میخواهیم به مشترکین آنها پورسانت لحاظ شود
    IF (SELECT COUNT(i.CODE) FROM Inserted i, dbo.Attendance a, dbo.Category_Belt c WHERE i.CODE = a.CODE AND a.CTGY_CODE_DNRM = c.CODE AND ISNULL(c.RWRD_ATTN_PRIC, 0) > 0) = 1
-   BEGIN 
-      DECLARE @xTemp XML;
-      SET @xTemp = (
-          SELECT i.CODE AS '@code'
-            FROM Inserted i
-             FOR XML PATH('Attendance'), ROOT('OpIran')
-      );
-      EXEC dbo.FINL_RQST_P @X = @xTemp -- xml 
+   BEGIN
+      IF (SELECT COUNT(a.CODE) FROM dbo.Attendance a, Inserted i WHERE a.FIGH_FILE_NO = i.FIGH_FILE_NO AND a.ATTN_DATE = i.ATTN_DATE AND a.EXIT_TIME IS NOT NULL) = 0
+      BEGIN 
+         DECLARE @xTemp XML;
+         SET @xTemp = (
+             SELECT i.CODE AS '@code'
+               FROM Inserted i
+                FOR XML PATH('Attendance'), ROOT('OpIran')
+         );
+         EXEC dbo.FINL_RQST_P @X = @xTemp -- xml
+      END 
    END 
 END;
 GO

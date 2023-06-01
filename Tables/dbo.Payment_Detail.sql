@@ -322,6 +322,28 @@ BEGIN
       END
 	END 
    
+   -- اگر قیمت توسط کاربر بخواهد تغییر کند و مقدار در بازه تعریف شده باشد باید دسترسی کاربر را چک کنیم
+	IF EXISTS(
+	   SELECT *
+	     FROM Inserted i, dbo.Expense d
+	    WHERE i.EXPN_CODE = d.CODE
+	      AND ISNULL(d.MIN_PRIC, 0) > 0
+	      AND ISNULL(d.MAX_PRIC, 0) > 0
+	      AND NOT(ISNULL(i.EXPN_PRIC, 0) BETWEEN ISNULL(d.MIN_PRIC, 0) AND ISNULL(d.MAX_PRIC, 0))
+	)
+	BEGIN
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>268</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 268 سطوح امینتی', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+	END 
+   
    SET @RqstRqid = @Rqid;
    
    ---------------
@@ -342,8 +364,8 @@ BEGIN
          ,@ExpnExtrPrct = T.EXTR_PRCT 
          --,@RemnPric = ABS(ROUND((T.PRIC + T.EXTR_PRCT) * S.QNTY, CASE @AmntUnitType WHEN '001' THEN -4 WHEN '002' THEN -3 END , 0) - (T.PRIC + T.EXTR_PRCT) * S.QNTY)
          ,@CovrDsct = COVR_DSCT
-         ,@ProfAmnt = T.PROF_AMNT_DNRM
-         ,@DeduAmnt = T.DEDU_AMNT_DNRM
+         ,@ProfAmnt = CASE ISNULL(T.PROF_AMNT_DNRM, 0) WHEN 0 THEN CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END ELSE t.PROF_AMNT_DNRM END
+         ,@DeduAmnt = t.DEDU_AMNT_DNRM
    FROM Expense T, INSERTED S
    WHERE T.CODE = @ExpnCode
      AND T.CODE = S.EXPN_CODE
@@ -564,8 +586,6 @@ WHERE RQST_RQID = @RqstRqid
    DEALLOCATE C#AUPD_PMDT;
 END
 ;
-GO
-ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [CK__Payment_De__QNTY__176F17C2] CHECK (([QNTY]>=(1)))
 GO
 ALTER TABLE [dbo].[Payment_Detail] ADD CONSTRAINT [PK_PYDT] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO

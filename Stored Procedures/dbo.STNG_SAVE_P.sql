@@ -102,8 +102,10 @@ BEGIN
 	             ,@Snd7Path NVARCHAR(4000)
 	             ,@Snd8Path NVARCHAR(4000)
 	             ,@Snd9Path NVARCHAR(4000)
-	             ,@RestAttnNumbByYear VARCHAR(3);
-	             
+	             ,@RestAttnNumbByYear VARCHAR(3)
+	             ,@AttnNotInsrStat VARCHAR(3)
+	             ,@ShowRbonMnui VARCHAR(3)
+	             ,@ShowSlidMnui VARCHAR(3);	             
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
 	             ,@BackupAppExit = @X.query('//Settings').value('(Settings/@backupappexit)[1]', 'BIT')
@@ -186,7 +188,11 @@ BEGIN
 	             ,@Snd8Path = @X.query('//Settings').value('(Settings/@snd8path)[1]', 'NVARCHAR(4000)')
 	             ,@Snd9Path = @X.query('//Settings').value('(Settings/@snd9path)[1]', 'NVARCHAR(4000)')
 	             
-	             ,@RestAttnNumbByYear = @X.query('//Settings').value('(Settings/@restattnnumbbyyear)[1]', 'VARCHAR(3)');
+	             ,@RestAttnNumbByYear = @X.query('//Settings').value('(Settings/@restattnnumbbyyear)[1]', 'VARCHAR(3)')
+	             ,@AttnNotInsrStat = @X.query('//Settings').value('(Settings/@attnnotinsrstat)[1]', 'VARCHAR(3)')
+	             
+	             ,@ShowRbonMnui = @X.query('//Settings').value('(Settings/@showrbonmnui)[1]', 'VARCHAR(3)')
+	             ,@ShowSlidMnui = @X.query('//Settings').value('(Settings/@showslidmnui)[1]', 'VARCHAR(3)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -284,6 +290,10 @@ BEGIN
                   ,SND9_PATH = @Snd9Path
                   
                   ,REST_ATTN_NUMB_BY_YEAR = @RestAttnNumbByYear
+                  ,ATTN_NOT_INSR_STAT = @AttnNotInsrStat
+                  
+                  ,SHOW_RBON_MNUI = @ShowRbonMnui
+                  ,SHOW_SLID_MNUI = @ShowSlidMnui
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

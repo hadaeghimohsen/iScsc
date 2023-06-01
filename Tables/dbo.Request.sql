@@ -27,6 +27,7 @@ CREATE TABLE [dbo].[Request]
 [REF_SUB_SYS] [int] NULL,
 [REF_CODE] [bigint] NULL,
 [AMNT_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INVC_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -136,6 +137,7 @@ BEGIN
             ,SUB_SYS   = (SELECT SUB_SYS FROM Request_Type WHERE CODE = S.Rqtp_Code)
             ,RQID      = @RQID
             ,RQST_DATE = GETDATE()
+            ,INVC_DATE = ISNULL(s.INVC_DATE, GETDATE())
             ,AMNT_TYPE_DNRM = (
                SELECT rg.AMNT_TYPE
                  FROM dbo.Regulation rg
@@ -369,7 +371,7 @@ BEGIN
             SELECT * 
               FROM Receive_Document Rd, Request_Row Rr , Image_Document Id
              WHERE Rd.RQRO_RQST_RQID = Rr.RQST_RQID 
-               AND Rd.RQRO_RWNO = Rr.RWNO 
+           AND Rd.RQRO_RWNO = Rr.RWNO 
                AND Id.RCDC_RCID = Rd.RCID
                AND Id.IMAG IS NULL
                AND Rr.RQST_RQID = @RQID 
@@ -542,6 +544,8 @@ GO
 ALTER TABLE [dbo].[Request] ADD CONSTRAINT [FK_RQST_SSTT] FOREIGN KEY ([SSTT_MSTT_CODE], [SSTT_MSTT_SUB_SYS], [SSTT_CODE]) REFERENCES [dbo].[Sub_State] ([MSTT_CODE], [MSTT_SUB_SYS], [CODE])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'واحد مالی', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'AMNT_TYPE_DNRM'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تاریخ فاکتور', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'INVC_DATE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره درخواست زیر سیستم', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'REF_CODE'
 GO

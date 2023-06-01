@@ -32,6 +32,8 @@ CREATE PROCEDURE [dbo].[UPD_EXPN_P]
   ,@RELY_CMND VARCHAR(50)
   ,@ORDR_ITEM VARCHAR(100)
   ,@BRND_CODE BIGINT
+  ,@Min_Pric BIGINT
+  ,@Max_Pric BIGINT
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -73,6 +75,8 @@ BEGIN
          ,RELY_CMND = @RELY_CMND
          ,ORDR_ITEM = @ORDR_ITEM
          ,BRND_CODE = @BRND_CODE
+         ,MIN_PRIC = @Min_Pric
+         ,MAX_PRIC = @Max_Pric
     WHERE CODE = @CODE;
    
    L$End:

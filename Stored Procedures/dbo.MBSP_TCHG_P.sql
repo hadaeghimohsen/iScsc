@@ -73,6 +73,8 @@ BEGIN
          SET @EndDate = DATEADD(day, 30, @StrtDate);
       END
       
+      IF @ResnApbsCode = 0 SET @ResnApbsCode = NULL;
+      
       -- 1401/07/18 * روز نابودی نظام جمهوری اسلامی ایران هست هوراااا
       SELECT @StrtDate = CAST(@StrtDate AS DATETIME) + CAST(@StrtTime AS DATETIME),
              @EndDate = CAST(@EndDate AS DATETIME) + CAST(@EndTime AS DATETIME);      

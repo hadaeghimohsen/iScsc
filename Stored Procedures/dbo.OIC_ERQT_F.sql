@@ -46,6 +46,7 @@ BEGIN
 	           @LettNo   VARCHAR(15),
 	           @LettDate DATETIME,
 	           @LettOwnr NVARCHAR(250),
+	           @InvcDate DATE,
 	           @RqstDesc NVARCHAR(1000),
 	           
 	           @RegnCode VARCHAR(3),
@@ -72,8 +73,9 @@ BEGIN
 	         ,@RqtpCode = @X.query('//Request').value('(Request/@rqtpcode)[1]', 'VARCHAR(3)')
 	         ,@RqttCode = @X.query('//Request').value('(Request/@rqttcode)[1]', 'VARCHAR(3)')
 	         ,@LettNo   = @X.query('//Request').value('(Request/@lettno)[1]', 'VARCHAR(15)')
-	         ,@LettDate   = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
-	         ,@LettOwnr   = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
+	         ,@LettDate = @X.query('//Request').value('(Request/@lettdate)[1]', 'DATETIME')
+	         ,@LettOwnr = @X.query('//Request').value('(Request/@lettownr)[1]', 'NVARCHAR(250)')
+  	         ,@InvcDate = @X.query('//Request').value('(Request/@invcdate)[1]', 'DATE')
 	         ,@RqstDesc = @X.query('//Request').value('(Request/@rqstdesc)[1]', 'NVARCHAR(1000)')
 	         
 	         
@@ -129,7 +131,8 @@ BEGIN
                ,SECT_NAME = @SctnName
                ,REF_SUB_SYS = @RefSubSys
                ,REF_CODE = @RefCode
-               ,RQST_DESC = @RqstDesc               
+               ,RQST_DESC = @RqstDesc
+               ,INVC_DATE = @InvcDate
           WHERE RQID = @Rqid;                
      
       END
@@ -139,6 +142,7 @@ BEGIN
             SET RQST_DESC = @RqstDesc
                ,LETT_NO = @LettNo
                ,LETT_DATE = @LettDate
+               ,INVC_DATE = @InvcDate
           WHERE RQID = @Rqid;                
       END;
 

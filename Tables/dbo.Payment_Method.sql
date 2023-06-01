@@ -263,10 +263,13 @@ CREATE TRIGGER [dbo].[CG$AINS_PMTD]
    ON [dbo].[Payment_Method]
    AFTER INSERT
 AS 
-BEGIN   
+BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
+   
+   -- 1402/03/06 * Remove Payment_Method for Request Canceled
+   --DELETE dbo.Payment_Method WHERE PYMT_RQST_RQID IN (SELECT r.RQID FROM dbo.Request r WHERE r.RQST_STAT = '003');
    
    -- 1398/02/23 * بررسی اینکه کاربر اجازه ثبت وصولی نقدی را دارد یا خیر
    IF EXISTS(
@@ -308,7 +311,6 @@ BEGIN
          RETURN;
       END   
    END
-   
    
    DECLARE @TotlRcptAmnt BIGINT;
    DECLARE @TotlDebtAmnt BIGINT;
@@ -364,6 +366,7 @@ BEGIN
             ,T.FIGH_FILE_NO_DNRM = (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = S.RQRO_RQST_RQID AND rr.RWNO = s.RQRO_RWNO)
             ,T.VALD_TYPE         = ISNULL(S.VALD_TYPE, '002');
    
+
  -- اگر مبلغ ذخیره شده صفر باشد   
    DELETE Payment_Method
     WHERE EXISTS(
@@ -393,8 +396,6 @@ BEGIN
 	SET NOCOUNT ON;
 	
    -- 1401/07/26 * چک کردن دسترسی حذف پرداختی صورتحساب
-   -- کیرم_تو_بیت_رهبری
-   -- مهسا_امینی
    DECLARE @AP BIT
           ,@AccessString VARCHAR(250);
    --SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>263</Privilege><Sub_Sys>5</Sub_Sys></AP>';	

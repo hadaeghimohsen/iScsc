@@ -17,7 +17,8 @@ CREATE PROCEDURE [dbo].[UPD_MTOD_P]
 	@Mtod_Stat VARCHAR(3),
 	@Chck_Attn_Alrm VARCHAR(3),
 	@Natl_Code VARCHAR(3),
-	@Shar_Stat VARCHAR(3)
+	@Shar_Stat VARCHAR(3),
+	@Show_Stat VARCHAR(3)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -43,7 +44,8 @@ BEGIN
          ,MTOD_STAT = @Mtod_Stat
          ,CHCK_ATTN_ALRM = @Chck_Attn_Alrm
          ,NATL_CODE = @Natl_Code
-         ,SHAR_STAT = @Shar_Stat         
+         ,SHAR_STAT = @Shar_Stat  
+         ,SHOW_STAT = @Show_Stat       
     WHERE CODE = @Code;
 END
 GO

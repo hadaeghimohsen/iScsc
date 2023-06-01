@@ -153,8 +153,8 @@ BEGIN
                                     WHEN T.CONF_STAT = '001' AND S.CONF_STAT = '001' THEN NULL 
                                 END
             ,T.DEBT_DNRM      = dbo.GET_DBTF_U(S.FILE_NO)
-            ,T.BUFE_DEBT_DNTM = dbo.GET_DBBF_U(s.FILE_NO)
-            ,T.TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No)
+            --,T.BUFE_DEBT_DNTM = dbo.GET_DBBF_U(s.FILE_NO)
+            --,T.TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No)
             ,T.DPST_AMNT_DNRM = dbo.GET_DPST_U(s.FILE_NO);
 END;
 GO

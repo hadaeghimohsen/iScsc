@@ -42,6 +42,10 @@ BEGIN
 	    WHERE PYMT_CASH_CODE = @CashCode
 	      AND PYMT_RQST_RQID = @Rqid;
    	
+   	-- Remove Payment_Expense
+   	DELETE dbo.Payment_Expense
+       WHERE RQRO_RQST_RQID = @Rqid;
+   	
 	   --  حذف چک های هزینه   
 	   DELETE dbo.Payment_Check
 	    WHERE PYMT_CASH_CODE = @CashCode
