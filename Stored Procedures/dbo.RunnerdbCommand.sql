@@ -1669,7 +1669,7 @@ BEGIN
              @AmntType = @X.query('//Router_Command').value('(Router_Command/@amnttype)[1]', 'VARCHAR(3)'),
              @PymtMtod = @X.query('//Router_Command').value('(Router_Command/@pymtmtod)[1]', 'VARCHAR(3)'),
              @PymtDate = @X.query('//Router_Command').value('(Router_Command/@pymtdate)[1]', 'DATETIME'),
-             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'BIGINT'),
+             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'DECIMAL(18,2)'),
              @Txid = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'VARCHAR(266)');
       
       -- @@First Step Get Fileno from Services
@@ -1797,7 +1797,7 @@ BEGIN
              @AmntType = @X.query('//Router_Command').value('(Router_Command/@amnttype)[1]', 'VARCHAR(3)'),
              @PymtMtod = @X.query('//Router_Command').value('(Router_Command/@pymtmtod)[1]', 'VARCHAR(3)'),
              @PymtDate = @X.query('//Router_Command').value('(Router_Command/@pymtdate)[1]', 'DATETIME'),
-             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'BIGINT'),
+             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'DECIMAL(18,2)'),
              @Txid = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'VARCHAR(266)');
       
       -- @@First Step Get Fileno from Services
@@ -1912,7 +1912,7 @@ BEGIN
              @AmntType = @X.query('//Router_Command').value('(Router_Command/@amnttype)[1]', 'VARCHAR(3)'),
              @PymtMtod = @X.query('//Router_Command').value('(Router_Command/@pymtmtod)[1]', 'VARCHAR(3)'),
              @PymtDate = @X.query('//Router_Command').value('(Router_Command/@pymtdate)[1]', 'DATETIME'),
-             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'BIGINT'),
+             @Amnt = @X.query('//Router_Command').value('(Router_Command/@amnt)[1]', 'DECIMAL(18,2)'),
              @Txid = @X.query('//Router_Command').value('(Router_Command/@flowno)[1]', 'VARCHAR(266)');
       
       -- @@First Step Get Fileno from Services
@@ -2322,7 +2322,7 @@ BEGIN
              @Stat = @X.query('//Deposit').value('(Deposit/@stat)[1]', 'VARCHAR(3)'),
              @PymtMtod = @X.query('//Deposit').value('(Deposit/@pymtmtod)[1]', 'VARCHAR(3)'),
              @PymtDate = @X.query('//Deposit').value('(Deposit/@pymtdate)[1]', 'DATETIME'),
-             @Amnt = @X.query('//Deposit').value('(Deposit/@amnt)[1]', 'BIGINT'),
+             @Amnt = @X.query('//Deposit').value('(Deposit/@amnt)[1]', 'DECIMAL(18,2)'),
              @CmntDesc = @X.query('//Deposit').value('(Deposit/@cmntdesc)[1]', 'NVARCHAR(250)');
       
       -- @@First Step Get Fileno from Services

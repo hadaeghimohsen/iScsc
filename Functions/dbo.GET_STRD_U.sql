@@ -30,10 +30,12 @@ BEGIN
             SELECT CASE f.FGPB_TYPE_DNRM
                         WHEN '005' THEN 
                            N'نام مشتری : ' + ISNULL(fp.FRST_NAME, N'مهمان') + N' ' + ISNULL(fp.LAST_NAME, N'آزاد') + N' - ' + CHAR(10) +
-                           N'شماره تلفن همراه : ' + ISNULL(fp.CELL_PHON, N'No Mobile')
+                           N'تلفن همراه : ' + CASE WHEN fp.CELL_PHON IS NULL THEN N'* بدون شماره موبایل' ELSE fp.CELL_PHON END + CHAR(10) + 
+                           N'کد ملی : ' + CASE WHEN fp.NATL_CODE IS NULL THEN N'* بدون کد ملی' ELSE fp.NATL_CODE END 
                         ELSE 
                            N'نام مشتری : ' + F.NAME_DNRM + CHAR(10) +
-                           N'شماره تلفن همراه : ' + ISNULL(f.CELL_PHON_DNRM, N'No Mobile')
+                           N'تلفن همراه : ' + CASE WHEN f.CELL_PHON_DNRM IS NULL THEN N'* بدون شماره موبایل' ELSE f.CELL_PHON_DNRM END + CHAR(10) + 
+                           N'کد ملی : ' + CASE WHEN f.NATL_CODE_DNRM IS NULL THEN N'* بدون کد ملی' ELSE f.NATL_CODE_DNRM END + CHAR(10)
                    END 
               FROM dbo.Request_Row rr, dbo.Fighter f LEFT OUTER JOIN dbo.Fighter_Public fp ON f.FILE_NO = fp.FIGH_FILE_NO AND fp.RQRO_RQST_RQID = @Rqid AND fp.RECT_CODE = '001'
              WHERE rr.RQST_RQID = @Rqid
@@ -70,6 +72,23 @@ BEGIN
 	      ) 
 	    FROM dbo.Request r
 	   WHERE r.RQID = @Rqid;
+	END 
+	ELSE IF @Type = '003'
+	BEGIN
+	   SELECT @Code = @x.query('//Request').value('(Request/@code)[1]', 'BIGINT');
+	   
+	   SELECT
+	      @RsltDesc = (
+	         CASE 
+	              WHEN a.EXIT_TIME IS NULL THEN 
+	                  (SELECT N'مشتری گرامی مدت زمان حضور شما ' + CAST(cm.CLAS_TIME AS NVARCHAR(3)) + N' دقیقه میباشد. زمان خروج شما در ساعت' + CONVERT(VARCHAR(5), DATEADD(MINUTE, cm.CLAS_TIME, a.ENTR_TIME)) + N' تنظیم شده است. دقت فرمایید که درصورت تایم اضافه با کسر جلسه یا هزینه جداگانه گرفته میشود. از توجه شما متشکریم'
+	                    FROM dbo.Club_Method cm
+	                   WHERE cm.CODE = a.cbmt_code_dnrm)
+	              ELSE ''
+	         END 
+	      ) 
+	    FROM dbo.Attendance a
+	   WHERE a.CODE = @Code;
 	END 
 	RETURN @RsltDesc; 
 END

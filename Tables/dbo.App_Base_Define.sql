@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[App_Base_Define]
 [TITL_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ENTY_NAME] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [REF_CODE] [bigint] NULL,
+[LVRG_VALU] [real] NULL,
 [NUMB] [float] NULL,
 [UNIT] [smallint] NULL,
 [PRT1_TIME] [datetime] NULL,
@@ -31,7 +32,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-create TRIGGER [dbo].[CG$AINS_APBS]
+CREATE TRIGGER [dbo].[CG$AINS_APBS]
    ON  [dbo].[App_Base_Define]
    AFTER INSERT
 AS 
@@ -48,7 +49,8 @@ BEGIN
       UPDATE 
          SET T.CRET_BY = UPPER(SUSER_NAME())
             ,T.CRET_DATE = GETDATE()
-            ,T.CODE = dbo.GNRT_NVID_U();
+            ,T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END
+            ,RWNO   = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.App_Base_Define WHERE ENTY_NAME = s.ENTY_NAME);
 
 END
 GO

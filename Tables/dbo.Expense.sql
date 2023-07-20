@@ -35,6 +35,7 @@ CREATE TABLE [dbo].[Expense]
 [RELY_CMND] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PROF_AMNT_DNRM] [bigint] NULL,
 [DEDU_AMNT_DNRM] [bigint] NULL,
+[UNIT_APBS_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -174,7 +175,7 @@ BEGIN
       
       IF EXISTS(SELECT * FROM Inserted i, Deleted d WHERE i.GROP_CODE != d.GROP_CODE)
       BEGIN
-         -- بروز رسانی گروه جدید
+      -- بروز رسانی گروه جدید
          UPDATE ge
             SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.GROP_CODE = ge.CODE)
            FROM Group_Expense ge, Deleted d
@@ -257,6 +258,8 @@ GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE SET NULL
 GO
 ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_REGL] FOREIGN KEY ([REGL_YEAR], [REGL_CODE]) REFERENCES [dbo].[Regulation] ([YEAR], [CODE]) ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[Expense] ADD CONSTRAINT [FK_EXPN_UNIT_APBS] FOREIGN KEY ([UNIT_APBS_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'درآمدهای اضافی خارج از برنامه', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'ADD_QUTS'
 GO

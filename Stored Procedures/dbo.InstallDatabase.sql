@@ -14,6 +14,7 @@ BEGIN
    IF @Emptydb = '002'
    BEGIN
       -- Delete Record From Database
+      DELETE dbo.Expense;
       DELETE dbo.Basic_Calculate_Discount;
       DELETE dbo.Pre_Expense;
       DELETE dbo.Account;

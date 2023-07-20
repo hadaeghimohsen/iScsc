@@ -40,7 +40,10 @@ BEGIN
              ,@FromNumb BIGINT
              ,@ToNumb BIGINT
              ,@ExtsCode BIGINT
-             ,@ExtsRsrvDate DATETIME;
+             ,@ExtsRsrvDate DATETIME
+             ,@TotlWegh REAL
+             ,@UnitNumb REAL
+             ,@UnitapbsCode BIGINT;
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -67,7 +70,10 @@ BEGIN
             ,@FromNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fromnumb)[1]', 'BIGINT')
             ,@ToNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tonumb)[1]', 'BIGINT')
             ,@ExtsCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extscode)[1]', 'BIGINT')
-            ,@ExtsRsrvDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extsrsrvdate)[1]', 'DATETIME');
+            ,@ExtsRsrvDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extsrsrvdate)[1]', 'DATETIME')
+            ,@TotlWegh = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@totlwegh)[1]', 'REAL')
+            ,@UnitNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@unitnumb)[1]', 'REAL')
+            ,@UnitapbsCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@unitapbscode)[1]', 'BIGINT');
       
       -- 1401/07/26 * باید چک شود که آیا شرایط رزرو برقرار میباشد یا خیر
       -- کیرم_تو_بیت_رهبری
@@ -97,6 +103,8 @@ BEGIN
       -- 1401/02/04
       IF @FromNumb = 0 SET @FromNumb = NULL;
       IF @ToNumb = 0 SET @ToNumb = NULL;
+      -- 1402/04/11
+      IF @UnitapbsCode = 0 OR @UnitapbsCode IS NULL SET @UnitapbsCode = NULL;
       
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL
       BEGIN
@@ -206,6 +214,9 @@ BEGIN
             ,TO_NUMB = @ToNumb
             ,EXTS_CODE = @ExtsCode
             ,EXTS_RSRV_DATE = @ExtsRsrvDate
+            ,TOTL_WEGH = @TotlWegh
+            ,UNIT_NUMB = @UnitNumb
+            ,UNIT_APBS_CODE = @UnitapbsCode
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

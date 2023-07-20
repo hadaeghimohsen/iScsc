@@ -34,6 +34,7 @@ CREATE PROCEDURE [dbo].[UPD_EXPN_P]
   ,@BRND_CODE BIGINT
   ,@Min_Pric BIGINT
   ,@Max_Pric BIGINT
+  ,@Unit_Apbs_Code BIGINT
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -77,6 +78,7 @@ BEGIN
          ,BRND_CODE = @BRND_CODE
          ,MIN_PRIC = @Min_Pric
          ,MAX_PRIC = @Max_Pric
+         ,UNIT_APBS_CODE = @Unit_Apbs_Code
     WHERE CODE = @CODE;
    
    L$End:

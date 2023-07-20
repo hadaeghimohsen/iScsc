@@ -318,6 +318,26 @@ BEGIN
    --   UPDATE 
    --      SET MBSM_RWNO_DNRM = S.RWNO;
    
+   -- 1402/03/29 * برای بحث بروزرسانی مقدار تاریخ اعتبار مشتری در خدمات
+   MERGE dbo.Payment_Detail T
+   USING (
+      SELECT r.RQST_RQID AS RQID, ms.END_DATE
+        FROM Inserted i, dbo.Member_Ship ms, dbo.Request r
+       WHERE i.RQRO_RQST_RQID = ms.RQRO_RQST_RQID
+         AND i.RECT_CODE = ms.RECT_CODE
+         AND ms.RECT_CODE = '004'
+         AND ms.RWNO = 1
+         AND ms.RQRO_RQST_RQID = r.RQID
+      UNION ALL 
+      SELECT i.RQRO_RQST_RQID AS RQID, i.END_DATE
+        FROM Inserted i
+       WHERE i.RECT_CODE = '004'
+         AND i.RWNO > 1
+   ) S
+   ON (T.PYMT_RQST_RQID = S.RQID)
+   WHEN MATCHED THEN
+      UPDATE SET T.EXPR_DATE = s.END_DATE;
+   
    -- اگر تعداد ردیف ها بیشتر باشد نیازی به چک کردن پیامک ندارد
    IF ((SELECT COUNT(*) FROM Inserted WHERE Inserted.RECT_CODE = '004') > 1) RETURN;
    

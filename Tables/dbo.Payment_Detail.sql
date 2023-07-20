@@ -39,6 +39,9 @@ CREATE TABLE [dbo].[Payment_Detail]
 [DEDU_AMNT_DNRM] [bigint] NULL,
 [EXTS_CODE] [bigint] NULL,
 [EXTS_RSRV_DATE] [datetime] NULL,
+[TOTL_WEGH] [real] NULL,
+[UNIT_NUMB] [real] NULL,
+[UNIT_APBS_CODE] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -157,13 +160,15 @@ BEGIN
 
 	-- 1396/08/24 * اضافه کردن آیتم هزینه مربوط به نوع ثبت نامی ها
 	DECLARE @MtodCode BIGINT
-	       ,@CtgyCode BIGINT;
+	       ,@CtgyCode BIGINT
+	       ,@UnitApbsCode BIGINT;
 
    SELECT @ExpnPric      = CASE WHEN @ExpnPric = 0 THEN(T.PRIC) ELSE @ExpnPric END
          ,@ExpnExtrPrct  = (T.EXTR_PRCT)
          --,@RemnPric      = ROUND((T.PRIC + T.EXTR_PRCT), CASE @AmntUnitType WHEN '001' THEN -3 WHEN '002' THEN -2 END , 0) - (T.PRIC + T.EXTR_PRCT)
          ,@MtodCode      = MTOD_CODE
 	      ,@CtgyCode      = CTGY_CODE
+	      ,@UnitApbsCode = T.UNIT_APBS_CODE
    FROM Expense T --, INSERTED S
    WHERE T.CODE = @ExpnCode;
    /*
@@ -200,7 +205,8 @@ BEGIN
             ,EXPN_EXTR_PRCT = CASE @PayType WHEN '002' THEN @ExpnExtrPrct ELSE -@ExpnExtrPrct END
             ,REMN_PRIC      = @RemnPric
             ,MTOD_CODE_DNRM = @MtodCode
-            ,CTGY_CODE_DNRM = @CtgyCode;
+            ,CTGY_CODE_DNRM = @CtgyCode
+            ,UNIT_APBS_CODE = @UnitApbsCode;
    
    -- اضافه شدن گزینه های پیش فرض
    IF EXISTS(
@@ -245,7 +251,7 @@ CREATE TRIGGER [dbo].[CG$AUPD_PMDT]
    AFTER UPDATE
 AS 
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
+   -- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 

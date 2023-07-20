@@ -109,7 +109,8 @@ SELECT  ROW_NUMBER() OVER( ORDER BY r.SAVE_DATE ) AS RWNO,
         fp.LAST_NAME,
         fp.CELL_PHON,
         pd.EXPR_DATE,
-        dbo.GET_MTOS_U(pd.EXPR_DATE) AS PERS_EXPR_DATE
+        dbo.GET_MTOS_U(pd.EXPR_DATE) AS PERS_EXPR_DATE,
+        CASE WHEN r.RQTP_CODE IN ('001', '019') THEN m.MTOD_DESC ELSE pd.PYDT_DESC END AS EXPN_DESC2
 FROM    dbo.Request_Type rqtp ,
         dbo.Requester_Type rqtt ,
         dbo.Request r ,

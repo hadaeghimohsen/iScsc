@@ -3,7 +3,9 @@ GO
 SET ANSI_NULLS ON
 GO
 
+
 CREATE VIEW [dbo].[V#Events] AS
+-- تبریک تولد مشتری
 SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM, f.BRTH_DATE_DNRM AS EVNT_DATE, N'001' AS EVNT_TYPE, N'تولدت مبارک' AS EVNT_DESC
   FROM dbo.Fighter f
  WHERE f.CONF_STAT = '002'
@@ -12,6 +14,7 @@ SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM
 
 UNION ALL
 
+-- اعتبار بیمه ورزشی
 SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM, f.INSR_DATE_DNRM, N'002', N'اعتبار بیمه'
   FROM dbo.Fighter f
  WHERE f.CONF_STAT = '002'
@@ -19,6 +22,7 @@ SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM
 
 UNION ALL
 
+-- پایان اعتبار خدمات دوره مشتری
 SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM, ms.END_DATE, '003', m.MTOD_DESC + N' - ' + cb.CTGY_DESC
   FROM dbo.Fighter f, dbo.Member_Ship ms, dbo.Method m, dbo.Category_Belt cb
  WHERE f.FILE_NO = ms.FIGH_FILE_NO
@@ -31,7 +35,8 @@ SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM
          (ms.NUMB_OF_ATTN_MONT != 0 AND CAST(ms.END_DATE AS DATE) >= CAST(GETDATE() AS DATE) AND ms.NUMB_OF_ATTN_MONT > ms.SUM_ATTN_MONT_DNRM) )
 
 UNION ALL
-         
+
+-- خدمات متفرقه         
 SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM, pd.EXPR_DATE, '004', pd.PYDT_DESC
   FROM dbo.Fighter f, dbo.Request r, dbo.Request_Row rr, dbo.Payment_Detail pd
  WHERE r.RQID = rr.RQST_RQID
@@ -43,6 +48,7 @@ SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM
 
 UNION ALL
 
+-- یادآوری چک
 SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM, pc.CHEK_DATE, '005', pc.CHEK_OWNR + N' - ' + pc.CHEK_NO + N' - ' + pc.BANK
   FROM dbo.Payment_Check pc, dbo.Request_Row rr, dbo.Fighter f
  WHERE pc.RQRO_RQST_RQID = rr.RQST_RQID
@@ -50,4 +56,5 @@ SELECT f.FILE_NO, f.SEX_TYPE_DNRM, f.CELL_PHON_DNRM, f.CHAT_ID_DNRM, f.NAME_DNRM
    AND rr.FIGH_FILE_NO = f.FILE_NO
    AND pc.CHEK_DATE >= CAST(GETDATE() AS DATE)
    AND ISNULL(pc.CHEK_TYPE, '000') IN ('000', '001')
+
 GO

@@ -18,7 +18,8 @@ CREATE PROCEDURE [dbo].[UPD_APBS_P]
    @Prt6_Time DATETIME,
    @Sex_Type VARCHAR(3),
    @Colr INT,
-   @Stat VARCHAR(3)
+   @Stat VARCHAR(3),
+   @Lvrg_Valu REAL
 AS 
 BEGIN
    MERGE dbo.App_Base_Define T
@@ -40,6 +41,7 @@ BEGIN
          T.PRT6_TIME = @Prt6_Time,
          T.SEX_TYPE = @Sex_Type,
          T.COLR = @Colr,
-         T.STAT = @Stat;
+         T.STAT = @Stat,
+         T.LVRG_VALU = @Lvrg_Valu;
 END 
 GO
