@@ -38,7 +38,7 @@ BEGIN
 	      AND rr.FIGH_FILE_NO = f.FILE_NO
 	      AND r.RQID = p.RQST_RQID
 	      AND p.RQST_RQID = pd.PYMT_RQST_RQID
-	      AND b.ACTN_TYPE IN ('009' /* Self Service */)
+	      AND b.ACTN_TYPE IN ('009' /* Self Service */, '010' /* Refferal */)
 	      AND b.STAT = '002'
 	      AND b.ORGN_CODE_DNRM = f.ORGN_CODE_DNRM
 	      AND r.RQTP_CODE = b.RQTP_CODE

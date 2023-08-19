@@ -242,8 +242,8 @@ BEGIN
           Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
           Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
           Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-    WHERE (PYDT.PAY_STAT = @PymtStat) 
-      AND (RQRO.RECD_STAT = '002') 
+    WHERE /*(PYDT.PAY_STAT = @PymtStat) 
+      AND*/(RQRO.RECD_STAT = '002') 
       AND (FIGH.FGPB_TYPE_DNRM NOT IN (/*'003',*/'002', '004'))
       AND (
              ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -493,8 +493,8 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE (PYDT.PAY_STAT = @PymtStat) 
-         AND (RQRO.RECD_STAT = '002') 
+       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
+         AND*/ (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -802,8 +802,8 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE (PYDT.PAY_STAT = @PymtStat) 
-         AND (RQRO.RECD_STAT = '002') 
+       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
+         AND*/ (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -1128,8 +1128,8 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE (PYDT.PAY_STAT = @PymtStat) 
-         AND (RQRO.RECD_STAT = '002') 
+       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
+         AND*/ (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ ویرایش رکورد
@@ -1841,6 +1841,7 @@ BEGIN
       SET EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '004')
          ,LOCK_EXPN_AMNT_DNRM = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '005')
          ,LOCK_DATE_DNRM = (SELECT MIN(pe.RECT_DATE) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '005')
+         ,REMN_EXPN_PRIC_DNRM = (SELECT SUM(pe.REMN_EXPN_PRIC_DNRM) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = dbo.Misc_Expense.CODE AND pe.RECT_CODE = '004')
      WHERE VALD_TYPE = '001'
        AND CALC_EXPN_TYPE = '001';
          

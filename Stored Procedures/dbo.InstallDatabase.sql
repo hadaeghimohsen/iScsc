@@ -14,6 +14,15 @@ BEGIN
    IF @Emptydb = '002'
    BEGIN
       -- Delete Record From Database
+      DELETE dbo.Warehouse_Tag;
+      DELETE dbo.Warehouse_Expense;
+      DELETE dbo.Warehouse_Detail;
+      DELETE dbo.Warehouse;
+      DELETE dbo.User_Link_Fighter;
+      DELETE dbo.User_Link_Method;
+      DELETE dbo.Company_Tag;
+      DELETE dbo.Company_Fighter;
+      DELETE dbo.Company;
       DELETE dbo.Expense;
       DELETE dbo.Basic_Calculate_Discount;
       DELETE dbo.Pre_Expense;

@@ -49,8 +49,8 @@ BEGIN
       UPDATE 
          SET T.CRET_BY = UPPER(SUSER_NAME())
             ,T.CRET_DATE = GETDATE()
-            ,T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END
-            ,RWNO   = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.App_Base_Define WHERE ENTY_NAME = s.ENTY_NAME);
+            ,T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END;
+            --,RWNO   = (SELECT ISNULL(MAX(RWNO), 0) + 1 FROM dbo.App_Base_Define WHERE ENTY_NAME = s.ENTY_NAME);
 
 END
 GO

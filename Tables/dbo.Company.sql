@@ -5,7 +5,7 @@ CREATE TABLE [dbo].[Company]
 [REGN_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CODE] [bigint] NOT NULL,
 [DEBT_DNRM] [bigint] NULL,
-[NAME] [nvarchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NAME] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [CORD_X] [float] NULL,
 [CORD_Y] [float] NULL,
 [POST_ADDR_ZOOM] [float] NULL,

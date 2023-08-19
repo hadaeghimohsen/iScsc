@@ -12,6 +12,10 @@ CREATE PROCEDURE [dbo].[DEL_PYDT_P]
 AS
 BEGIN
 
+-- 1402/05/28 * پاک کردن هزینه آیتم فاکتور
+DELETE dbo.Payment_Cost
+ WHERE PYDT_CODE = CODE;
+
 DELETE dbo.Payment_Detail
  WHERE PYMT_RQST_RQID = @PYMT_RQST_RQID
    AND PYMT_CASH_CODE = @PYMT_CASH_CODE

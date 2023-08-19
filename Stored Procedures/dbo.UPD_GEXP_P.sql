@@ -14,7 +14,8 @@ CREATE PROCEDURE [dbo].[UPD_GEXP_P]
 	@Ordr SMALLINT,
    @Grop_Desc NVARCHAR(250),
 	@Stat VARCHAR(3),
-	@Link_Join VARCHAR(100)
+	@Link_Join VARCHAR(100),
+	@Grop_Ordr INT
 AS
 BEGIN
     UPDATE dbo.Group_Expense
@@ -23,7 +24,8 @@ BEGIN
            ORDR = @Ordr,
            GROP_DESC = @Grop_Desc,
            STAT = @Stat,
-           LINK_JOIN = @Link_Join
+           LINK_JOIN = @Link_Join,
+           GROP_ORDR = @Grop_Ordr
      WHERE CODE = @Code;
 END
 GO

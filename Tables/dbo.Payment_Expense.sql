@@ -44,6 +44,7 @@ CREATE TABLE [dbo].[Payment_Expense]
 [RECT_DATE] [date] NULL,
 [PROF_AMNT] [bigint] NULL,
 [DEDU_AMNT] [bigint] NULL,
+[REMN_EXPN_PRIC_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -94,7 +95,8 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();
+            ,MDFY_DATE = GETDATE(),
+            T.REMN_EXPN_PRIC_DNRM = S.RCPT_PRIC - S.EXPN_AMNT;
    
    IF (SELECT COUNT(*) FROM Inserted) = 1
       MERGE dbo.Misc_Expense T
@@ -105,6 +107,7 @@ BEGIN
             t.EXPN_AMNT = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '004')
            ,t.LOCK_EXPN_AMNT_DNRM = (SELECT SUM(pe.EXPN_AMNT) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '005')
            ,t.LOCK_DATE_DNRM = (SELECT MIN(pe.RECT_DATE) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '005');
+           --,t.REMN_EXPN_PRIC_DNRM = (SELECT SUM(pe.REMN_EXPN_PRIC_DNRM) FROM dbo.Payment_Expense pe WHERE pe.MSEX_CODE = s.MSEX_CODE AND pe.RECT_CODE = '004');
 END
 GO
 ALTER TABLE [dbo].[Payment_Expense] ADD CONSTRAINT [PK_PMEX] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
@@ -155,6 +158,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'برای اینکه متوجه 
 اگر کد قفل رکورد برای مشخص شدن تاییدیه خورده باشد رکورد قفل شده تا اینکه مشخص شود این ردیف کی باید پرداخت شود.', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_CODE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تاریخ اقدام برای پرداخت حق و دستمزد سرپرست', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'RECT_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ باقیمانده سازمان', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'REMN_EXPN_PRIC_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ تخفیف پرسنل', 'SCHEMA', N'dbo', 'TABLE', N'Payment_Expense', 'COLUMN', N'SELF_DSCN_PRIC'
 GO

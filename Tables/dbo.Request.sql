@@ -28,6 +28,7 @@ CREATE TABLE [dbo].[Request]
 [REF_CODE] [bigint] NULL,
 [AMNT_TYPE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [INVC_DATE] [date] NULL,
+[INVC_NUMB] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -138,6 +139,11 @@ BEGIN
             ,RQID      = @RQID
             ,RQST_DATE = GETDATE()
             ,INVC_DATE = ISNULL(s.INVC_DATE, GETDATE())
+            ,INVC_NUMB = (
+               SELECT COUNT(RQID) + 1
+                 FROM dbo.Request
+                WHERE CAST(GETDATE() AS DATE) = CAST(RQST_DATE AS DATE)
+            )
             ,AMNT_TYPE_DNRM = (
                SELECT rg.AMNT_TYPE
                  FROM dbo.Regulation rg
@@ -271,7 +277,7 @@ BEGIN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,YEAR      = SUBSTRING(DBO.GET_MTOS_U(GETDATE()), 1, 4)
+            ,YEAR    = SUBSTRING(DBO.GET_MTOS_U(GETDATE()), 1, 4)
             ,CYCL      = '0' + SUBSTRING(DBO.GET_MTOS_U(GETDATE()), 6, 2); 
     
     -- 1400/06/09 * بروزرسانی اطلاعات ردیف درخواست
@@ -371,7 +377,7 @@ BEGIN
             SELECT * 
               FROM Receive_Document Rd, Request_Row Rr , Image_Document Id
              WHERE Rd.RQRO_RQST_RQID = Rr.RQST_RQID 
-           AND Rd.RQRO_RWNO = Rr.RWNO 
+   AND Rd.RQRO_RWNO = Rr.RWNO 
                AND Id.RCDC_RCID = Rd.RCID
                AND Id.IMAG IS NULL
                AND Rr.RQST_RQID = @RQID 
@@ -460,7 +466,7 @@ BEGIN
          WHEN MATCHED THEN
             UPDATE
                SET RQST_RQID = NULL
-                  ,FIGH_STAT = '002';         
+                  ,FIGH_STAT = '002';  
       END -- IF @RQST_STAT IN ('002', '003')
       
       GOTO L$NextRow;
@@ -546,6 +552,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'واحد مالی', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'AMNT_TYPE_DNRM'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تاریخ فاکتور', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'INVC_DATE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'شماره فاکتور', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'INVC_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره درخواست زیر سیستم', 'SCHEMA', N'dbo', 'TABLE', N'Request', 'COLUMN', N'REF_CODE'
 GO

@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Group_Expense]
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SUB_GROP_NUMB_DNRM] [bigint] NULL,
 [SUB_EXPN_NUMB_DNRM] [bigint] NULL,
+[GROP_ORDR] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

@@ -1609,6 +1609,35 @@ BEGIN
 		   DEALLOCATE C$Ins_Fga_URqrq; 
 		   ------------------------ End Insert
       END
+      ELSE IF @ConfigType = '014'
+      BEGIN
+         DECLARE @PrntName NVARCHAR(500);
+         SELECT @PrntName = @X.query('//Printer').value('(Printer/@name)[1]', 'NVARCHAR(500)');
+         MERGE dbo.Modual_Report_Direct_Print T
+         USING (
+            SELECT m.CODE AS MDRP_CODE, 
+                   u.USER_DB AS USER_ID, 
+                   ca.CODE AS COMA_CODE,
+                   @PrntName AS PRNT_NAME
+              FROM dbo.Modual_Report m, dbo.V#Users u, dbo.V#Computers c, dbo.Computer_Action ca
+             WHERE c.COMP_NAME_DNRM = ca.COMP_NAME
+             
+         ) S
+         ON (T.MDRP_CODE = S.MDRP_CODE AND 
+             T.USER_ID = S.USER_ID AND 
+             T.COMA_CODE = S.COMA_CODE AND 
+             T.PRNT_NAME = s.PRNT_NAME)
+         WHEN NOT MATCHED THEN
+            INSERT (MDRP_CODE, USER_ID, COMA_CODE, PRNT_NAME, CODE)
+            VALUES (s.MDRP_CODE, s.USER_ID, s.COMA_CODE, s.PRNT_NAME, dbo.GNRT_NVID_U());         
+      END
+      ELSE IF @ConfigType = '015'
+      BEGIN
+         SELECT @PrntName = @X.query('//Printer').value('(Printer/@name)[1]', 'NVARCHAR(500)');
+         PRINT @PrntName;
+         UPDATE dbo.Modual_Report_Direct_Print
+            SET DFLT_PRNT = CASE PRNT_NAME WHEN @PrntName THEN '002' ELSE '001' END;
+      END 
       /*ELSE IF @ConfigType = '014'
       BEGIN
 		   DECLARE C$Del_Dresser CURSOR FOR

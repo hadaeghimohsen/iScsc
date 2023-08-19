@@ -22,6 +22,7 @@ CREATE TABLE [dbo].[Misc_Expense]
 [DELV_DATE] [date] NULL,
 [DELV_BY] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [QNTY] [float] NULL,
+[REMN_EXPN_PRIC_DNRM] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
