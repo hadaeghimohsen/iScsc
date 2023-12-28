@@ -364,7 +364,8 @@ BEGIN
           ,@RemnPric INT = 0
           ,@CovrDsct VARCHAR(3)
           ,@ProfAmnt BIGINT
-          ,@DeduAmnt BIGINT;
+          ,@DeduAmnt BIGINT
+          ,@CanCalcProf VARCHAR(3);
    
    SELECT @ExpnPric = CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END
          ,@ExpnExtrPrct = T.EXTR_PRCT 
@@ -372,6 +373,7 @@ BEGIN
          ,@CovrDsct = COVR_DSCT
          ,@ProfAmnt = CASE ISNULL(T.PROF_AMNT_DNRM, 0) WHEN 0 THEN CASE WHEN @ExpnPric = 0 THEN T.PRIC ELSE @ExpnPric END ELSE t.PROF_AMNT_DNRM END
          ,@DeduAmnt = t.DEDU_AMNT_DNRM
+         ,@CanCalcProf = ISNULL(t.CAN_CALC_PROF, '002')
    FROM Expense T, INSERTED S
    WHERE T.CODE = @ExpnCode
      AND T.CODE = S.EXPN_CODE
@@ -400,7 +402,13 @@ BEGIN
             ,REMN_PRIC      = @RemnPric
             ,ISSU_DATE      = CASE WHEN S.PAY_STAT IN ('002', '003') AND S.ISSU_DATE IS NULL THEN GETDATE() WHEN S.ISSU_DATE IS NOT NULL THEN S.ISSU_DATE ELSE NULL END
             ,PROF_AMNT_DNRM = ISNULL(@ProfAmnt * s.QNTY, 0)
-            ,DEDU_AMNT_DNRM = ISNULL(@DeduAmnt * s.QNTY, 0);
+            ,DEDU_AMNT_DNRM = ISNULL(@DeduAmnt * s.QNTY, 0)
+            ,PAY_STAT = '002'
+            ,FIGH_FILE_NO = CASE @CanCalcProf WHEN '002' THEN S.FIGH_FILE_NO ELSE NULL END
+            ,CBMT_CODE_DNRM = CASE @CanCalcProf WHEN '002' THEN S.CBMT_CODE_DNRM ELSE NULL END
+            ,MBSP_FIGH_FILE_NO = CASE @CanCalcProf WHEN '002' THEN S.MBSP_FIGH_FILE_NO ELSE NULL END
+            ,MBSP_RWNO = CASE @CanCalcProf WHEN '002' THEN S.MBSP_RWNO ELSE NULL END
+            ,MBSP_RECT_CODE = CASE @CanCalcProf WHEN '002' THEN S.MBSP_RECT_CODE ELSE NULL END;
    
    ---------------
    

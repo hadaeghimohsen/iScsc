@@ -12,6 +12,12 @@ CREATE TABLE [dbo].[Warehouse]
 [SORC_POST_ADRS] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [WRHS_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [WRHS_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CAR_NUM1] [int] NULL,
+[CAR_NUM2] [int] NULL,
+[CAR_SYMB] [nvarchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CAR_NUM3] [int] NULL,
+[CAR_ID_DNRM] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CAR_NAME] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -75,7 +81,8 @@ BEGIN
    WHEN MATCHED THEN 
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
-         T.MDFY_DATE = GETDATE();
+         T.MDFY_DATE = GETDATE(),
+         T.CAR_ID_DNRM = CAST(S.CAR_NUM3 AS NVARCHAR(5)) + N' ' + (SELECT DOMN_DESC FROM dbo.[D$FACH] WHERE VALU = S.CAR_SYMB) + N' ' + CAST(s.CAR_NUM2 AS NVARCHAR(5)) + N' - ' + CAST(S.CAR_NUM1 AS NVARCHAR(5));
 END
 GO
 ALTER TABLE [dbo].[Warehouse] ADD CONSTRAINT [PK_Warehouse] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

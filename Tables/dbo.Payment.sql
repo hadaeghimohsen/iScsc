@@ -33,6 +33,7 @@ CREATE TABLE [dbo].[Payment]
 [LOCK_DATE] [datetime] NULL,
 [PROF_AMNT_DNRM] [bigint] NULL,
 [DEDU_AMNT_DNRM] [bigint] NULL,
+[RFND_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -247,7 +248,8 @@ BEGIN
 				     FROM dbo.Regulation
 				    WHERE REGL_STAT = '002'
 				      AND [TYPE] = '001'
-				);
+				),
+				T.RFND_DATE = DATEADD(DAY, (SELECT ISNULL(AVG(EXPR_DEBT_DAY), 30) FROM dbo.Settings), getdate());
 END
 ;
 GO

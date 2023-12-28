@@ -16,6 +16,7 @@ CREATE TABLE [dbo].[Club]
 [ZIP_CODE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ECON_CODE] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CLUB_DESC] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INST_PAGE] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

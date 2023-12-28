@@ -41,7 +41,14 @@ BEGIN
 	   AND p.PYMT_STAT != '002'
 	   AND r.RQST_STAT = '002'
 	   AND pm.RCPT_MTOD = '005';
+	
+	DECLARE @SumSalryAmnt decimal(18, 2);
+	SELECT @SumSalryAmnt = SUM(SUM_NET_AMNT_DNRM - (SUM_RCPT_PYMT_DNRM + SUM_COST_AMNT_DNRM + SUM_DSCT_AMNT_DNRM))
+	  FROM dbo.Misc_Expense
+	 WHERE COCH_FILE_NO = @FileNo
+	   AND VALD_TYPE = '002'
+	   AND CALC_EXPN_TYPE = '001';
    
-   RETURN COALESCE(@SumDpstAmnt, 0) - COALESCE(@SumPymtAmnt, 0);
+   RETURN (COALESCE(@SumDpstAmnt, 0) + COALESCE(@SumSalryAmnt, 0)) - COALESCE(@SumPymtAmnt, 0);
 END
 GO

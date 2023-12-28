@@ -36,6 +36,8 @@ CREATE TABLE [dbo].[Expense]
 [PROF_AMNT_DNRM] [bigint] NULL,
 [DEDU_AMNT_DNRM] [bigint] NULL,
 [UNIT_APBS_CODE] [bigint] NULL,
+[CAN_CALC_PROF] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MUST_FILL_OWNR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -129,7 +131,14 @@ BEGIN
    --RAISERROR(N'[CG$AUPD_EXPN]', 16, 1);
    
    MERGE dbo.Expense T
-   USING (SELECT E.Code, E.Regl_Year, E.Regl_Code, I.Extp_Code, I.Ctgy_Code, I.Mtod_Code, I.Pric, I.Expn_Desc, I.EXPN_TYPE, I.Numb_Of_Stok, I.Numb_Of_Sale, I.Numb_Of_Remn_Dnrm, I.Covr_Tax, i.ORDR_ITEM, i.MIN_TIME FROM INSERTED I, Expense E WHERE I.Code = E.Code) S
+   USING (
+      SELECT E.Code, E.Regl_Year, E.Regl_Code, I.Extp_Code, 
+             I.Ctgy_Code, I.Mtod_Code, I.Pric, I.Expn_Desc, 
+             I.EXPN_TYPE, I.Numb_Of_Stok, I.Numb_Of_Sale, 
+             I.Numb_Of_Remn_Dnrm, I.Covr_Tax, i.ORDR_ITEM, 
+             i.MIN_TIME, i.CAN_CALC_PROF, i.MUST_FILL_OWNR
+        FROM INSERTED I, Expense E 
+       WHERE I.Code = E.Code) S
    ON (T.REGL_YEAR = S.REGL_YEAR AND
        T.REGL_CODE = S.REGL_CODE AND
        T.EXTP_CODE = S.EXTP_CODE AND
@@ -144,6 +153,8 @@ BEGIN
             ,EXPN_DESC = CASE WHEN LEN(S.EXPN_DESC) = 0 OR S.EXPN_DESC IS NULL THEN (SELECT EPIT_DESC FROM Expense_Type Et, Expense_Item Ei WHERE Et.Code = S.Extp_Code AND Et.Epit_Code = Ei.Code) ELSE S.Expn_Desc END
             ,NUMB_OF_REMN_DNRM = CASE S.EXPN_TYPE WHEN '001' /* خدمت */ THEN S.NUMB_OF_REMN_DNRM WHEN '002' /* کالا */ THEN ISNULL(S.NUMB_OF_STOK, 0) - ISNULL(S.NUMB_OF_SALE, 0) END
             ,T.MIN_TIME = ISNULL(s.MIN_TIME, '00:01:00')
+            ,T.CAN_CALC_PROF = ISNULL(S.CAN_CALC_PROF, '002')
+            ,T.MUST_FILL_OWNR = ISNULL(s.MUST_FILL_OWNR, '001')
             --,T.ORDR_ITEM = CASE s.ORDR_ITEM 
             --                    WHEN 0 THEN (SELECT ISNULL(MAX(e.ORDR_ITEM), 0) + 1
             --                                            FROM dbo.Expense e
@@ -175,7 +186,7 @@ BEGIN
       
       IF EXISTS(SELECT * FROM Inserted i, Deleted d WHERE i.GROP_CODE != d.GROP_CODE)
       BEGIN
-      -- بروز رسانی گروه جدید
+   -- بروز رسانی گروه جدید
          UPDATE ge
             SET ge.SUB_EXPN_NUMB_DNRM = (SELECT COUNT(e.CODE) FROM dbo.Expense e WHERE e.GROP_CODE = ge.CODE)
            FROM Group_Expense ge, Deleted d
@@ -296,6 +307,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'محاسبه حداقل زمان برای بازی های رزروی', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'MIN_TIME'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'سبک مشترک', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'MTOD_CODE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صاحب هزینه باید پر شود', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'MUST_FILL_OWNR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد روز دوره', 'SCHEMA', N'dbo', 'TABLE', N'Expense', 'COLUMN', N'NUMB_CYCL_DAY'
 GO

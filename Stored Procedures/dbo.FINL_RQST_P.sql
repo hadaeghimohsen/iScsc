@@ -38,7 +38,7 @@ BEGIN
 	      AND rr.FIGH_FILE_NO = f.FILE_NO
 	      AND r.RQID = p.RQST_RQID
 	      AND p.RQST_RQID = pd.PYMT_RQST_RQID
-	      AND b.ACTN_TYPE IN ('009' /* Self Service */, '010' /* Refferal */)
+	      AND b.ACTN_TYPE IN ('009' /* Self Service */)
 	      AND b.STAT = '002'
 	      AND b.ORGN_CODE_DNRM = f.ORGN_CODE_DNRM
 	      AND r.RQTP_CODE = b.RQTP_CODE
@@ -96,6 +96,68 @@ BEGIN
 	L$EndLoop$Rfbd:
 	CLOSE [C$OP$RFBD];
 	DEALLOCATE [C$OP$RFBD];
+	
+	-- Refferal
+	DECLARE C$OP$RRFBD CURSOR FOR
+	   SELECT f.REF_CODE_DNRM, pd.EXPN_PRIC, pd.QNTY, 
+	          b.DSCT_TYPE, b.AMNT_DSCT, b.PRCT_DSCT,
+	          f.ORGN_CODE_DNRM, su.SUNT_DESC, a.DOMN_DESC AS AMNT_TYPE_DESC,
+	          pd.PYDT_DESC, rt.RQTP_DESC
+	     FROM dbo.Request r, dbo.Request_Row rr, dbo.Fighter f,
+	          dbo.Basic_Calculate_Discount b, 
+	          dbo.Payment p, dbo.Payment_Detail pd,
+	          dbo.Sub_Unit su,
+	          dbo.[D$ATYP] a,
+	          dbo.Request_Type rt
+	    WHERE r.RQID = @Rqid
+	      AND r.RQID = rr.RQST_RQID
+	      AND rr.FIGH_FILE_NO = f.FILE_NO
+	      AND r.RQID = p.RQST_RQID
+	      AND p.RQST_RQID = pd.PYMT_RQST_RQID
+	      AND b.ACTN_TYPE IN ('010' /* Refferal */)
+	      AND b.STAT = '002'
+	      AND b.ORGN_CODE_DNRM = f.ORGN_CODE_DNRM
+	      AND r.RQTP_CODE = b.RQTP_CODE
+	      AND r.RQTT_CODE = b.RQTT_CODE
+	      AND b.EXPN_CODE = pd.EXPN_CODE
+	      AND f.ORGN_CODE_DNRM = su.ORGN_CODE_DNRM
+	      AND r.AMNT_TYPE_DNRM = a.VALU
+	      AND r.RQTP_CODE = rt.CODE
+	      AND f.REF_CODE_DNRM IS NOT NULL;
+	
+	OPEN [C$OP$RRFBD];
+	L$Loop$RRfbd:
+	FETCH [C$OP$RRFBD] INTO @FileNo, @ExpnPric, @Qnty, @DsctType, @AmntDsct, @PrctDsct, @OrgnCode, @OrgnDesc, @AmntTypeDesc, @PydtDesc, @RqtpDesc;
+	
+	IF @@FETCH_STATUS <> 0
+	   GOTO L$EndLoop$RRfbd;
+	
+   SET @Amnt = CASE @DsctType WHEN '001' THEN (@ExpnPric * @Qnty) * @PrctDsct / 100 WHEN '002' THEN @AmntDsct END;
+   
+   -- Save amount in Service's Wallet
+	SET @XTemp = (
+	    SELECT 5 AS '@subsys',
+	           114 AS '@cmndcode',
+	           @Rqid AS '@rqstrqid',
+	           @FileNo AS '@fileno',
+	           (
+	             SELECT '002' AS '@stat',
+	                    GETDATE() AS '@pymtdate',
+	                    '015' AS '@pymtmtod',
+	                    @Amnt AS '@amnt',
+	                    N'واریز سود معرفی مشتریان گروه ' + @OrgnDesc + N' ( ' + @OrgnCode + N' ) * [ ' + 
+	                    N'محاسبه سود : ' + CASE @DsctType WHEN '001' THEN CAST(@PrctDsct AS NVARCHAR(3)) + N' %' WHEN '002' THEN dbo.GET_NTOF_U(@AmntDsct) + N' ' + @AmntTypeDesc END  + N' از ' + @RqtpDesc + N' * ' + @PydtDesc + N' میباشد ]'
+	                    AS '@cmntdesc'
+	                FOR XML PATH('Deposit'), TYPE
+	           )
+	       FOR XML PATH('Router_Command')	           
+	);
+	EXEC dbo.RunnerdbCommand @X = @XTemp, @xRet = @XTemp OUTPUT;
+	
+	GOTO L$Loop$RRfbd;
+	L$EndLoop$RRfbd:
+	CLOSE [C$OP$RRFBD];
+	DEALLOCATE [C$OP$RRFBD];
 	
 	-------------- Attendance Reward
 	-- Local Params

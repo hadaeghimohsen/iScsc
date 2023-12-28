@@ -1,14 +1,17 @@
-CREATE TABLE [dbo].[External_Device_Link_External_Device]
+CREATE TABLE [dbo].[Dresser_Vip_Fighter]
 (
-[EDEV_CODE] [bigint] NULL,
-[LINK_EDEV_CODE] [bigint] NULL,
+[DRES_CODE] [bigint] NULL,
+[MBSP_FIGH_FILE_NO] [bigint] NULL,
+[MBSP_RWNO] [smallint] NULL,
+[MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CODE] [bigint] NOT NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXPR_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MDFY_DATE] [datetime] NULL
-) ON [PRIMARY]
+) ON [BLOB]
 GO
 SET QUOTED_IDENTIFIER ON
 GO
@@ -19,8 +22,8 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE TRIGGER [dbo].[CG$AINS_EDLE]
-   ON  [dbo].[External_Device_Link_External_Device]
+CREATE TRIGGER [dbo].[CG$AINS_DVPF]
+   ON  [dbo].[Dresser_Vip_Fighter]
    AFTER INSERT
 AS 
 BEGIN
@@ -29,10 +32,12 @@ BEGIN
 	SET NOCOUNT ON;
 
    -- Insert statements for trigger here
-   MERGE dbo.External_Device_Link_External_Device T
+   MERGE dbo.Dresser_Vip_Fighter T
    USING (SELECT * FROM Inserted) S
-   ON (T.EDEV_CODE = S.EDEV_CODE AND 
-       T.LINK_EDEV_CODE = S.LINK_EDEV_CODE AND 
+   ON (T.DRES_CODE = S.DRES_CODE AND 
+       T.MBSP_FIGH_FILE_NO = S.MBSP_FIGH_FILE_NO AND
+       T.MBSP_RWNO = S.MBSP_RWNO AND
+       T.MBSP_RECT_CODE = s.MBSP_RECT_CODE AND        
        T.CODE = S.CODE)
    WHEN MATCHED THEN 
       UPDATE SET
@@ -51,8 +56,8 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE TRIGGER [dbo].[CG$AUPD_EDLE]
-   ON  [dbo].[External_Device_Link_External_Device]
+CREATE TRIGGER [dbo].[CG$AUPD_DVPF]
+   ON  [dbo].[Dresser_Vip_Fighter]
    AFTER UPDATE
 AS 
 BEGIN
@@ -61,7 +66,7 @@ BEGIN
 	SET NOCOUNT ON;
 
    -- Insert statements for trigger here
-   MERGE dbo.External_Device_Link_External_Device T
+   MERGE dbo.Dresser_Vip_Fighter T
    USING (SELECT * FROM Inserted) S
    ON (T.CODE = S.CODE)
    WHEN MATCHED THEN 
@@ -70,9 +75,11 @@ BEGIN
          T.MDFY_DATE = GETDATE();
 END
 GO
-ALTER TABLE [dbo].[External_Device_Link_External_Device] ADD CONSTRAINT [PK_EDLE] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [PK_Dresser_Vip_Fighter] PRIMARY KEY CLUSTERED  ([CODE]) ON [BLOB]
 GO
-ALTER TABLE [dbo].[External_Device_Link_External_Device] ADD CONSTRAINT [FK_External_Device_Link_External_Device_External_Device] FOREIGN KEY ([EDEV_CODE]) REFERENCES [dbo].[External_Device] ([CODE]) ON DELETE CASCADE
+ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [FK_DVPF_DRES] FOREIGN KEY ([DRES_CODE]) REFERENCES [dbo].[Dresser] ([CODE])
 GO
-ALTER TABLE [dbo].[External_Device_Link_External_Device] ADD CONSTRAINT [FK_External_Device_Link_External_Device_External_Device1] FOREIGN KEY ([LINK_EDEV_CODE]) REFERENCES [dbo].[External_Device] ([CODE])
+ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [FK_DVPF_FIGH] FOREIGN KEY ([MBSP_FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
+GO
+ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [FK_DVPF_MBSP] FOREIGN KEY ([MBSP_FIGH_FILE_NO], [MBSP_RWNO], [MBSP_RECT_CODE]) REFERENCES [dbo].[Member_Ship] ([FIGH_FILE_NO], [RWNO], [RECT_CODE]) ON DELETE CASCADE
 GO

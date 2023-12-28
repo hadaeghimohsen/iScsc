@@ -55,7 +55,8 @@ BEGIN
 	       ,@EfctDateType VARCHAR(3)
 	       ,@MinAttnStat  VARCHAR(3)
 	       ,@ExprPayDay   INT
-	       ,@ForeGivnAttnNumb INT;
+	       ,@ForeGivnAttnNumb INT
+	       ,@DyncPrctValu float;
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -67,8 +68,8 @@ BEGIN
 	      ,@EpitCodeP    = @X.query('//Payment').value('(Payment/@epitcode)[1]',   'BIGINT')
 	      ,@CetpCodeP    = @X.query('//Payment').value('(Payment/@cetpcode)[1]',   'VARCHAR(3)')
 	      ,@CxtpCodeP     = @X.query('//Payment').value('(Payment/@cxtpcode)[1]',   'VARCHAR(3)')
-	      ,@RqtpCodeP     = @X.query('//Payment').value('(Payment/@rqtpcode)[1]',   'VARCHAR(3)');
-	      
+	      ,@RqtpCodeP     = @X.query('//Payment').value('(Payment/@rqtpcode)[1]',   'VARCHAR(3)')
+	      ,@DyncPrctValu  = @X.query('//Payment').value('(Payment/@dyncprctvalu)[1]',   'FLOAT');	      
    
    IF @FromPymtDate IN ('1900-01-01', '0001-01-01' ) BEGIN RAISERROR (N'برای فیلد "از تاریخ" اطلاعات وارد نشده' , 16, 1); END
    IF @ToPymtDate IN ('1900-01-01', '0001-01-01' ) BEGIN RAISERROR (N'برای فیلد "تا تاریخ" اطلاعات وارد نشده' , 16, 1); END
@@ -152,6 +153,10 @@ BEGIN
    
    IF @@FETCH_STATUS <> 0
       GOTO EndC$CochFileNo$CalcExpnP;
+   
+   -- 1402/05/31 * اگر درصد داینامیک در نظر داشته باشیم
+   IF ISNULL(@DyncPrctValu, 0) != 0
+      SET @PrctValu = @DyncPrctValu;
       
    -- در دستور پایین باید سطوح دسترسی به رکورد را اعمال کنیم. مثلا ناحیه، باشگاه، خود هنرجو      
    INSERT INTO Payment_Expense (

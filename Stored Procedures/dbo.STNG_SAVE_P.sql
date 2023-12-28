@@ -105,7 +105,22 @@ BEGIN
 	             ,@RestAttnNumbByYear VARCHAR(3)
 	             ,@AttnNotInsrStat VARCHAR(3)
 	             ,@ShowRbonMnui VARCHAR(3)
-	             ,@ShowSlidMnui VARCHAR(3);	             
+	             ,@ShowSlidMnui VARCHAR(3)
+	             ,@NegDpstAmnt VARCHAR(3)
+	             ,@DontShowEror VARCHAR(3)
+	             ,@ShowErorLog VARCHAR(3)
+	             ,@Dev4Stat VARCHAR(3)
+	             ,@IPAdr4 VARCHAR(15)
+	             ,@PortNum4 INT
+	             ,@AttnCompCnc4 VARCHAR(30)
+	             ,@Dev5Stat VARCHAR(3)
+	             ,@IPAdr5 VARCHAR(15)
+	             ,@PortNum5 INT
+	             ,@AttnCompCnc5 VARCHAR(30)
+	             ,@Dev6Stat VARCHAR(3)
+	             ,@IPAdr6 VARCHAR(15)
+	             ,@PortNum6 INT
+	             ,@AttnCompCnc6 VARCHAR(30);
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
 	             ,@BackupAppExit = @X.query('//Settings').value('(Settings/@backupappexit)[1]', 'BIT')
@@ -192,7 +207,26 @@ BEGIN
 	             ,@AttnNotInsrStat = @X.query('//Settings').value('(Settings/@attnnotinsrstat)[1]', 'VARCHAR(3)')
 	             
 	             ,@ShowRbonMnui = @X.query('//Settings').value('(Settings/@showrbonmnui)[1]', 'VARCHAR(3)')
-	             ,@ShowSlidMnui = @X.query('//Settings').value('(Settings/@showslidmnui)[1]', 'VARCHAR(3)');
+	             ,@ShowSlidMnui = @X.query('//Settings').value('(Settings/@showslidmnui)[1]', 'VARCHAR(3)')
+	             
+	             ,@NegDpstAmnt = @X.query('//Settings').value('(Settings/@negdpstamnt)[1]', 'VARCHAR(3)')
+	             ,@DontShowEror = @X.query('//Settings').value('(Settings/@dontshoweror)[1]', 'VARCHAR(3)')
+	             ,@ShowErorLog = @X.query('//Settings').value('(Settings/@showerorlog)[1]', 'VARCHAR(3)')
+	             
+	             ,@Dev4Stat = @X.query('//Settings').value('(Settings/@dev4stat)[1]', 'VARCHAR(3)')
+	             ,@IPAdr4 = @X.query('//Settings').value('(Settings/@ipadr4)[1]', 'VARCHAR(15)')
+	             ,@PortNum4 = @X.query('//Settings').value('(Settings/@portnum4)[1]', 'INT')
+	             ,@AttnCompCnc4 = @X.query('//Settings').value('(Settings/@attncompcnc4)[1]', 'VARCHAR(30)')
+	             
+	             ,@Dev5Stat = @X.query('//Settings').value('(Settings/@dev5stat)[1]', 'VARCHAR(3)')
+	             ,@IPAdr5 = @X.query('//Settings').value('(Settings/@ipadr5)[1]', 'VARCHAR(15)')
+	             ,@PortNum5 = @X.query('//Settings').value('(Settings/@portnum5)[1]', 'INT')
+	             ,@AttnCompCnc5 = @X.query('//Settings').value('(Settings/@attncompcnc5)[1]', 'VARCHAR(30)')
+	             
+	             ,@Dev6Stat = @X.query('//Settings').value('(Settings/@dev6stat)[1]', 'VARCHAR(3)')
+	             ,@IPAdr6 = @X.query('//Settings').value('(Settings/@ipadr6)[1]', 'VARCHAR(15)')
+	             ,@PortNum6 = @X.query('//Settings').value('(Settings/@portnum6)[1]', 'INT')
+	             ,@AttnCompCnc6 = @X.query('//Settings').value('(Settings/@attncompcnc6)[1]', 'VARCHAR(30)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -294,6 +328,25 @@ BEGIN
                   
                   ,SHOW_RBON_MNUI = @ShowRbonMnui
                   ,SHOW_SLID_MNUI = @ShowSlidMnui
+                  
+                  ,NEG_DPST_AMNT = @NegDpstAmnt
+                  ,DONT_SHOW_EROR = @DontShowEror
+                  ,SHOW_EROR_LOG = @ShowErorLog
+                  
+                  ,DEV4_STAT = @Dev4Stat
+                  ,IP_ADR4 = @IPAdr4
+                  ,PORT_NUM4 = @PortNum4
+                  ,ATTN_COMP_CNC4 = @AttnCompCnc4
+                  
+                  ,DEV5_STAT = @Dev5Stat
+                  ,IP_ADR5 = @IPAdr5
+                  ,PORT_NUM5 = @PortNum5
+                  ,ATTN_COMP_CNC5 = @AttnCompCnc5
+                  
+                  ,DEV6_STAT = @Dev6Stat
+                  ,IP_ADR6 = @IPAdr6
+                  ,PORT_NUM6 = @PortNum6
+                  ,ATTN_COMP_CNC6 = @AttnCompCnc6
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

@@ -231,9 +231,11 @@ BEGIN
 	      IF @DpstStat = '001' AND 
 	         EXISTS(
 	            SELECT *
-	              FROM dbo.Fighter
-	             WHERE FILE_NO = @FileNo
+	              FROM dbo.Fighter f, dbo.Settings s
+	             WHERE f.FILE_NO = @FileNo
+	               AND f.CLUB_CODE_DNRM = s.CLUB_CODE
 	               AND DPST_AMNT_DNRM < @Amnt
+	               AND ISNULL(s.NEG_DPST_AMNT, '001') = '001'
 	         )
 	      BEGIN
 	         RAISERROR(N'مبلغ برداشت سپرده از میزان سپرده موجود بیشتر می باشد، لطفا اصلاح کتید', 16, 1);

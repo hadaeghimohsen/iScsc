@@ -20,7 +20,8 @@ CREATE PROCEDURE [dbo].[UPD_CLUB_P]
 	@Cell_Phon VARCHAR(11),
 	@Zip_Code VARCHAR(10),
 	@Econ_Code VARCHAR(15),
-	@Club_Desc NVARCHAR(100)
+	@Club_Desc NVARCHAR(100),
+	@Inst_Page VARCHAR(100)
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -50,6 +51,7 @@ BEGIN
          ,ZIP_CODE = @Zip_Code
          ,ECON_CODE = @Econ_Code
          ,CLUB_DESC = @Club_Desc
+         ,INST_PAGE = @Inst_Page
     WHERE CODE = @Code;
 END
 GO

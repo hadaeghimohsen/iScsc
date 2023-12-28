@@ -10,6 +10,7 @@ CREATE TABLE [dbo].[Dresser]
 [COMM_PORT] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BAND_RATE] [int] NULL,
 [IP_ADRS] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[VIP_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -38,7 +39,8 @@ BEGIN
          SET CRET_BY   = UPPER(SUSER_NAME())
             ,CRET_DATE = GETDATE()
             ,CODE      = CASE s.CODE WHEN 0 THEN dbo.Gnrt_Nvid_U() ELSE s.CODE END
-            ,DRES_NUMB = CASE WHEN S.DRES_NUMB = 0 OR S.DRES_NUMB IS NULL  THEN (SELECT COUNT(Code) FROM Dresser WHERE COMA_CODE = S.COMA_CODE) ELSE S.DRES_NUMB END;
+            ,DRES_NUMB = CASE WHEN S.DRES_NUMB = 0 OR S.DRES_NUMB IS NULL  THEN (SELECT COUNT(Code) FROM Dresser WHERE COMA_CODE = S.COMA_CODE) ELSE S.DRES_NUMB END
+            ,VIP_STAT = ISNULL(S.VIP_STAT, '001');
 END
 ;
 GO
@@ -80,4 +82,6 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ترتیب باز شدن کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'ORDR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'REC_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'کمد vip', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'VIP_STAT'
 GO

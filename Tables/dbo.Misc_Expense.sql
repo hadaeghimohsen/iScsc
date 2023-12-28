@@ -10,19 +10,23 @@ CREATE TABLE [dbo].[Misc_Expense]
 [CODE] [bigint] NOT NULL,
 [RWNO] [bigint] NULL,
 [VALD_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[EXPN_AMNT] [bigint] NULL,
-[LOCK_EXPN_AMNT_DNRM] [bigint] NULL,
+[EXPN_AMNT] [decimal] (18, 2) NULL,
+[LOCK_EXPN_AMNT_DNRM] [decimal] (18, 2) NULL,
 [LOCK_DATE_DNRM] [date] NULL,
-[SUM_DEDU_AMNT_DNRM] [bigint] NULL,
-[SUM_NET_AMNT_DNRM] [bigint] NULL,
+[SUM_DEDU_AMNT_DNRM] [decimal] (18, 2) NULL,
+[SUM_NET_AMNT_DNRM] [decimal] (18, 2) NULL,
 [EXPN_DESC] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CALC_EXPN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DECR_PRCT] [float] NULL,
 [DELV_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [DELV_DATE] [date] NULL,
 [DELV_BY] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DELV_NUMB] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [QNTY] [float] NULL,
-[REMN_EXPN_PRIC_DNRM] [bigint] NULL,
+[REMN_EXPN_PRIC_DNRM] [decimal] (18, 2) NULL,
+[SUM_RCPT_PYMT_DNRM] [decimal] (18, 2) NULL,
+[SUM_DSCT_AMNT_DNRM] [decimal] (18, 2) NULL,
+[SUM_COST_AMNT_DNRM] [decimal] (18, 2) NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -152,10 +156,15 @@ BEGIN
 	      ,REGN_PRVN_CODE = @RegnPrvnCode
 	      ,REGN_PRVN_CNTY_CODE = @RegnPrvnCntyCode
 	      ,SUM_NET_AMNT_DNRM = EXPN_AMNT - ISNULL(SUM_DEDU_AMNT_DNRM, 0)
+	      ,SUM_RCPT_PYMT_DNRM = ISNULL(SUM_RCPT_PYMT_DNRM, 0)
+	      ,SUM_DSCT_AMNT_DNRM = ISNULL(SUM_DSCT_AMNT_DNRM, 0)
+	      ,SUM_COST_AMNT_DNRM = ISNULL(SUM_COST_AMNT_DNRM, 0)
+	      ,SUM_DEDU_AMNT_DNRM = ISNULL(SUM_DEDU_AMNT_DNRM, 0)
+	      ,LOCK_EXPN_AMNT_DNRM = ISNULL(LOCK_EXPN_AMNT_DNRM, 0)
 	 WHERE CODE = @Code;
 	
 	-- 1397/10/11 * ثبت اطلاعات محاسبه شده به صورت فشرده تر با کمی جزئیات گروه برای مربیان
-	IF @ValdType = '002' AND @CalcExpnType = '001'
+	IF 1!=1 AND @ValdType = '002' AND @CalcExpnType = '001'
 	BEGIN
 	   INSERT INTO dbo.Misc_Expense_Detail( MSEX_CODE , CODE , COCH_FILE_NO , MTOD_CODE , UNIT_AMNT_DNRM, STAT, ACTN_DATE, RECT_CODE)
 	   SELECT T.MSEX_CODE, dbo.GNRT_NVID_U(), T.COCH_FILE_NO, T.MTOD_CODE, T.EXPN_AMNT, '001', GETDATE(), '001'
@@ -172,7 +181,6 @@ BEGIN
 	                   AND MTOD_CODE = pe.MTOD_CODE
 	                )
 	     ) T;
-
 	END 
 	
 	-- ثبت اطلاعات هزینه های ثبت شده در جدول حسابداری برای باشگاه
@@ -192,7 +200,7 @@ BEGIN
 	DEALLOCATE C$CG$AUPD_MSEX;
 END
 GO
-ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [PK_MSEX] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [PK_MSEX] PRIMARY KEY CLUSTERED  ([CODE]) WITH (FILLFACTOR=100) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Misc_Expense] ADD CONSTRAINT [FK_MSEX_CLUB] FOREIGN KEY ([CLUB_CODE]) REFERENCES [dbo].[Club] ([CODE])
 GO

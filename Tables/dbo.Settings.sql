@@ -76,7 +76,22 @@ CREATE TABLE [dbo].[Settings]
 [REST_ATTN_NUMB_BY_YEAR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ATTN_NOT_INSR_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SHOW_RBON_MNUI] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[SHOW_SLID_MNUI] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[SHOW_SLID_MNUI] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NEG_DPST_AMNT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DONT_SHOW_EROR] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SHOW_EROR_LOG] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DEV4_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IP_ADR4] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PORT_NUM4] [int] NULL,
+[ATTN_COMP_CNC4] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DEV5_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IP_ADR5] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PORT_NUM5] [int] NULL,
+[ATTN_COMP_CNC5] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DEV6_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IP_ADR6] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PORT_NUM6] [int] NULL,
+[ATTN_COMP_CNC6] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -102,7 +117,18 @@ BEGIN
    USING (SELECT * FROM Inserted) S
    ON (T.CLUB_CODE = S.CLUB_CODE)
    WHEN MATCHED THEN
-      UPDATE SET T.CODE = dbo.GNRT_NVID_U();
+      UPDATE SET 
+         CODE = dbo.GNRT_NVID_U(),
+         T.BACK_UP_OPTN_PATH_ADRS = 'D:\RelaySoft\data',
+         T.SND7_PATH = '.\Media\SubSys\Kernel\Desktop\Sounds\HappyBirthday.mp3',
+         T.SND9_PATH = '.\Media\SubSys\Kernel\Desktop\Sounds\Synth.mp3',
+         T.REST_ATTN_NUMB_BY_YEAR = '002',
+         T.ATTN_NOT_INSR_STAT = '002',
+         T.SHOW_RBON_MNUI = '001',
+         T.SHOW_SLID_MNUI = '002',
+         T.NEG_DPST_AMNT = '002',
+         T.DONT_SHOW_EROR = '002',
+         T.SHOW_EROR_LOG = '002';
 END
 GO
 ALTER TABLE [dbo].[Settings] ADD CONSTRAINT [PK_Settings] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
@@ -122,6 +148,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع ورودی داده بارکد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'BAR_CODE_DATA_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'بررسی میزان بدهی هنرجو برای بازه تاریخی و جلسه ای', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'DEBT_CHCK_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'سیستم خطا ها رو نمایش ندهد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'DONT_SHOW_EROR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مدت زمان پرداخت بدهی', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'EXPR_DEBT_DAY'
 GO
@@ -147,6 +175,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'طول کدهای کارت ها
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ سپرده منفی قابل اجرا میباشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'NEG_DPST_AMNT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'مجوز تعداد ورود جلسات مشتریان بدهکار', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'PERM_ENTR_DEBT_SERV_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'تعداد ورود و خروج های مشتری بر اساس سال صفر شود یا خیر', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'REST_ATTN_NUMB_BY_YEAR'
@@ -154,6 +184,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'اجرا کردن کوئری', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'RUN_QURY'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'آیا جلسات مشترکین به اشتراک گذاشته شود.', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SHAR_MBSP_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نمایش صحفه خطای حضور و غیاب', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SHOW_EROR_LOG'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مسیر آدرس فایل تولد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND7_PATH'
 GO

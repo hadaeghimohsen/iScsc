@@ -35,6 +35,8 @@ CREATE PROCEDURE [dbo].[UPD_EXPN_P]
   ,@Min_Pric BIGINT
   ,@Max_Pric BIGINT
   ,@Unit_Apbs_Code BIGINT
+  ,@CAN_CALC_PROF VARCHAR(3)
+  ,@Must_Fill_Ownr VARCHAR(3)
 AS
 BEGIN
 	-- بررسی دسترسی کاربر
@@ -79,6 +81,8 @@ BEGIN
          ,MIN_PRIC = @Min_Pric
          ,MAX_PRIC = @Max_Pric
          ,UNIT_APBS_CODE = @Unit_Apbs_Code
+         ,CAN_CALC_PROF = @CAN_CALC_PROF
+         ,MUST_FILL_OWNR = @Must_Fill_Ownr
     WHERE CODE = @CODE;
    
    L$End:

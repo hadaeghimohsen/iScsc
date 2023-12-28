@@ -43,6 +43,7 @@ CREATE TABLE [dbo].[Attendance]
 [SEND_MESG_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RTNG_NUMB] [smallint] NULL,
 [OWNR_CBMT_CODE_DNRM] [bigint] NULL,
+[NUMB_OPEN_DNRM] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -360,7 +361,7 @@ AS
                                                         + N'تاریخ : '
                                                         + dbo.GET_MTST_U(GETDATE())
                                               FROM      dbo.Attendance a , Inserted i
-                                  WHERE     i.CODE = a.CODE
+         WHERE     i.CODE = a.CODE
                                             );          
                         
                         IF @MsgbStat = '002'
@@ -417,7 +418,7 @@ AS
                                                               TYPE
                                                               )
                                                             FOR
-                                                              XML
+                 XML
                                                               PATH('Contact') ,
                                                               TYPE
                                                             ) ,
@@ -477,7 +478,7 @@ AS
                                     AND i.CODE = D.CODE
                                     AND i.ATTN_TYPE != '008' -- 1396/07/16 * اگر همراه بدون کسر جلسه باشد
                                     AND i.ATTN_STAT = '001' -- الان ابطال شده
-                                    AND D.ATTN_STAT = '002' -- قبلا فعال بوده
+     AND D.ATTN_STAT = '002' -- قبلا فعال بوده
                                     AND ISNULL(m.NUMB_OF_ATTN_MONT, 0) >= 1 -- هنرجو جلسه ای باشد             
                   )
                     BEGIN         

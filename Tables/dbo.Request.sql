@@ -215,7 +215,7 @@ BEGIN
       ROLLBACK TRANSACTION;
    END
    -- درخواست هایی که هزینه آنها پرداخت شده است
-   ELSE IF EXISTS(
+   /*ELSE IF EXISTS(
       SELECT *
         FROM Request R, Payment P, Payment_Detail Pd, Inserted I
        WHERE R.RQID = P.RQST_RQID
@@ -240,7 +240,7 @@ BEGIN
                  1   -- State.
                 );
       ROLLBACK TRANSACTION;
-   END
+   END*/
    ELSE IF EXISTS(
       SELECT * 
       FROM INSERTED I, DELETED D 

@@ -1,9 +1,10 @@
-CREATE TABLE [dbo].[Warehouse_Tag]
+CREATE TABLE [dbo].[Expense_KPrice_History]
 (
-[WRHS_CODE] [bigint] NULL,
-[RECD_APBS_CODE] [bigint] NULL,
+[EXKP_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
-[CMNT] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[STRT_DATE] [date] NULL,
+[END_DATE] [date] NULL,
+[PRIC] [real] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -19,9 +20,9 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE TRIGGER [dbo].[CG$AINS_WTAG]
-   ON  [dbo].[Warehouse_Tag]
-   AFTER INSERT 
+CREATE TRIGGER [dbo].[CG$AINS_EKPH]
+   ON  [dbo].[Expense_KPrice_History]
+   AFTER INSERT
 AS 
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
@@ -29,11 +30,10 @@ BEGIN
 	SET NOCOUNT ON;
 
    -- Insert statements for trigger here
-   MERGE dbo.Warehouse_Tag T
+   MERGE dbo.Expense_KPrice_History T
    USING (SELECT * FROM Inserted) S
-   ON (t.WRHS_CODE = s.WRHS_CODE AND
-       t.RECD_APBS_CODE = s.RECD_APBS_CODE AND 
-       t.CODE = s.CODE)
+   ON (T.EXKP_CODE = S.EXKP_CODE AND 
+       T.CODE = S.CODE)
    WHEN MATCHED THEN 
       UPDATE SET
          T.CRET_BY = UPPER(SUSER_NAME()),
@@ -50,8 +50,8 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE TRIGGER [dbo].[CG$AUPD_WTAG]
-   ON  [dbo].[Warehouse_Tag]
+CREATE TRIGGER [dbo].[CG$AUPD_EKPH]
+   ON  [dbo].[Expense_KPrice_History]
    AFTER UPDATE
 AS 
 BEGIN
@@ -60,18 +60,16 @@ BEGIN
 	SET NOCOUNT ON;
 
    -- Insert statements for trigger here
-   MERGE dbo.Warehouse_Tag T
+   MERGE dbo.Expense_KPrice_History T
    USING (SELECT * FROM Inserted) S
-   ON (t.CODE = s.CODE)
+   ON (T.CODE = S.CODE)
    WHEN MATCHED THEN 
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
          T.MDFY_DATE = GETDATE();
 END
 GO
-ALTER TABLE [dbo].[Warehouse_Tag] ADD CONSTRAINT [PK_Warehouse_Tag] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
+ALTER TABLE [dbo].[Expense_KPrice_History] ADD CONSTRAINT [PK_EKPH] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
-ALTER TABLE [dbo].[Warehouse_Tag] ADD CONSTRAINT [FK_WTAG_RECD_ABPS] FOREIGN KEY ([RECD_APBS_CODE]) REFERENCES [dbo].[App_Base_Define] ([CODE])
-GO
-ALTER TABLE [dbo].[Warehouse_Tag] ADD CONSTRAINT [FK_WTAG_WRHS] FOREIGN KEY ([WRHS_CODE]) REFERENCES [dbo].[Warehouse] ([CODE]) ON DELETE CASCADE
+ALTER TABLE [dbo].[Expense_KPrice_History] ADD CONSTRAINT [FK_EKPH_EKPR] FOREIGN KEY ([EXKP_CODE]) REFERENCES [dbo].[Expense_KPrice] ([CODE]) ON DELETE CASCADE
 GO

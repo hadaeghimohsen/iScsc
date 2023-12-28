@@ -14,6 +14,13 @@ BEGIN
    IF @Emptydb = '002'
    BEGIN
       -- Delete Record From Database
+      DELETE dbo.Payment_Contract_Detail;
+      DELETE dbo.Payment_Contract;
+      DELETE dbo.Payment_Detail_Cost;
+      DELETE dbo.Payment_Expense;
+      DELETE dbo.Payment_Discount;
+      DELETE dbo.Payment_Detail;
+      DELETE dbo.User_Link_Fighter;
       DELETE dbo.Warehouse_Tag;
       DELETE dbo.Warehouse_Expense;
       DELETE dbo.Warehouse_Detail;
@@ -23,9 +30,10 @@ BEGIN
       DELETE dbo.Company_Tag;
       DELETE dbo.Company_Fighter;
       DELETE dbo.Company;
-      DELETE dbo.Expense;
+      DELETE dbo.Calculate_Expense_Coach;
       DELETE dbo.Basic_Calculate_Discount;
       DELETE dbo.Pre_Expense;
+      DELETE dbo.Expense;
       DELETE dbo.Account;
       DELETE dbo.Account_Detail;
       DELETE dbo.Aggregation_Operation;
@@ -54,7 +62,6 @@ BEGIN
       DELETE dbo.Physical_Fitness;
       DELETE dbo.Test;
       DELETE dbo.Request_Regulation_History;
-      DELETE dbo.Payment_Discount;
       DELETE dbo.Payment_Detail;
       DELETE dbo.Payment_Method;
       DELETE dbo.Payment_Check;
@@ -67,8 +74,12 @@ BEGIN
       DELETE dbo.Calculate_Expense_Coach
       DELETE dbo.Base_Calculate_Expense;
       DELETE dbo.Planning_Overview;
+      DELETE dbo.Fighter_Grouping;
+      DELETE dbo.Fighter_Link_Payment_Contarct_Item;
       DELETE dbo.Fighter;
       DELETE dbo.Club_Method;
+      DELETE dbo.Modual_Report_Direct_Print;
+      DELETE dbo.User_Link_Section
       DELETE dbo.Computer_Action;
       DELETE dbo.App_Base_Define;
       DELETE dbo.Cando_Block_Unit;
@@ -93,6 +104,8 @@ BEGIN
       DELETE dbo.Settings;
       UPDATE dbo.Message_Broadcast SET CLUB_CODE = NULL, STAT = '001', TELG_STAT = '001', LINE_TYPE = '001', CLUB_NAME = NULL, DEBT_PRIC = NULL, MIN_NUMB_ATTN_RMND = NULL, MIN_NUMB_DAY_RMND = NULL, INSR_FNAM_STAT = '001', INSR_CNAM_STAT = '001', MSGB_TEXT = NULL, FROM_DATE = NULL, TO_DATE = NULL, SEND_INFO = '001', CEL1_PHON = NULL;
       DELETE dbo.Club;
+      DELETE dbo.Region WHERE PRVN_CODE != '017';
+      DELETE dbo.Province WHERE CODE != '017';
    END;
    
    BEGIN TRAN T_INSTALLDB

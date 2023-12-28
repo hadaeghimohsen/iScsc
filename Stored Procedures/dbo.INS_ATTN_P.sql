@@ -929,7 +929,9 @@ BEGIN
          -- بررسی میکنیم که ایا سیستم مدیریت کمدی رو را انجام میدهد یا خیر
          IF EXISTS(SELECT * FROM dbo.Dresser WHERE COMA_CODE = @ComaCode AND REC_STAT = '002')
          BEGIN
-            SELECT @AttnCode = MAX(CODE)
+            DECLARE @MtodCode BIGINT = NULL, 
+                    @EdevCode BIGINT = NULL;
+            SELECT @AttnCode = MAX(CODE)                   
               FROM Attendance
              WHERE FIGH_FILE_NO = @Figh_File_No
                AND CLUB_CODE = @Club_Code
@@ -937,17 +939,31 @@ BEGIN
                AND ENTR_TIME IS NOT NULL
                AND EXIT_TIME IS NULL;
             
-            -- اولین درخواست ثبت قفل کمدی
-            EXEC dbo.INS_DART_P @AttnCode, @ComaCode;
-            
-            -- اگر درخواست قفل کمدی با موفقیت انجام شود
-            IF EXISTS(SELECT * FROM dbo.Dresser_Attendance WHERE ATTN_CODE = @AttnCode)
-            BEGIN                  
-               -- ثبت شماره قفل کمدی
-               UPDATE dbo.Attendance 
-                  SET DERS_NUMB = (SELECT d.DRES_NUMB FROM dbo.Dresser_Attendance da, dbo.Dresser d WHERE da.ATTN_CODE = @AttnCode AND da.DRES_CODE = d.CODE)
-                WHERE Code = @AttnCode;
-            END
+            SELECT @MtodCode = MTOD_CODE_DNRM
+              FROM dbo.Attendance
+             WHERE CODE = @AttnCode;
+            -- 1402/10/03 * اگر رشته ها بر اساس دستگاه های سنترال تفکیک شده باشند
+            IF (
+               NOT EXISTS (SELECT * FROM dbo.External_Device_Link_Method WHERE STAT = '002') OR
+               EXISTS (SELECT * FROM dbo.External_Device_Link_Method m WHERE m.STAT = '002' AND m.MTOD_CODE = @MtodCode)
+            )
+            BEGIN
+               SELECT @EdevCode = EDEV_CODE
+                 FROM dbo.External_Device_Link_Method
+                WHERE MTOD_CODE = @MtodCode
+                  AND STAT = '002';
+               -- اولین درخواست ثبت قفل کمدی
+               EXEC dbo.INS_DART_P @AttnCode, @ComaCode, @EdevCode;
+               
+               -- اگر درخواست قفل کمدی با موفقیت انجام شود
+               IF EXISTS(SELECT * FROM dbo.Dresser_Attendance WHERE ATTN_CODE = @AttnCode)
+               BEGIN                  
+                  -- ثبت شماره قفل کمدی
+                  UPDATE dbo.Attendance 
+                     SET DERS_NUMB = (SELECT d.DRES_NUMB FROM dbo.Dresser_Attendance da, dbo.Dresser d WHERE da.ATTN_CODE = @AttnCode AND da.DRES_CODE = d.CODE)
+                   WHERE Code = @AttnCode;
+               END
+            END 
          END                
       END 
       

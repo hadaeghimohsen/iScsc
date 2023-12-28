@@ -42,7 +42,9 @@ BEGIN
       DELETE dbo.Payment_Expense WHERE PYDT_CODE IN (SELECT pd.CODE FROM dbo.Payment_Detail pd WHERE pd.PYMT_RQST_RQID IN (SELECT rr.RQST_RQID FROM dbo.Request_Row rr WHERE rr.FIGH_FILE_NO = @FileNo));
       DELETE Gain_Loss_Rial WHERE FIGH_FILE_NO = @fileno;
       DELETE Payment_Detail WHERE PYMT_RQST_RQID in (SELECT RQST_RQID FROM Request_Row rr WHERE FIGH_FILE_NO = @fileno);
+      DELETE dbo.Dresser_Attendance WHERE FIGH_FILE_NO = @FileNo;
       DELETE dbo.Attendance WHERE FIGH_FILE_NO = @FileNo;
+      DELETE dbo.Member_Ship WHERE FIGH_FILE_NO = @FileNo;
       DELETE Request_Row WHERE FIGH_FILE_NO = @fileno;
       UPDATE dbo.Fighter_Public SET REF_CODE = NULL WHERE REF_CODE = @FileNo;
       DELETE Fighter WHERE file_no = @fileno;

@@ -33,6 +33,14 @@ BEGIN
 	   </Contacts>
 	</Process>
    */
+   
+   --SET @MsgbText =                               
+   --   dbo.GET_TEXT_F(
+   --      (SELECT @FileNo AS '@fileno'
+   --            ,1 AS '@mbsprwno'
+   --            ,@MsgbText AS '@text'
+   --         FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)');
+                           
    -- تبریک تولد 
 	IF EXISTS (SELECT * FROM Message_Broadcast WHERE MSGB_TYPE IN ('001') AND STAT = '002' )
 	BEGIN
@@ -52,8 +60,12 @@ BEGIN
 	            ,@LineType AS '@linetype'
 	            ,CELL_PHON_DNRM AS 'Contact/@phonnumb'
 	            ,'001' AS 'Contact/Message/@type'
-	            ,CASE @InsrFnamStat WHEN '002' THEN CASE SEX_TYPE_DNRM WHEN '001' THEN N'آقای ' ELSE N'سرکارخانم ' END + NAME_DNRM + CHAR(13) ELSE '' END + 
-	             @MsgbText + CHAR(13) +
+	            ,/*CASE @InsrFnamStat WHEN '002' THEN CASE SEX_TYPE_DNRM WHEN '001' THEN N'آقای ' ELSE N'سرکارخانم ' END + NAME_DNRM + CHAR(13) ELSE '' END + 
+	             @MsgbText*/
+	             dbo.GET_TEXT_F(
+                  (SELECT FILE_NO AS '@fileno'                        
+                         ,@MsgbText AS '@text'
+                      FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)') + CHAR(13) +
 	             CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END AS 'Contact/Message'	          
 	        FROM Fighter
 	       WHERE CONF_STAT = '002'
@@ -175,8 +187,12 @@ BEGIN
 	            ,@LineType AS '@linetype'
 	            ,CELL_PHON_DNRM AS 'Contact/@phonnumb'
 	            ,'002' AS 'Contact/Message/@type'
-	            ,CASE @InsrFnamStat WHEN '002' THEN CASE SEX_TYPE_DNRM WHEN '001' THEN N'آقای ' ELSE N'سرکارخانم ' END + NAME_DNRM + CHAR(13) ELSE N' ' END + 
-	             @MsgbText + CHAR(13) + N'جمع مبلغ بدهی شما ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DEBT_DNRM), 1), '.00', '') + N' ' + @AmntTypeDesc + N' ' +
+	            ,/*CASE @InsrFnamStat WHEN '002' THEN CASE SEX_TYPE_DNRM WHEN '001' THEN N'آقای ' ELSE N'سرکارخانم ' END + NAME_DNRM + CHAR(13) ELSE N' ' END + 
+	             @MsgbText + CHAR(13) + N'جمع مبلغ بدهی شما ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DEBT_DNRM), 1), '.00', '') + N' ' + @AmntTypeDesc + N' '*/
+	             dbo.GET_TEXT_F(
+                  (SELECT FILE_NO AS '@fileno'                        
+                         ,@MsgbText AS '@text'
+                      FOR XML PATH('TemplateToText'))).query('Result').value('.', 'NVARCHAR(4000)') + CHAR(13) + + N'جمع مبلغ بدهی شما ' + REPLACE(CONVERT(NVARCHAR, CONVERT(MONEY, DEBT_DNRM), 1), '.00', '') + N' ' + @AmntTypeDesc + CHAR(13) + 
 	             CASE @InsrCnamStat WHEN '002' THEN @ClubName ELSE N'' END AS 'Contact/Message'
 	        FROM Fighter
 	       WHERE CONF_STAT = '002'

@@ -20,7 +20,8 @@ CREATE PROCEDURE [dbo].[UPD_MEXP_P]
 	@Delv_Stat VARCHAR(3),
 	@Delv_Date DATE,
 	@Delv_By NVARCHAR(250),
-	@Expn_Amnt BIGINT,
+	@Delv_Numb VARCHAR(50),
+	@Expn_Amnt DECIMAL(18,2),
 	@Expn_Desc NVARCHAR(500),
 	@Qnty FLOAT
 AS
@@ -52,6 +53,7 @@ BEGIN
          ,DELV_STAT = @Delv_Stat
          ,DELV_DATE = @Delv_Date
          ,DELV_BY = @Delv_By
+         ,DELV_NUMB = @Delv_Numb
          ,VALD_TYPE = @Vald_Type
          ,QNTY = @Qnty
     WHERE CODE = @Code;

@@ -18,7 +18,7 @@ CREATE PROCEDURE [dbo].[INS_MEXP_P]
 	@Delv_Stat VARCHAR(3),
 	@Delv_Date DATE,
 	@Delv_By NVARCHAR(250),
-	@Expn_Amnt BIGINT,
+	@Expn_Amnt DECIMAL(18, 2),
 	@Expn_Desc NVARCHAR(500),
 	@Qnty FLOAT
 AS
