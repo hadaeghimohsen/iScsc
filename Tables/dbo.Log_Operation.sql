@@ -38,7 +38,7 @@ BEGIN
       UPDATE SET
          T.CRET_BY = UPPER(SUSER_NAME()),
          T.CRET_DATE = GETDATE(),
-         T.CRET_HOST_BY = (SELECT s.host_name
+         T.CRET_HOST_BY = (SELECT TOP 1 s.host_name
                              FROM sys.dm_exec_connections AS c  
                              JOIN sys.dm_exec_sessions AS s  
                                ON c.session_id = s.session_id  
@@ -72,7 +72,7 @@ BEGIN
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
          T.MDFY_DATE = GETDATE(),
-         T.MDFY_HOST_BY = (SELECT s.host_name
+         T.MDFY_HOST_BY = (SELECT TOP 1 s.host_name
                              FROM sys.dm_exec_connections AS c  
                              JOIN sys.dm_exec_sessions AS s  
                                ON c.session_id = s.session_id  

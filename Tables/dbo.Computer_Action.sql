@@ -5,6 +5,11 @@ CREATE TABLE [dbo].[Computer_Action]
 [CHCK_DOBL_ATTN_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CHCK_ATTN_ALRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [MTOD_CODE] [bigint] NULL,
+[ANY_DESK_PATH] [varchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ANY_DESK_ID] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ANY_DESK_PSWD] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IP_ADRS] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[COMP_DESC] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -66,8 +71,9 @@ BEGIN
    WHEN MATCHED THEN
       UPDATE SET
          t.MDFY_BY = UPPER(SUSER_NAME())
-        ,t.MDFY_DATE = GETDATE();
-
+        ,t.MDFY_DATE = GETDATE()
+        ,T.ANY_DESK_PATH = ISNULL(s.ANY_DESK_PATH, 'C:\Program Files (x86)\AnyDesk\Anydesk.exe')
+        ,T.ANY_DESK_ID = REPLACE(S.ANY_DESK_ID, ' ', '');
 END
 GO
 ALTER TABLE [dbo].[Computer_Action] ADD CONSTRAINT [PK_COMA] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

@@ -10,6 +10,7 @@ GO
 CREATE PROCEDURE [dbo].[INS_CTGY_P]
 	-- Add the parameters for the stored procedure here
 	@Mtod_Code BIGINT,
+	@Ctgy_Code BIGINT,
 	@Name     NVARCHAR(250),
 	@Ctgy_Desc NVARCHAR(250),
 	@Ordr    SMALLINT,
@@ -18,13 +19,14 @@ CREATE PROCEDURE [dbo].[INS_CTGY_P]
 	@Numb_Cycl_Day INT,
 	@Numb_Mont_Ofer INT,
 	@Prvt_Coch_Expn VARCHAR(3),
-	@Pric INT,
+	@Pric BIGINT,
 	@Dflt_Stat VARCHAR(3),
 	@Ctgy_Stat VARCHAR(3),
 	@Gust_Numb INT,
 	@Natl_Code VARCHAR(2),
 	@Rwrd_Attn_Pric BIGINT,
-	@Show_Stat VARCHAR(3)
+	@Show_Stat VARCHAR(3),
+	@Fee_Amnt BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -55,7 +57,7 @@ BEGIN
    
    SET @Rwrd_Attn_Pric = ISNULL(@Rwrd_Attn_Pric, 0);
    
-   INSERT INTO Category_Belt (MTOD_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB, NATL_CODE, RWRD_ATTN_PRIC, SHOW_STAT)
-   VALUES (@Mtod_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb, @Natl_Code, @Rwrd_Attn_Pric, @Show_Stat);
+   INSERT INTO Category_Belt (MTOD_CODE, CTGY_CODE, NAME, CTGY_DESC, ORDR, EPIT_TYPE, NUMB_OF_ATTN_MONT, NUMB_CYCL_DAY, NUMB_MONT_OFER, PRVT_COCH_EXPN, PRIC, DFLT_STAT, CTGY_STAT, GUST_NUMB, NATL_CODE, RWRD_ATTN_PRIC, SHOW_STAT, FEE_AMNT)
+   VALUES (@Mtod_Code, @Ctgy_Code, @Name, @Ctgy_Desc, @Ordr, @Epit_Type, @Numb_Of_Attn_Mont, @NUmb_Cycl_Day, @Numb_Mont_Ofer, @Prvt_Coch_Expn, @Pric, ISNULL(@Dflt_Stat, '001'), @Ctgy_Stat, @Gust_Numb, @Natl_Code, @Rwrd_Attn_Pric, @Show_Stat, @Fee_Amnt);
 END
 GO

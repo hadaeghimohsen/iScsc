@@ -14,7 +14,20 @@ AS
 BEGIN
 	DECLARE @ErrorMessage NVARCHAR(MAX);
 	BEGIN TRAN DUP_EXPN_T
-	BEGIN try
+	BEGIN TRY
+	DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>273</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+   EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+   IF @AP = 0 
+   BEGIN
+      RAISERROR ( N'خطا - عدم دسترسی به ردیف 273 سطوح امینتی', -- Message text.
+               16, -- Severity.
+               1 -- State.
+               );
+      RETURN;
+   END
+   
 	DECLARE @ExpnCode BIGINT
 	       ,@ExpnDesc NVARCHAR(250)
 	       ,@ExpnPric INT
@@ -94,10 +107,19 @@ BEGIN
 	BEGIN
 		UPDATE en
 		   SET en.EXPN_DESC = @ExpnDesc
-			  ,en.PRIC = @ExpnPric
-			  ,en.MIN_TIME = @ExpnMinTime
-			  ,en.EXPN_STAT = '002'
-			  ,en.ORDR_ITEM = @ExpnOrdrItem
+			   ,en.PRIC = @ExpnPric
+			   ,en.MIN_TIME = @ExpnMinTime
+			   ,en.EXPN_STAT = '002'
+			   ,en.ORDR_ITEM = @ExpnOrdrItem
+			   ,en.GROP_CODE = eo.GROP_CODE
+			   ,en.BRND_CODE = eo.BRND_CODE
+			   ,en.CAN_CALC_PROF = eo.CAN_CALC_PROF
+			   ,en.MUST_FILL_OWNR = eo.MUST_FILL_OWNR
+			   ,en.UNIT_APBS_CODE = eo.UNIT_APBS_CODE
+			   ,en.RELY_CMND = eo.RELY_CMND
+			   ,en.NUMB_CYCL_DAY = eo.NUMB_CYCL_DAY
+			   ,en.MIN_PRIC = eo.MIN_PRIC
+			   ,en.MAX_PRIC = eo.MAX_PRIC
 		  FROM dbo.Expense en, dbo.Expense eo, dbo.Expense_Type et
 		 WHERE en.CTGY_CODE = eo.CTGY_CODE
 		   AND eo.CODE = @ExpnCode

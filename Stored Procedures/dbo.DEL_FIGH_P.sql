@@ -36,6 +36,7 @@ BEGIN
           WHERE f.FILE_NO = @FileNo
       );
       
+      DELETE dbo.Club_Method WHERE COCH_FILE_NO = @FileNo;
       DELETE Aggregation_Operation_Detail WHERE FIGH_FILE_NO = @fileno;
       DELETE dbo.Payment_Discount WHERE FIGH_FILE_NO_DNRM = @FileNo;
       DELETE Payment_Method WHERE FIGH_FILE_NO_DNRM = @fileno;

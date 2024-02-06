@@ -388,6 +388,8 @@ BEGIN
       NOT EXISTS(SELECT * FROM Request WHERE RQID = @RQRO_RQST_RQID AND RQTP_CODE IN ('013', '014', '022', '023', '025')) -- درخواست استخدامی نباشد
    BEGIN
       IF NOT EXISTS (SELECT * FROM Club_Method WHERE CODE = @CBMT_CODE) 
+      -- 1402/11/02 * IF Service has Couch
+      AND NOT EXISTS (SELECT * FROM dbo.Fighter f WHERE f.FILE_NO = @FIGH_FILE_NO AND f.FGPB_TYPE_DNRM = '003')
       BEGIN
          RAISERROR(N'برنامه گروه مشخص نشده', 16, 1);
          ROLLBACK --TRAN TCG$AUPD_FGPB;
@@ -422,6 +424,8 @@ BEGIN
              WHERE MTOD_CODE = @MTOD_CODE
                AND ORDR = 0;
          IF @CTGY_CODE IS NULL
+         -- 1402/11/02 * IF Service has Couch
+         AND NOT EXISTS (SELECT * FROM dbo.Fighter f WHERE f.FILE_NO = @FIGH_FILE_NO AND f.FGPB_TYPE_DNRM = '003')
          BEGIN
             RAISERROR(N'زیر گروه مشخص نشده', 16, 1);
             ROLLBACK --TRAN TCG$AUPD_FGPB;

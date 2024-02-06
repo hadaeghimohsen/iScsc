@@ -104,8 +104,10 @@ SELECT  pm.ACTN_DATE ,
         /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '001', f.CBMT_CODE_DNRM)*/ 0 AS MTOD_CONT,
         /*dbo.GET_ADMN_U(pm.ACTN_DATE, pm.CRET_BY, '002', f.CBMT_CODE_DNRM)*/ 0 AS CBMT_CONT,
         pm.VALD_TYPE,
-        f.CELL_PHON_DNRM
-FROM    dbo.Payment_Method pm ,        
+        f.CELL_PHON_DNRM,
+        a1.TITL_DESC AS RCPT_TO_OTHR_ACNT_DESC
+FROM    dbo.Payment_Method pm 
+        LEFT OUTER JOIN dbo.App_Base_Define a1 ON a1.CODE = pm.RCPT_TO_OTHR_ACNT,                
         dbo.Payment p ,
         dbo.Request r ,
         dbo.Request_Type rt,
@@ -209,8 +211,10 @@ SELECT  pm.ACTN_DATE ,
         0 AS MTOD_CONT,
         0 AS CBMT_CONT,
         pm.VALD_TYPE,
-        fp.CELL_PHON
-FROM    dbo.Payment_Method pm ,        
+        fp.CELL_PHON,
+        a1.TITL_DESC AS RCPT_TO_OTHR_ACNT_DESC
+FROM    dbo.Payment_Method pm 
+        LEFT OUTER JOIN dbo.App_Base_Define a1 ON a1.CODE = pm.RCPT_TO_OTHR_ACNT,
         dbo.Payment p ,
         dbo.Request r 
         LEFT OUTER JOIN dbo.Fighter_Public fp ON r.RQID = fp.RQRO_RQST_RQID,

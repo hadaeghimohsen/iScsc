@@ -27,7 +27,7 @@ BEGIN
 	   SELECT 
 	      @RsltDesc = 
          (
-            SELECT CASE f.FGPB_TYPE_DNRM
+            SELECT TOP 1 CASE f.FGPB_TYPE_DNRM
                         WHEN '005' THEN 
                            N'نام مشتری : ' + ISNULL(fp.FRST_NAME, N'مهمان') + N' ' + ISNULL(fp.LAST_NAME, N'آزاد') + N' - ' + CHAR(10) +
                            N'تلفن همراه : ' + CASE WHEN fp.CELL_PHON IS NULL THEN N'* بدون شماره موبایل' ELSE fp.CELL_PHON END + CHAR(10) + 

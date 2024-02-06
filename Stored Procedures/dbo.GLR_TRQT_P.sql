@@ -292,29 +292,35 @@ BEGIN
 	         SELECT r.query('.').value('(Gain_Loss_Rial_Detial/@rwno)[1]', 'SMALLINT')
 	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@amnt)[1]', 'DECIMAL(18, 2)')
 	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@rcptmtod)[1]', 'VARCHAR(3)')
+	               ,r.query('.').value('(Gain_Loss_Rial_Detial/@rtoacode)[1]', 'BIGINT')
 	           FROM @X.nodes('//Gain_Loss_Rial_Detial') T(r);
 	      
 	      DECLARE @GlrdRwno SMALLINT
 	             ,@GlrdAmnt DECIMAL(18, 2)
-	             ,@GlrdRcptMtod VARCHAR(3);
+	             ,@GlrdRcptMtod VARCHAR(3)
+	             ,@RtoaCode BIGINT;
 	             
 	      OPEN [C$Glrd];
 	      L$Loop:
-	      FETCH [C$Glrd] INTO @GlrdRwno, @GlrdAmnt, @GlrdRcptMtod;
+	      FETCH [C$Glrd] INTO @GlrdRwno, @GlrdAmnt, @GlrdRcptMtod, @RtoaCode;
 	      
 	      IF @@FETCH_STATUS <> 0
 	         GOTO L$EndLoop;
+	      
+	      -- 1402/11/02 * IF NOT Account Join
+	      IF @RtoaCode = 0 SET @RtoaCode = NULL;
 	      
 	      MERGE dbo.Gain_Loss_Rail_Detail T
 	      USING (SELECT @GlrdRwno AS RWNO, @GlrdAmnt AS AMNT, @GlrdRcptMtod AS RCPT_MTOD) S
 	      ON (T.GLRL_GLID = @Glid AND T.RWNO = S.RWNO)
 	      WHEN NOT MATCHED THEN
-	         INSERT (GLRL_GLID, RWNO, AMNT, RCPT_MTOD)
-	         VALUES (@Glid, 0, S.AMNT, S.RCPT_MTOD)
+	         INSERT (GLRL_GLID, RWNO, AMNT, RCPT_MTOD, RCPT_TO_OTHR_ACNT)
+	         VALUES (@Glid, 0, S.AMNT, S.RCPT_MTOD, @RtoaCode)
 	      WHEN MATCHED THEN
 	         UPDATE 
 	            SET T.AMNT = S.AMNT
-	               ,T.RCPT_MTOD = S.RCPT_MTOD;	             
+	               ,T.RCPT_MTOD = S.RCPT_MTOD
+	               ,T.RCPT_TO_OTHR_ACNT = @RtoaCode;	             
 	      
 	      GOTO L$Loop;
 	      L$EndLoop:

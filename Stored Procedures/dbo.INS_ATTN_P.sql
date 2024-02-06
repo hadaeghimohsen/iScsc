@@ -527,7 +527,7 @@ BEGIN
    -- 1401/05/23 * عملیات مدیریت بدهی مشتریان
    IF @Attn_Ignr_Stat = '001' AND @Attn_Type NOT IN ('005')
    BEGIN
-      DECLARE @DebtDnrm BIGINT	          
+      DECLARE @DebtDnrm BIGINT 
 	          ,@DebtClngStat VARCHAR(3)
 	          ,@MostDebtClngAmnt BIGINT
 	          ,@ExprDebtDay INT
@@ -911,7 +911,6 @@ BEGIN
       -- 1398/03/14 * اختصاص شماره کمد به مشتری
       -- البته اگر این گزینه کمد انلاین فعال باشه 
       -- 1396/01/09 * بدست آوردن کلاینت متصل به سرور
-	   
 	   IF EXISTS(SELECT * FROM dbo.Settings WHERE CLUB_CODE = @Club_Code AND DRES_AUTO = '002')
 	   BEGIN
 	      -- ابتدا بررسی میکنیم که چه کامیپوتری به کمد ها میخواد فرمان دهد
@@ -922,9 +921,16 @@ BEGIN
              ON c.session_id = s.session_id  
           WHERE c.session_id = @@SPID; 
          
-         SELECT @ComaCode = CODE
-           FROM dbo.Computer_Action
-          WHERE UPPER(COMP_NAME) LIKE UPPER(@HostName) + N'%';
+         SELECT @ComaCode = ca.CODE
+           FROM dbo.Computer_Action ca
+          WHERE 1=1--UPPER(ca.COMP_NAME) LIKE UPPER(@HostName) + N'%'
+            AND EXISTS (
+                SELECT *
+                  FROM dbo.Dresser d
+                 WHERE d.COMA_CODE = ca.CODE
+            );
+         
+         --SET @ComaCode = 14022221564277;
          
          -- بررسی میکنیم که ایا سیستم مدیریت کمدی رو را انجام میدهد یا خیر
          IF EXISTS(SELECT * FROM dbo.Dresser WHERE COMA_CODE = @ComaCode AND REC_STAT = '002')
@@ -942,6 +948,7 @@ BEGIN
             SELECT @MtodCode = MTOD_CODE_DNRM
               FROM dbo.Attendance
              WHERE CODE = @AttnCode;
+             
             -- 1402/10/03 * اگر رشته ها بر اساس دستگاه های سنترال تفکیک شده باشند
             IF (
                NOT EXISTS (SELECT * FROM dbo.External_Device_Link_Method WHERE STAT = '002') OR
@@ -952,6 +959,7 @@ BEGIN
                  FROM dbo.External_Device_Link_Method
                 WHERE MTOD_CODE = @MtodCode
                   AND STAT = '002';
+               
                -- اولین درخواست ثبت قفل کمدی
                EXEC dbo.INS_DART_P @AttnCode, @ComaCode, @EdevCode;
                
@@ -960,7 +968,7 @@ BEGIN
                BEGIN                  
                   -- ثبت شماره قفل کمدی
                   UPDATE dbo.Attendance 
-                     SET DERS_NUMB = (SELECT d.DRES_NUMB FROM dbo.Dresser_Attendance da, dbo.Dresser d WHERE da.ATTN_CODE = @AttnCode AND da.DRES_CODE = d.CODE)
+                     SET DERS_NUMB = (SELECT d.DRES_NUMB FROM dbo.Dresser_Attendance da, dbo.Dresser d WHERE da.ATTN_CODE = @AttnCode AND da.DRES_CODE = d.CODE AND da.DRAT_CODE IS NULL)
                    WHERE Code = @AttnCode;
                END
             END 
@@ -1007,7 +1015,7 @@ BEGIN
             IF @InsrCnamStat = '002'
                SET @MsgbText = @MsgbText + CHAR(10) + @ClubName;
             
-            SET @MsgbText =                               
+            SET @MsgbText = 
                   dbo.GET_TEXT_F(
                      (SELECT @Figh_File_No AS '@fileno'
                            ,@Mbsp_Rwno AS '@mbsprwno'
@@ -1132,7 +1140,7 @@ BEGIN
          --AND a.ENTR_TIME BETWEEN cm.STRT_TIME AND cm.END_TIME
          AND a.CODE = @AttnCode;
       
-      
+      -- 1402/10/26 * HBD : اگر رکوردی از قبل باشد باید خروج مشتری در آن زده شود
       UPDATE Attendance
          SET EXIT_TIME = CASE 
                            WHEN CAST(GETDATE() AS TIME(0)) < ENTR_TIME THEN 
@@ -1149,7 +1157,7 @@ BEGIN
        WHERE FILE_NO = @Figh_File_No;       
 
       IF @ChatId IS NOT NULL
-      BEGIN                
+      BEGIN
          SELECT @TelgStat = TELG_STAT
                ,@MsgbText = MSGB_TEXT
                ,@ClubName = CLUB_NAME
@@ -1301,7 +1309,7 @@ BEGIN
          
          -- 1396/11/15 * ثبت پیامک تلگرام      
          IF @ChatId IS NOT NULL
-         BEGIN                
+         BEGIN
             SELECT @TelgStat = TELG_STAT
                   ,@MsgbText = MSGB_TEXT
                   ,@ClubName = CLUB_NAME
@@ -1370,6 +1378,7 @@ BEGIN
       END
            
       IF @AttnDate != CAST(/*GETDATE()*/@Attn_Date AS DATE) AND @Attn_Type != '003' -- خروج بدون حضور مجدد
+         AND CAST(GETDATE() AS TIME(0)) NOT BETWEEN '00:00:00' AND '05:00:00' /*  برای اینکه اگر حضوری در فردا قرار هست انجام شود اینکار نشود */ 
       BEGIN
          SELECT @AttnCode = NULL, @AttnDate = NULL;
          GOTO L$ATTN;

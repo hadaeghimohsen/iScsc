@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[Gain_Loss_Rail_Detail]
 [REF_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [ACTN_DATE] [datetime] NULL,
 [SHOP_NO] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[RCPT_TO_OTHR_ACNT] [bigint] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -101,4 +102,6 @@ GO
 ALTER TABLE [dbo].[Gain_Loss_Rail_Detail] ADD CONSTRAINT [PK_GLRD] PRIMARY KEY CLUSTERED  ([GLRL_GLID], [RWNO]) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[Gain_Loss_Rail_Detail] ADD CONSTRAINT [FK_GLRD_GLRL] FOREIGN KEY ([GLRL_GLID]) REFERENCES [dbo].[Gain_Loss_Rial] ([GLID]) ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Gain_Loss_Rail_Detail] ADD CONSTRAINT [FK_GLRD_RCPT_APBS] FOREIGN KEY ([RCPT_TO_OTHR_ACNT]) REFERENCES [dbo].[App_Base_Define] ([CODE]) ON DELETE SET NULL
 GO

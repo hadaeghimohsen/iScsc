@@ -10,6 +10,7 @@ GO
 CREATE PROCEDURE [dbo].[UPD_CTGY_P]
 	-- Add the parameters for the stored procedure here
 	@Code     BIGINT,
+	@Ctgy_Code BIGINT,
 	@Name     NVARCHAR(250),
 	@Ctgy_Desc NVARCHAR(250),
 	@Ordr    SMALLINT,
@@ -18,13 +19,14 @@ CREATE PROCEDURE [dbo].[UPD_CTGY_P]
 	@Numb_Cycl_Day INT,
 	@Numb_Mont_Ofer INT,
 	@Prvt_Coch_Expn VARCHAR(3),
-	@Pric INT,
+	@Pric BIGINT,
 	@Dflt_Stat VARCHAR(3),
 	@Ctgy_Stat VARCHAR(3),
 	@Gust_Numb INT,
 	@Natl_Code VARCHAR(2),
 	@Rwrd_Attn_Pric BIGINT,
-	@Show_Stat VARCHAR(3)
+	@Show_Stat VARCHAR(3),
+	@Fee_Amnt BIGINT
 AS
 BEGIN
  	-- بررسی دسترسی کاربر
@@ -58,6 +60,8 @@ BEGIN
          ,NATL_CODE = @Natl_Code
          ,RWRD_ATTN_PRIC = @Rwrd_Attn_Pric
          ,SHOW_STAT = @Show_Stat
+         ,CTGY_CODE = @Ctgy_Code
+         ,FEE_AMNT = @Fee_Amnt
     WHERE CODE = @Code;
 END
 GO

@@ -8,6 +8,7 @@ CREATE TABLE [dbo].[Dresser_Attendance]
 [MBSP_RWNO] [smallint] NULL,
 [MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [RQST_RQID] [bigint] NULL,
+[DRAT_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
 [DERS_NUMB] [int] NULL,
 [ATTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -108,4 +109,6 @@ GO
 ALTER TABLE [dbo].[Dresser_Attendance] ADD CONSTRAINT [FK_DRAT_MBSP] FOREIGN KEY ([FIGH_FILE_NO], [MBSP_RWNO], [MBSP_RECT_CODE]) REFERENCES [dbo].[Member_Ship] ([FIGH_FILE_NO], [RWNO], [RECT_CODE])
 GO
 ALTER TABLE [dbo].[Dresser_Attendance] ADD CONSTRAINT [FK_DRAT_RQST] FOREIGN KEY ([RQST_RQID]) REFERENCES [dbo].[Request] ([RQID]) ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Dresser_Attendance] ADD CONSTRAINT [FK_Dresser_Attendance_Dresser_Attendance] FOREIGN KEY ([DRAT_CODE]) REFERENCES [dbo].[Dresser_Attendance] ([CODE])
 GO

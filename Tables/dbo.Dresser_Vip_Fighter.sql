@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Dresser_Vip_Fighter]
 [MBSP_RWNO] [smallint] NULL,
 [MBSP_RECT_CODE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CODE] [bigint] NOT NULL,
+[DRES_NUMB] [int] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPR_DATE] [date] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -44,7 +45,10 @@ BEGIN
          T.CRET_BY = UPPER(SUSER_NAME()),
          T.CRET_DATE = GETDATE(),
          T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END,
-         T.STAT = ISNULL(S.STAT, '002');
+         T.STAT = ISNULL(S.STAT, '002'),
+         T.DRES_NUMB = (SELECT d.DRES_NUMB
+                          FROM dbo.Dresser d
+                         WHERE d.CODE = s.DRES_CODE);
 END
 GO
 SET QUOTED_IDENTIFIER ON

@@ -17,6 +17,7 @@ CREATE TABLE [dbo].[External_Device]
 [ACTN_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPN_CODE] [bigint] NULL,
 [CMNT] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CARD_READ_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -87,6 +88,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'نوع وضعیت برخورد با داده رسیده از دستگاه
 عملیات حضور و غیاب انجام شود یا 
 مبلغ بابت هزینه خدمات از سپرده کسر گردد', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'ACTN_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'Card Coding (Mifare, RO)', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'CARD_READ_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'دوره خواندن اطلاعات
 برای دستگاه های 

@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].[Category_Belt]
 (
 [MTOD_CODE] [bigint] NULL,
+[CTGY_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL CONSTRAINT [DF_CTGY_CODE] DEFAULT ((0)),
 [NAME] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CTGY_DESC] [nvarchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
@@ -14,7 +15,11 @@ CREATE TABLE [dbo].[Category_Belt]
 [PRVT_COCH_EXPN] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NUMB_CYCL_DAY] [int] NULL,
 [NUMB_MONT_OFER] [int] NULL,
-[PRIC] [int] NULL,
+[PRIC] [bigint] NULL,
+[FEE_AMNT] [bigint] NULL,
+[TAX_PRCT_DNRM] [real] NULL,
+[DUTY_PRCT_DNRM] [real] NULL,
+[EXPN_EXTR_PRCT_DNRM] [bigint] NULL,
 [DFLT_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CTGY_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [GUST_NUMB] [int] NULL,
@@ -196,11 +201,15 @@ END
 GO
 ALTER TABLE [dbo].[Category_Belt] ADD CONSTRAINT [CTGY_PK] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[Category_Belt] ADD CONSTRAINT [FK_CTGY_CTGY] FOREIGN KEY ([CTGY_CODE]) REFERENCES [dbo].[Category_Belt] ([CODE])
+GO
 ALTER TABLE [dbo].[Category_Belt] ADD CONSTRAINT [FK_CTGY_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE SET NULL
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'رسته پیش فرض', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'DFLT_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'متناسب با کدام گزینه آیتم درآمدی و هزینه فرآیندی می باشد', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'EPIT_TYPE'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'مبلغ کارمزد', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'FEE_AMNT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'حداقل تعداد عضو مهمان', 'SCHEMA', N'dbo', 'TABLE', N'Category_Belt', 'COLUMN', N'GUST_NUMB'
 GO

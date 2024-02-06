@@ -28,14 +28,24 @@ BEGIN
          
          UPDATE dbo.Dresser_Attendance
             SET TKBK_TIME = CAST(GETDATE() AS TIME(0))
-          WHERE CAST(CRET_DATE AS DATE) <= CAST(DATEADD(DAY, -1, GETDATE()) AS DATE);
+          WHERE TKBK_TIME IS NULL
+            AND ( CAST (CRET_DATE AS DATE) <= CAST (DATEADD (DAY, -1, GETDATE()) AS DATE)
+             OR   EXISTS ( 
+                     SELECT *
+                       FROM dbo.Attendance a
+                      WHERE a.ATTN_STAT = '001'
+                        AND a.CODE = dbo.Dresser_Attendance.ATTN_CODE
+                  )
+             );
          
          -- آیا قبلا برای این حضور و غیاب کمدی اختصاص داده شده است یا خیر
          SELECT TOP 1 
                 @DresCode = DRES_CODE,
-                @FileNo = FIGH_FILE_NO
+                @FileNo = FIGH_FILE_NO,
+                @DresNumb = DERS_NUMB
            FROM Dresser_Attendance 
-          WHERE ATTN_CODE = @AttnCode;
+          WHERE ATTN_CODE = @AttnCode
+            AND DRAT_CODE IS NULL;
          
          -- اگر سیستم کامپیوتری مشخص نباشد
          IF @ComaCode IS NULL
@@ -51,7 +61,7 @@ BEGIN
               FROM dbo.Attendance a
              WHERE a.CODE = @AttnCode;
              
-            SELECT TOP 1 
+            /*SELECT TOP 1 
                    @DresCode = CODE,
                    @DresNumb = D.DRES_NUMB
               FROM Dresser D 
@@ -75,6 +85,7 @@ BEGIN
                        AND dv.DRES_CODE = d.CODE
                        AND d.VIP_STAT = '002'
                     )
+                    -- آنهایی که کمد اجاره ای هستن
                     OR ISNULL(d.VIP_STAT, '001') = '001'
                        AND NOT EXISTS (
                            SELECT *
@@ -90,14 +101,95 @@ BEGIN
                      AND Da.Lend_Time IS NOT NULL
                      AND Da.Tkbk_Time IS NULL
                )
-             ORDER BY D.ORDR;
+             ORDER BY D.ORDR;*/
             
+            -- IF Customer has VIP OR Rent Dresser
+            SELECT TOP 1 
+                   @DresCode = CODE,
+                   @DresNumb = D.DRES_NUMB
+              FROM Dresser D 
+             WHERE D.Rec_Stat = '002'       
+               AND D.COMA_CODE = @ComaCode
+               AND (@EdevCode IS NULL 
+                    OR EXISTS (
+                       SELECT * 
+                         FROM dbo.External_Device ed 
+                        WHERE ed.CODE = @EdevCode 
+                          AND ed.IP_ADRS = d.IP_ADRS 
+                       )
+                   )
+               -- VIP OR RENT 
+               AND EXISTS (
+                    SELECT * 
+                      FROM dbo.Dresser_Vip_Fighter dv 
+                     WHERE dv.MBSP_FIGH_FILE_NO = @FileNo 
+                       AND dv.STAT = '002' 
+                       AND dv.DRES_CODE = d.CODE );
             
+            -- The Customer is Normal Membership
+            IF @DresCode IS NULL OR @DresNumb IS NULL             
+               SELECT TOP 1 
+                      @DresCode = CODE,
+                      @DresNumb = D.DRES_NUMB
+                 FROM Dresser D 
+                WHERE D.Rec_Stat = '002'       
+                  AND D.COMA_CODE = @ComaCode
+                  AND (@EdevCode IS NULL 
+                       OR EXISTS (
+                          SELECT * 
+                            FROM dbo.External_Device ed 
+                           WHERE ed.CODE = @EdevCode 
+                             AND ed.IP_ADRS = d.IP_ADRS 
+                          )
+                      )                  
+                  AND NOT EXISTS (SELECT * FROM Dresser_Vip_Fighter dv WHERE dv.DRES_CODE = d.CODE and dv.STAT = '002')
+                  AND NOT EXISTS (
+                     SELECT * 
+                       FROM Dresser_Attendance Da
+                      WHERE Da.DRES_CODE = D.CODE
+                        AND Da.Lend_Time IS NOT NULL
+                        AND Da.Tkbk_Time IS NULL )                  
+                ORDER BY D.ORDR;
+                
+                
+                /*SELECT TOP 1 
+                      @DresCode = CODE,
+                      @DresNumb = D.DRES_NUMB
+                 FROM Dresser D 
+                WHERE D.Rec_Stat = '002'       
+                  AND D.COMA_CODE = @ComaCode
+                  AND (@EdevCode IS NULL 
+                       OR EXISTS (
+                          SELECT * 
+                            FROM dbo.External_Device ed 
+                           WHERE ed.CODE = @EdevCode 
+                             AND ed.IP_ADRS = d.IP_ADRS 
+                          )
+                      )
+                  -- VIP OR RENT 
+                  AND ( EXISTS (
+                       SELECT * 
+                         FROM dbo.Dresser_Vip_Fighter dv 
+                        WHERE dv.MBSP_FIGH_FILE_NO = @FileNo 
+                          AND dv.STAT = '002' 
+                          AND dv.DRES_CODE = d.CODE )
+                  OR (
+                      NOT EXISTS (SELECT * FROM Dresser_Vip_Fighter dv WHERE dv.DRES_CODE = d.CODE and dv.STAT = '002')
+                  AND NOT EXISTS (
+                     SELECT * 
+                       FROM Dresser_Attendance Da
+                      WHERE Da.DRES_CODE = D.CODE
+                        AND Da.Lend_Time IS NOT NULL
+                        AND Da.Tkbk_Time IS NULL )
+                  ))
+                ORDER BY D.ORDR;*/
          END
          
          IF @DresCode IS NOT NULL
+         BEGIN 
             INSERT INTO Dresser_Attendance (Dres_Code, Attn_Code, FIGH_FILE_NO, Code, Lend_Time, DERS_NUMB)
             VALUES (@DresCode, @AttnCode, @FileNo, dbo.Gnrt_Nvid_U(), CAST(GETDATE() AS TIME(0)), @DresNumb);
+         END 
          --ELSE
          --BEGIN         
          --   RAISERROR(N'متاسفانه کمد خالی در سالن وجود ندارد', 16, 1);
