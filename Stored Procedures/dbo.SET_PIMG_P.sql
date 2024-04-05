@@ -17,5 +17,12 @@ BEGIN
       SET IMAG_RCDC_RCID_DNRM = @RcdcRcid
          ,IMAG_RWNO_DNRM = @Rwno
     WHERE FILE_NO = @FileNo;
+   
+   -- 1402/12/02 * Update All Record Attendance is null image profile id
+   UPDATE dbo.Attendance
+      SET IMAG_RCDC_RCID_DNRM = @RcdcRcid
+         ,IMAG_RWNO_DNRM = @Rwno
+    WHERE FIGH_FILE_NO = @FileNo
+      AND IMAG_RCDC_RCID_DNRM IS NULL;
 END;
 GO

@@ -42,6 +42,7 @@ CREATE TABLE [dbo].[Payment_Detail]
 [TOTL_WEGH] [real] NULL,
 [UNIT_NUMB] [real] NULL,
 [UNIT_APBS_CODE] [bigint] NULL,
+[CMNT] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,

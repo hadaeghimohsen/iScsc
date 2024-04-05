@@ -11,7 +11,7 @@ CREATE FUNCTION [dbo].[GET_HOST_U] ()
 RETURNS NVARCHAR(128)
 AS
 BEGIN
-	RETURN (SELECT s.host_name
+	RETURN (SELECT TOP 1 s.host_name
              FROM sys.dm_exec_connections AS c  
              JOIN sys.dm_exec_sessions AS s  
                ON c.session_id = s.session_id  

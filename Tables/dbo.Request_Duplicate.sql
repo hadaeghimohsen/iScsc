@@ -38,11 +38,11 @@ BEGIN
       UPDATE SET
          T.CRET_BY = UPPER(SUSER_NAME()),
          T.CRET_DATE = GETDATE(),
-         T.CRET_HOST_BY = (SELECT s.host_name
+         T.CRET_HOST_BY = dbo.GET_HOST_U()/*(SELECT s.host_name
                              FROM sys.dm_exec_connections AS c  
                              JOIN sys.dm_exec_sessions AS s  
                                ON c.session_id = s.session_id  
-                            WHERE c.session_id = @@SPID),
+                            WHERE c.session_id = @@SPID)*/,
          T.CODE = CASE s.CODE WHEN 0 THEN dbo.GNRT_NVID_U() ELSE s.CODE END,
          T.STAT = ISNULL(S.STAT, '002'); 
 END
@@ -73,11 +73,11 @@ BEGIN
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
          T.MDFY_DATE = GETDATE(),
-         T.MDFY_HOST_BY = (SELECT s.host_name
+         T.MDFY_HOST_BY = dbo.GET_HOST_U()/*(SELECT s.host_name
                              FROM sys.dm_exec_connections AS c  
                              JOIN sys.dm_exec_sessions AS s  
                                ON c.session_id = s.session_id  
-                            WHERE c.session_id = @@SPID);
+                            WHERE c.session_id = @@SPID)*/;
 END
 GO
 ALTER TABLE [dbo].[Request_Duplicate] ADD CONSTRAINT [PK_Request_Duplicate] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]

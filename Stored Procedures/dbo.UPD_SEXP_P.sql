@@ -43,7 +43,8 @@ BEGIN
              ,@ExtsRsrvDate DATETIME
              ,@TotlWegh REAL
              ,@UnitNumb REAL
-             ,@UnitapbsCode BIGINT;
+             ,@UnitapbsCode BIGINT
+             ,@Cmnt NVARCHAR(500);
              
       SELECT @Rqid = @X.query('Request').value('(Request/@rqid)[1]', 'BIGINT')
             ,@PymtCashCode = @X.query('Request/Payment').value('(Payment/@cashcode)[1]', 'BIGINT')
@@ -73,7 +74,8 @@ BEGIN
             ,@ExtsRsrvDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@extsrsrvdate)[1]', 'DATETIME')
             ,@TotlWegh = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@totlwegh)[1]', 'REAL')
             ,@UnitNumb = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@unitnumb)[1]', 'REAL')
-            ,@UnitapbsCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@unitapbscode)[1]', 'BIGINT');
+            ,@UnitapbsCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@unitapbscode)[1]', 'BIGINT')
+            ,@Cmnt = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cmnt)[1]', 'NVARCHAR(500)');
       
       -- 1401/07/26 * باید چک شود که آیا شرایط رزرو برقرار میباشد یا خیر
       -- کیرم_تو_بیت_رهبری
@@ -217,6 +219,7 @@ BEGIN
             ,TOTL_WEGH = @TotlWegh
             ,UNIT_NUMB = @UnitNumb
             ,UNIT_APBS_CODE = @UnitapbsCode
+            ,CMNT = @Cmnt
        WHERE PYMT_RQST_RQID = @Rqid
          AND PYMT_CASH_CODE = @PymtCashCode
          AND CODE = @PymtPydtCode;

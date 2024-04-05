@@ -39,7 +39,8 @@ BEGIN
 	   END
 	   ELSE IF @Type = 'copy'
 	   BEGIN
-	      SELECT @RqtpCode = r.RQTP_CODE,
+	      SELECT TOP 1 
+	             @RqtpCode = r.RQTP_CODE,
 	             @Rqid = r.RQID
 	        FROM dbo.Request r, dbo.Request_Duplicate rd
 	       WHERE r.RQID = rd.RQST_RQID
@@ -276,7 +277,8 @@ BEGIN
 	      
 	      -- ثبت اطلاعات به صورت کامل در سوابق کاربر
 	      INSERT INTO dbo.Request_Duplicate ( RQST_RQID ,CODE ,STAT )
-	      SELECT @NewRqid, 0,'002'
+	      SELECT TOP 1 
+	             @NewRqid, 0,'002'
 	        FROM dbo.Request_Duplicate rd
 	       WHERE rd.RQST_RQID = @Rqid;
 	   END       
