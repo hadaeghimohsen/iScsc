@@ -34,6 +34,7 @@ CREATE TABLE [dbo].[Aggregation_Operation_Detail]
 [DPST_AMNT] [bigint] NULL,
 [AODT_DESC] [nvarchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BCDS_CODE] [bigint] NULL,
+[EXPR_MINT_NUMB] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -70,6 +71,7 @@ BEGIN
             ,CRET_DATE = GETDATE()
             ,DEBT_AMNT = (SELECT DEBT_DNRM FROM dbo.Fighter WHERE FILE_NO = S.Figh_File_No)
             ,T.STAT = ISNULL(S.STAT, '001')
+            ,T.EXPR_MINT_NUMB = ISNULL(s.EXPR_MINT_NUMB, 0)
             ,RWNO = (
                SELECT ISNULL(MAX(RWNO), 0) + 1
                  FROM dbo.Aggregation_Operation_Detail
@@ -259,6 +261,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ارزش افزوده قیمت میز', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'EXPN_EXTR_PRCT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'مبلغ قیمت میز', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'EXPN_PRIC'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'محاسبه حداقل زمان یادآوری برای انجام بازی به درخواست مشتری', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'EXPR_MINT_NUMB'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'گروه بندی سانس', 'SCHEMA', N'dbo', 'TABLE', N'Aggregation_Operation_Detail', 'COLUMN', N'GROP_APBS_CODE'
 GO

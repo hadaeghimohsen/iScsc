@@ -474,6 +474,16 @@ BEGIN
       );
       EXEC UCC_SAVE_P @X;
       
+      -- 1403/02/29 * Update MemberShip Session and final
+      UPDATE mbss
+         SET mbss.MBSP_RECT_CODE = '004',
+             mbss.MBSP_RWNO = ms.RWNO
+        FROM dbo.Member_Ship_Session mbss, dbo.Member_Ship ms
+       WHERE mbss.RQRO_RQST_RQID = ms.RQRO_RQST_RQID
+         AND mbss.RQRO_RWNO = ms.RQRO_RWNO
+         AND ms.RECT_CODE = '004'
+         AND ms.RQRO_RQST_RQID = @OrgnRqid;
+      
       -- 1396/11/18 * اضافه شدن تاریخ تعطیلی ها در سیستم
       DECLARE @HldyNumb INT;
       SELECT @HldyNumb = COUNT(h.CODE)

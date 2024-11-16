@@ -28,7 +28,8 @@ CREATE PROCEDURE [dbo].[INS_AODT_P]
     @Cust_Name NVARCHAR(250) ,
     @Cell_Phon VARCHAR(11) ,
     @Fngr_Prnt VARCHAR(20),
-    @Grop_Apbs_Code BIGINT
+    @Grop_Apbs_Code BIGINT,
+    @Expr_Mint_Numb INT
 AS
 BEGIN
 BEGIN TRY   
@@ -93,7 +94,8 @@ BEGIN TRAN [T$INS_AODT_P]
             PYDS_AMNT,
             DPST_AMNT,
             FNGR_PRNT,
-            GROP_APBS_CODE
+            GROP_APBS_CODE,
+            EXPR_MINT_NUMB
          )
   VALUES  ( @Agop_Code ,
             0 ,
@@ -128,7 +130,8 @@ BEGIN TRAN [T$INS_AODT_P]
             0,
             0,
             @Fngr_Prnt,
-            @Grop_Apbs_Code
+            @Grop_Apbs_Code,
+            @Expr_Mint_Numb
          );
 COMMIT TRAN [T$INS_AODT_P]
 END TRY

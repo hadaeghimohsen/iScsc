@@ -152,10 +152,10 @@ BEGIN
                                     WHEN T.CONF_STAT = '002' AND T.CONF_DATE IS NOT NULL THEN T.CONF_DATE 
                                     WHEN T.CONF_STAT = '001' AND S.CONF_STAT = '001' THEN NULL 
                                 END
-            ,T.DEBT_DNRM      = dbo.GET_DBTF_U(S.FILE_NO)
+            ,T.DEBT_DNRM      = CASE S.FGPB_TYPE_DNRM WHEN '005' THEN 0 ELSE dbo.GET_DBTF_U(S.FILE_NO) END
             --,T.BUFE_DEBT_DNTM = dbo.GET_DBBF_U(s.FILE_NO)
             --,T.TARF_CODE_DNRM = dbo.GET_TARF_U(S.File_No)
-            ,T.DPST_AMNT_DNRM = dbo.GET_DPST_U(s.FILE_NO);
+            ,T.DPST_AMNT_DNRM = CASE S.FGPB_TYPE_DNRM WHEN '005' THEN 0 ELSE dbo.GET_DPST_U(s.FILE_NO) END;
 END;
 GO
 ALTER TABLE [dbo].[Fighter] ADD CONSTRAINT [FIGH_PK] PRIMARY KEY CLUSTERED  ([FILE_NO]) ON [PRIMARY]

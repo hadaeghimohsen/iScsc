@@ -132,6 +132,31 @@ BEGIN
 	         ,@DpstStat = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@dpststat)[1]', 'VARCHAR(3)');
 	         --,@RqroRwnoDnrm = @X.query('//Gain_Loss_Rials').value('(Gain_Loss_Rials/@rqrorwnodnrm)[1]', 'SMALLINT');
 	   
+	   -- 1403/06/03 * IF EXISTS Grouping Permission CANNOT SAVE Request
+      IF EXISTS (
+         SELECT * 
+           FROM dbo.Fighter_Grouping_Permission gp, 
+                dbo.Fighter_Grouping fg 
+          WHERE gp.FGRP_CODE = fg.CODE 
+            AND fg.FIGH_FILE_NO = @FileNo 
+            AND fg.GROP_STAT = '002' 
+            AND ((gp.PERM_TYPE = '007' /* Deposit */ AND @DpstStat = '002') OR (gp.PERM_TYPE = '008' /* Withdraw */ AND @DpstStat = '001'))
+            AND gp.PERM_STAT = '001' /* غیر مجاز میباشد */
+      )
+      BEGIN
+         IF @DpstStat = '001'
+            RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت برداشت مبلغ سپرده نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                        16, -- Severity.
+                        1 -- State.
+                        );
+         ELSE IF @DpstStat = '002'
+            RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت واریز مبلغ سپرده نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+         RETURN;
+      END 
+	   
 	   -- ثبت دلیل انجام تغییرات ریالی برای درخواست
 	   UPDATE dbo.Request 
 	      SET RQST_DESC = @ResnDesc

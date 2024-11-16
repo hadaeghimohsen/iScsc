@@ -84,6 +84,25 @@ BEGIN
       IF LEN(@RqttCode) <> 3 BEGIN /*RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN;*/ SET @RqttCode = '001'; END      
       IF @RqstRqid = 0 SET @RqstRqid = NULL;
       
+      -- 1403/06/03 * IF EXISTS Grouping Permission CANNOT SAVE Request
+      IF EXISTS (
+         SELECT * 
+           FROM dbo.Fighter_Grouping_Permission gp, 
+                dbo.Fighter_Grouping fg 
+          WHERE gp.FGRP_CODE = fg.CODE 
+            AND fg.FIGH_FILE_NO = @FileNo 
+            AND fg.GROP_STAT = '002' 
+            AND gp.PERM_TYPE = '003' /* بیمه */ 
+            AND gp.PERM_STAT = '001' /* غیر مجاز میباشد */
+      )
+      BEGIN
+         RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت بیمه نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+         RETURN;
+      END 
+      
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code 
         FROM Fighter
        WHERE FILE_NO = @FileNo;

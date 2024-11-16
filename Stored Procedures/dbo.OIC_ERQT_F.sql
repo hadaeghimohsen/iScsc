@@ -108,6 +108,25 @@ BEGIN
       IF @RqstRqid = 0 SET @RqstRqid = NULL;
       IF @CochFileNo = 0 SET @CochFileNo = NULL;
       
+      -- 1403/06/03 * IF EXISTS Grouping Permission CANNOT SAVE Request
+      IF EXISTS (
+         SELECT * 
+           FROM dbo.Fighter_Grouping_Permission gp, 
+                dbo.Fighter_Grouping fg 
+          WHERE gp.FGRP_CODE = fg.CODE 
+            AND fg.FIGH_FILE_NO = @FileNo 
+            AND fg.GROP_STAT = '002' 
+            AND gp.PERM_TYPE = '005' /* درآمد متفرقه */ 
+            AND gp.PERM_STAT = '001' /* غیر مجاز میباشد */
+      )
+      BEGIN
+         RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت درآمد متفرقه نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+         RETURN;
+      END 
+      
       SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code , @CntyCode = REGN_PRVN_CNTY_CODE
         FROM Fighter
        WHERE FILE_NO = @FileNo;
@@ -172,8 +191,8 @@ BEGIN
             SET @SuntCode = '0000';
             
          IF NOT EXISTS(SELECT * FROM dbo.Fighter_Public WHERE RQRO_RQST_RQID = @Rqid AND FIGH_FILE_NO = @FileNo)
-            INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE, [TYPE], COCH_FILE_NO)
-            Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', ISNULL(@FrstName, ''), ISNULL(@LastName, ''), @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, FGPB_TYPE_DNRM, @CochFileNo
+            INSERT INTO dbo.Fighter_Public (REGN_PRVN_CNTY_CODE, REGN_PRVN_CODE, REGN_CODE, RQRO_RQST_RQID, RQRO_RWNO, FIGH_FILE_NO, RECT_CODE, FRST_NAME, LAST_NAME, NATL_CODE, CELL_PHON, CLUB_CODE, CBMT_CODE, MTOD_CODE, CTGY_CODE, [TYPE], COCH_FILE_NO, SUNT_BUNT_DEPT_ORGN_CODE, SUNT_BUNT_DEPT_CODE, SUNT_BUNT_CODE, SUNT_CODE)
+            Select @CntyCode, @PrvnCode, @RegnCode, @Rqid, 1, @FileNo, '001', ISNULL(@FrstName, ''), ISNULL(@LastName, ''), @NatlCode, @CellPhon, CLUB_CODE_DNRM, CBMT_CODE_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, FGPB_TYPE_DNRM, @CochFileNo, '00', '00', '00', '0000'
               FROM dbo.Fighter
              WHERE FILE_NO = @FileNo;
          ELSE

@@ -377,7 +377,7 @@ BEGIN
             SELECT * 
               FROM Receive_Document Rd, Request_Row Rr , Image_Document Id
              WHERE Rd.RQRO_RQST_RQID = Rr.RQST_RQID 
-   AND Rd.RQRO_RWNO = Rr.RWNO 
+               AND Rd.RQRO_RWNO = Rr.RWNO 
                AND Id.RCDC_RCID = Rd.RCID
                AND Id.IMAG IS NULL
                AND Rr.RQST_RQID = @RQID 
@@ -389,6 +389,32 @@ BEGIN
                 );
             ROLLBACK TRANSACTION;
          END
+         
+         -- 1403/06/03 * IF EXISTS Grouping Permission CANNOT SAVE Request
+         IF EXISTS (
+            SELECT * 
+              FROM dbo.Fighter_Grouping_Permission gp, 
+                   dbo.Fighter_Grouping fg 
+             WHERE gp.FGRP_CODE = fg.CODE 
+               AND fg.FIGH_FILE_NO IN (SELECT rr.FIGH_FILE_NO FROM dbo.Request_Row rr WHERE rr.RQST_RQID = @RQID) 
+               AND fg.GROP_STAT = '002' 
+               AND gp.PERM_TYPE = '009' /* ثبت بدهی */ 
+               AND gp.PERM_STAT = '001' /* غیر مجاز میباشد */
+         ) AND EXISTS (
+               SELECT * 
+                 FROM dbo.Payment p 
+                WHERE p.RQST_RQID = @RQID 
+                  AND ((p.SUM_EXPN_PRIC + p.SUM_EXPN_EXTR_PRCT + p.SUM_REMN_PRIC) - 
+                       (p.SUM_RCPT_EXPN_PRIC + p.SUM_RCPT_EXPN_EXTR_PRCT + p.SUM_RCPT_REMN_PRIC + p.SUM_PYMT_DSCN_DNRM) > 0)
+               )
+         BEGIN
+            RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت فاکتور با بدهی نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                        16, -- Severity.
+                        1 -- State.
+                        );
+            RETURN;
+         END 
+         
          -- ذخیره نهایی
          INSERT INTO dbo.Step_History_Summery 
                 (RQST_RQID, SSTT_MSTT_SUB_SYS, SSTT_MSTT_CODE)

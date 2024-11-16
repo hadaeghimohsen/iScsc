@@ -110,6 +110,7 @@ BEGIN
               FROM Dresser D 
              WHERE D.Rec_Stat = '002'       
                AND D.COMA_CODE = @ComaCode
+               --AND ISNULL(d.VIP_STAT, '001') = '002'
                AND (@EdevCode IS NULL 
                     OR EXISTS (
                        SELECT * 
@@ -134,6 +135,8 @@ BEGIN
                  FROM Dresser D 
                 WHERE D.Rec_Stat = '002'       
                   AND D.COMA_CODE = @ComaCode
+                  -- Not VIP
+                  AND ISNULL(D.VIP_STAT, '001') = '001'
                   AND (@EdevCode IS NULL 
                        OR EXISTS (
                           SELECT * 
@@ -141,8 +144,10 @@ BEGIN
                            WHERE ed.CODE = @EdevCode 
                              AND ed.IP_ADRS = d.IP_ADRS 
                           )
-                      )                  
+                      )     
+                  -- NOT Rent                 
                   AND NOT EXISTS (SELECT * FROM Dresser_Vip_Fighter dv WHERE dv.DRES_CODE = d.CODE and dv.STAT = '002')
+                  -- NO LOCKED IN TODAY WITH OTHERS
                   AND NOT EXISTS (
                      SELECT * 
                        FROM Dresser_Attendance Da

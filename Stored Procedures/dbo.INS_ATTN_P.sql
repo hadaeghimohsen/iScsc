@@ -98,7 +98,7 @@ BEGIN
    BEGIN
       RAISERROR(N'مدت زمان انتظار شما هنوز تمام نشده، لطفا کمی صبر کنید', 16, 1);
       RETURN;
-   END 
+   END   
    
    DECLARE @Type VARCHAR(3);
    IF @Club_Code IS NULL
@@ -197,6 +197,7 @@ BEGIN
          ,@LastName = F.LAST_NAME_DNRM
          ,@SexType = F.SEX_TYPE_DNRM
          ,@CellPhon = F.CELL_PHON_DNRM
+         ,@Type = f.FGPB_TYPE_DNRM
          --,@EndDate = MBSP_END_DATE
      FROM dbo.Fighter F, dbo.D$SXDC sxdc, dbo.Member_Ship M
     WHERE F.FILE_NO = @Figh_File_No
@@ -206,6 +207,24 @@ BEGIN
       AND M.RECT_CODE = '004'
       AND m.VALD_TYPE = '002'
       AND F.SEX_TYPE_DNRM = sxdc.VALU;
+      
+   -- 1403/08/26 * ایا مجوز ثبت دستی برای حضور و غیاب پرسنل و مشتریان رو داریم یا خیر
+   IF @Attn_Sys_Type = '001' AND @Type = '003'
+   BEGIN
+      DECLARE @AP BIT
+	       ,@AccessString VARCHAR(250);
+	   SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>288</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         RAISERROR ( N'خطا - عدم دسترسی به ردیف 288 سطوح امینتی : شما مجوز ثبت دستی حضور و غیاب برای پرسنل را ندارید', -- Message text.
+                  16, -- Severity.
+                  1 -- State.
+                  );
+         RETURN;
+      END
+   END 
+
    
    -- پایان مهلت بدهی هنرجو
    
@@ -921,7 +940,8 @@ BEGIN
              ON c.session_id = s.session_id  
           WHERE c.session_id = @@SPID; 
          
-         SELECT @ComaCode = ca.CODE
+         SELECT TOP 1 
+                @ComaCode = ca.CODE
            FROM dbo.Computer_Action ca
           WHERE 1=1--UPPER(ca.COMP_NAME) LIKE UPPER(@HostName) + N'%'
             AND EXISTS (
@@ -947,7 +967,7 @@ BEGIN
             
             SELECT @MtodCode = MTOD_CODE_DNRM
               FROM dbo.Attendance
-             WHERE CODE = @AttnCode;
+             WHERE CODE = @AttnCode;            
              
             -- 1402/10/03 * اگر رشته ها بر اساس دستگاه های سنترال تفکیک شده باشند
             IF (
@@ -959,6 +979,17 @@ BEGIN
                  FROM dbo.External_Device_Link_Method
                 WHERE MTOD_CODE = @MtodCode
                   AND STAT = '002';
+               
+               -- 1403/08/20 * IF EdevCode IS NOT NULL WE MUST CHECK Computer Code
+               IF @EdevCode IS NOT NULL
+               BEGIN
+                  -- We find the best record for admin
+                  SELECT TOP 1
+                         @ComaCode = d.COMA_CODE
+                    FROM dbo.External_Device ed, dbo.Dresser d
+                   WHERE ed.CODE = @EdevCode
+                     AND ed.IP_ADRS = d.IP_ADRS;
+               END 
                
                -- اولین درخواست ثبت قفل کمدی
                EXEC dbo.INS_DART_P @AttnCode, @ComaCode, @EdevCode;

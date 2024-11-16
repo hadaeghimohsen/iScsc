@@ -4,6 +4,7 @@ CREATE TABLE [dbo].[Attendance]
 [FIGH_FILE_NO] [bigint] NOT NULL,
 [ATTN_DATE] [date] NOT NULL,
 [CODE] [bigint] NOT NULL,
+[RWNO] [int] NULL,
 [MBSP_RWNO_DNRM] [smallint] NULL,
 [MBSP_RECT_CODE_DNRM] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Attendance_MBSP_RECT_CODE_DNRM] DEFAULT ('004'),
 [COCH_FILE_NO] [bigint] NULL,
@@ -119,6 +120,7 @@ BEGIN
               T.CRET_BY = UPPER(SUSER_NAME()) ,
               T.CRET_DATE = GETDATE(),
               T.ENTR_TIME = CAST(GETDATE() AS TIME(0)) ,
+              T.RWNO = (SELECT ISNULL(MAX(a.RWNO), 0) + 1 FROM dbo.Attendance a WHERE a.ATTN_DATE = s.ATTN_DATE),
               /*T.MBSP_RECT_CODE_DNRM = CASE WHEN S.FGPB_TYPE_DNRM NOT IN ( '002' )
                                            THEN '004'
                                            ELSE NULL
@@ -419,7 +421,7 @@ AS
                                                               )
                                                             FOR
                  XML
-                                                              PATH('Contact') ,
+          PATH('Contact') ,
                                                               TYPE
                                                             ) ,
                                                             ( SELECT

@@ -79,6 +79,112 @@ BEGIN
       SELECT @StrtDate = CAST(@StrtDate AS DATETIME) + CAST(@StrtTime AS DATETIME),
              @EndDate = CAST(@EndDate AS DATETIME) + CAST(@EndTime AS DATETIME);      
       
+      DECLARE @CrntStrtDate DATE, @CrntEndDate DATE;
+      SELECT @CrntStrtDate = ms.STRT_DATE, @CrntEndDate = ms.END_DATE
+        FROM dbo.Member_Ship ms
+       WHERE ms.RQRO_RQST_RQID = @Rqid
+         AND ms.RECT_CODE = '004';
+      
+      -- 1403/08/18 * چک کردن دسترسی به اعلام مجدد اصلاح دوره 
+      -- آیا اجازه داریم روی درخواستی که اصلاح دوره زده شده دوباره اصلاح دوره اعمال کنیم
+      -- نام عملیات : حمله به نگین
+      IF (CAST(@StrtDate AS DATE) != @CrntStrtDate OR CAST(@EndDate AS DATE) != @CrntEndDate) AND (SELECT COUNT(*) FROM dbo.[VF$Request_Changing](@FileNo) r WHERE r.RQTP_CODE = '034' AND r.RQST_RQID = @Rqid) >= 1 
+      BEGIN      
+         SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>280</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+         EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+         IF @AP = 0 
+         BEGIN
+            RAISERROR ( N'خطا - عدم دسترسی به ردیف 280 سطوح امینتی', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+            RETURN;
+         END;
+      END;
+      
+      -- 1403/08/18 * چک کردن بازه های تاریخی قابل دسترس
+      -- اولین دسترسی چک کردن دسترسی نامحدود
+      SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>285</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+      EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+      IF @AP = 0 
+      BEGIN
+         -- آیا منشی اجازه تغییر تاریخ دوره مشتری را دارد یا خیر
+         IF CAST(@StrtDate AS DATE) != @CrntStrtDate
+         BEGIN
+            SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>286</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+            EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap OUTPUT
+            IF @AP = 0 
+            BEGIN
+               RAISERROR ( N'خطا - عدم دسترسی به ردیف 286 سطوح امینتی', -- Message text.
+                           16, -- Severity.
+                           1 -- State.
+                         );
+               RETURN;
+            END;
+         END;         
+            
+         IF @CrntEndDate <= @EndDate AND DATEDIFF(DAY, @CrntEndDate, @EndDate) BETWEEN 1 AND 7
+         BEGIN
+             SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>281</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+             EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap OUTPUT
+             IF @AP = 0 
+             BEGIN
+                RAISERROR ( N'خطا - عدم دسترسی به ردیف 281 سطوح امینتی', -- Message text.
+                            16, -- Severity.
+                            1 -- State.
+                          );
+                RETURN;
+             END;
+         END;
+         ELSE IF @CrntEndDate <= @EndDate AND DATEDIFF(DAY, @CrntEndDate, @EndDate) BETWEEN 8 AND 15
+         BEGIN              
+             SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>282</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+             EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap OUTPUT
+             IF @AP = 0 
+             BEGIN
+                RAISERROR ( N'خطا - عدم دسترسی به ردیف 282 سطوح امینتی', -- Message text.
+                            16, -- Severity.
+                            1 -- State.
+                          );
+                RETURN;
+             END;
+         END;
+         ELSE IF @CrntEndDate <= @EndDate AND DATEDIFF(DAY, @CrntEndDate, @EndDate) BETWEEN 16 AND 23 
+         BEGIN
+             SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>283</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+             EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap OUTPUT
+             IF @AP = 0 
+             BEGIN
+                RAISERROR ( N'خطا - عدم دسترسی به ردیف 283 سطوح امینتی', -- Message text.
+                            16, -- Severity.
+                            1 -- State.
+                          );
+                RETURN;
+             END;
+         END;
+         ELSE IF @CrntEndDate <= @EndDate AND DATEDIFF(DAY, @CrntEndDate, @EndDate) BETWEEN 24 AND 31
+         BEGIN         
+             SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>284</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+             EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap OUTPUT
+             IF @AP = 0 
+             BEGIN
+                RAISERROR ( N'خطا - عدم دسترسی به ردیف 284 سطوح امینتی', -- Message text.
+                            16, -- Severity.
+                            1 -- State.
+                          );
+                RETURN;
+             END;
+         END;
+         ELSE IF @CrntEndDate <= @EndDate AND DATEDIFF(DAY, @CrntEndDate, @EndDate) > 31
+         BEGIN
+            RAISERROR ( N'خطا - عدم دسترسی به ردیف 285 سطوح امینتی', -- Message text.
+                        16, -- Severity.
+                        1 -- State.
+                      );
+            RETURN;
+         END;         
+      END;
+      
       IF NOT EXISTS(SELECT * FROM Member_Ship WHERE RQRO_RQST_RQID = @Rqid AND RQRO_RWNO = @RqroRwno AND FIGH_FILE_NO = @FileNo AND RECT_CODE = '002')
          EXEC INS_MBSP_P @Rqid, @RqroRwno, @FileNo, '002', '001', @StrtDate, @EndDate, @PrntCont, @NumbMontOfer, @NumbOfAttnMont, 0, @AttnDayType;
       ELSE

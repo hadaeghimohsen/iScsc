@@ -45,7 +45,7 @@ BEGIN
                1 -- State.
                );
       RETURN;
-   END
+   END  
    
 	DECLARE @ErrorMessage NVARCHAR(MAX);
 	BEGIN TRAN T1;
@@ -79,6 +79,22 @@ BEGIN
       
       IF @RqttCode IS NULL OR @RqttCode = ''
          SET @RqttCode = '001';
+      
+      -- اینو گذاشتم واسه حروم زاده هایی که میخوان منو دور بزنن
+      IF @RqttCode = '004'
+      BEGIN
+         SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>278</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+         EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+         IF @AP = 0 
+         BEGIN
+            RAISERROR ( N'خطا - عدم دسترسی به ردیف 278 سطوح امینتی', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+            RETURN;
+         END;
+      END;
+      
       
       --IF (@RegnCode IS NULL OR @PrvnCode IS NOT NULL) AND @Rqid <> 0
       --   SELECT @RegnCode = REGN_CODE
@@ -831,7 +847,7 @@ BEGIN
             --Raiserror('Raiseerror', 16, 1)
             
             DELETE Payment_Detail 
-             WHERE PYMT_RQST_RQID = @Rqid;          
+             WHERE PYMT_RQST_RQID = @Rqid;                      
             DELETE dbo.Payment_Discount
              WHERE PYMT_RQST_RQID = @Rqid;
             DELETE dbo.Payment_Method

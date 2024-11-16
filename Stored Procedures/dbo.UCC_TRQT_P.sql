@@ -12,6 +12,9 @@ CREATE PROCEDURE [dbo].[UCC_TRQT_P]
 	@X XML
 AS
 BEGIN
+   DECLARE @AP BIT
+          ,@AccessString VARCHAR(250);
+          
 	DECLARE @ErrorMessage NVARCHAR(MAX);
 	BEGIN TRAN T1;
 	BEGIN TRY
@@ -54,6 +57,40 @@ BEGIN
 	   
       IF @FileNo = 0 OR @FileNo IS NULL BEGIN RAISERROR(N'شماره پرونده برای هنرجو وارد نشده', 16, 1); RETURN; END
       IF LEN(@RqttCode) <> 3 BEGIN RAISERROR(N'نوع متقاضی برای درخواست وارد نشده', 16, 1); RETURN; END
+      
+      -- اینو گذاشتم واسه حروم زاده هایی که میخوان منو دور بزنن
+      IF @RqttCode = '004'
+      BEGIN
+         SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>278</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
+         EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
+         IF @AP = 0 
+         BEGIN
+            RAISERROR ( N'خطا - عدم دسترسی به ردیف 278 سطوح امینتی', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+            RETURN;
+         END;
+      END;
+      
+      -- 1403/06/03 * IF EXISTS Grouping Permission CANNOT SAVE Request
+      IF EXISTS (
+         SELECT * 
+           FROM dbo.Fighter_Grouping_Permission gp, 
+                dbo.Fighter_Grouping fg 
+          WHERE gp.FGRP_CODE = fg.CODE 
+            AND fg.FIGH_FILE_NO = @FileNo 
+            AND fg.GROP_STAT = '002' 
+            AND gp.PERM_TYPE = '002' /* ثبت نام و تمدید */ 
+            AND gp.PERM_STAT = '001' /* غیر مجاز میباشد */
+      )
+      BEGIN
+         RAISERROR ( N'خطا - مشتری به دلیل تصمیم مدیریتی مجاز به ثبت نام نمیباشد، لطفا با بخش مدیریت صحبت کنید', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+         RETURN;
+      END 
       
 	   SELECT @RegnCode = Regn_Code, @PrvnCode = Regn_Prvn_Code
 	     FROM Fighter 

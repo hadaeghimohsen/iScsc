@@ -438,7 +438,9 @@ BEGIN
                     @Amnt = @PydsAmnt, -- int
                     @Amnt_Type = '', -- varchar(3)
                     @Stat = NULL, -- varchar(3)
-                    @Pyds_Desc = NULL; -- nvarchar(250)   
+                    @Pyds_Desc = NULL,
+                    @Advc_Code = NULL,
+                    @Fgdc_Code = NULL; -- nvarchar(250)   
    --
    -- مشخص کردن هزینه به صورت تسویه حساب یا ثبت بدهی و دفتری
             DECLARE @TotlAmntDnrm BIGINT;

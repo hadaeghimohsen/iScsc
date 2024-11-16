@@ -8,6 +8,7 @@ CREATE TABLE [dbo].[Dresser_Vip_Fighter]
 [DRES_NUMB] [int] NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [EXPR_DATE] [date] NULL,
+[LOCK_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -76,7 +77,10 @@ BEGIN
    WHEN MATCHED THEN 
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
-         T.MDFY_DATE = GETDATE();
+         T.MDFY_DATE = GETDATE(),
+         -- ناحیه بحرانی که چرا قفل کمد داره ازاد میشه
+         T.STAT = CASE ISNULL(s.LOCK_STAT, '002') WHEN '002' THEN '002' ELSE '001' END ,
+         T.LOCK_STAT = ISNULL(s.LOCK_STAT, '002');
 END
 GO
 ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [PK_Dresser_Vip_Fighter] PRIMARY KEY CLUSTERED  ([CODE]) ON [BLOB]
@@ -86,4 +90,6 @@ GO
 ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [FK_DVPF_FIGH] FOREIGN KEY ([MBSP_FIGH_FILE_NO]) REFERENCES [dbo].[Fighter] ([FILE_NO])
 GO
 ALTER TABLE [dbo].[Dresser_Vip_Fighter] ADD CONSTRAINT [FK_DVPF_MBSP] FOREIGN KEY ([MBSP_FIGH_FILE_NO], [MBSP_RWNO], [MBSP_RECT_CODE]) REFERENCES [dbo].[Member_Ship] ([FIGH_FILE_NO], [RWNO], [RECT_CODE]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'قفل کردن دستی کمد توسط خوده کاربر', 'SCHEMA', N'dbo', 'TABLE', N'Dresser_Vip_Fighter', 'COLUMN', N'LOCK_STAT'
 GO

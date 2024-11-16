@@ -77,7 +77,10 @@ BEGIN
            @FileNo   BIGINT,
            @Name     NVARCHAR(500),
            @MustLock VARCHAR(3),
-           @ErorMesg NVARCHAR(250);
+           @ErorMesg NVARCHAR(250),
+           @CretBy VARCHAR(250),
+           @CretDate DATE,
+           @X XML;
            
    OPEN C#FileNo;
    L$NextRow:
@@ -98,7 +101,7 @@ BEGIN
       )
    )
    BEGIN
-      SELECT @ErorMesg = N'هنرجو مورد نظر در "ناحیه ' + REGN_CODE + N' "  می باشد و نمی توانید در درخواستی با ناحیه دیگری ثبت نمایید.'
+      SELECT @ErorMesg = N'مشتری مورد نظر در "ناحیه ' + REGN_CODE + N' "  می باشد و نمی توانید در درخواستی با ناحیه دیگری ثبت نمایید.'
         FROM Fighter 
        WHERE FILE_NO = @FileNo;
        
@@ -149,20 +152,36 @@ BEGIN
       SELECT @RqstRqid = r.RQID
             ,@RqtpDesc = rt.RQTP_DESC
             ,@Name     = f.NAME_DNRM
+            ,@CretBy   = r.CRET_BY
+            ,@CretDate = R.CRET_DATE
       FROM Fighter f, Request r, Request_Type rt
       WHERE f.RQST_RQID = r.RQID
         AND r.RQTP_CODE = rt.CODE
         AND f.FILE_NO   = @FileNo;
-      SET @ErorMesg = N'هنرجو مورد نظر به شماره پرونده ' + CAST(@FileNo AS VARCHAR) + N' به نام ' + @Name + N' در فرآیند ' + @RqtpDesc + N' به شماره درخواست ' + CAST(@RqstRqid AS VARCHAR) + N' درگیر می باشد';
-      RAISERROR (@ErorMesg, -- Message text.
-                 16, -- Severity.
-                 1   -- State.
-                );
-      ROLLBACK TRANSACTION;   
+      
+      -- 1403/08/26 * اگر کاربر قبلا ایشون رو قفل کرده باشد و دوباره بخواد برایش درخواستی ثبت کند ان درخواست قبلی را حذف و درخواست جدید ثبت میکنیم
+      IF EXISTS (SELECT * FROM dbo.Request r WHERE r.RQID = @RqstRqid AND r.CRET_BY = UPPER(SUSER_NAME()))
+      BEGIN
+         -- WE MUST CANCEL REQUEST AND CREATE NEW RECORD;
+         SET @X = (
+             SELECT @RqstRqid AS '@rqid'
+                FOR XML PATH('Request')
+         );
+         EXEC dbo.CNCL_RQST_F @X = @X -- xml         
+      END 
+      ELSE 
+      BEGIN      
+         SET @ErorMesg = N'مشتری مورد نظر به شماره پرونده ' + CAST(@FileNo AS VARCHAR) + N' به نام ' + @Name + N' در فرآیند ' + @RqtpDesc + N' به شماره درخواست ' + CAST(@RqstRqid AS VARCHAR) + N' درگیر می باشد';
+         RAISERROR (@ErorMesg, -- Message text.
+                    16, -- Severity.
+                    1   -- State.
+                   );
+         ROLLBACK TRANSACTION;   
+      END 
    END
    ELSE IF EXISTS(SELECT * FROM Fighter WHERE FILE_NO = @FileNo AND ISNULL(ACTV_TAG_DNRM, '101') <= '100') AND EXISTS(SELECT * FROM Request WHERE RQID = @RqstRqid AND RQTP_CODE NOT IN ('014', '002'))
    BEGIN
-      SELECT @ErorMesg = N' هنرجو ' + NAME_DNRM + N' به دلایلی از سیستم به صورت موقت خارج شده لطفا به سرپرستی اطلاع دهید '
+      SELECT @ErorMesg = N' مشتری ' + NAME_DNRM + N' به دلایلی از سیستم به صورت موقت خارج شده لطفا به سرپرستی اطلاع دهید '
         FROM Fighter 
        WHERE FILE_NO = @FileNo;
        
@@ -253,7 +272,6 @@ BEGIN
                ,FIGH_STAT = CASE WHEN S.RECD_STAT = '001' THEN '002' ELSE '001' END;
    END;
    
-   DECLARE @X XML;
    SELECT @X = (
    SELECT r.RQID AS '@rqid'
          ,r.RQTP_CODE AS '@rqtpcode'

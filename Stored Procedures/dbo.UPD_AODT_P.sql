@@ -35,7 +35,8 @@ CREATE PROCEDURE [dbo].[UPD_AODT_P]
     @Pyds_Amnt BIGINT,
     @Dpst_Amnt BIGINT,
     @Bcds_Code BIGINT,
-    @Grop_Apbs_Code BIGINT
+    @Grop_Apbs_Code BIGINT,
+    @Expr_Mint_Numb INT
 AS
 BEGIN
    BEGIN TRY
@@ -58,8 +59,8 @@ BEGIN
        RAISERROR(N'ساعت پایانی نمی تواند از ساعت شروع کمتر باشد. "اگر تاریخ عوض شده لطفا تاریخ پایان هم تنظیم کنید"', 16, 1);
    END;        
 
-   UPDATE  dbo.Aggregation_Operation_Detail
-   SET     FIGH_FILE_NO = @Figh_File_No ,
+   UPDATE dbo.Aggregation_Operation_Detail
+      SET FIGH_FILE_NO = @Figh_File_No ,
           RQST_RQID = @Rqst_Rqid ,
           ATTN_CODE = @Attn_Code ,
           COCH_FILE_NO = @Coch_File_No ,
@@ -76,14 +77,15 @@ BEGIN
           AODT_AGOP_CODE = @Aodt_Agop_Code ,
           AODT_RWNO = @Aodt_Rwno ,
           CASH_AMNT = ISNULL(@Cash_Amnt, 0) ,
-	   --,POS_AMNT = ISNULL(@Pos_Amnt, 0)                
+	       --,POS_AMNT = ISNULL(@Pos_Amnt, 0)                
           NUMB = ISNULL(@Numb, 1) ,
           AODT_DESC = @Aodt_Desc ,
           ATTN_TYPE = @Attn_Type ,
           PYDS_AMNT = ISNULL(@Pyds_Amnt, 0),
           DPST_AMNT = ISNULL(@Dpst_Amnt, 0),
           BCDS_CODE = @Bcds_Code,
-          GROP_APBS_CODE = @Grop_Apbs_Code
+          GROP_APBS_CODE = @Grop_Apbs_Code,
+          EXPR_MINT_NUMB = @Expr_Mint_Numb
    WHERE  AGOP_CODE = @Agop_Code
           AND RWNO = @Rwno;	   
    

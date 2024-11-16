@@ -29,10 +29,12 @@ BEGIN
          (
             SELECT TOP 1 CASE f.FGPB_TYPE_DNRM
                         WHEN '005' THEN 
+                           N'فاکتور : '  + CAST(r.INVC_NUMB AS NVARCHAR(10)) + N' -> ' + CHAR(10) +
                            N'نام مشتری : ' + ISNULL(fp.FRST_NAME, N'مهمان') + N' ' + ISNULL(fp.LAST_NAME, N'آزاد') + N' - ' + CHAR(10) +
                            N'تلفن همراه : ' + CASE WHEN fp.CELL_PHON IS NULL THEN N'* بدون شماره موبایل' ELSE fp.CELL_PHON END + CHAR(10) + 
                            N'کد ملی : ' + CASE WHEN fp.NATL_CODE IS NULL THEN N'* بدون کد ملی' ELSE fp.NATL_CODE END 
                         ELSE 
+                           N'شماره فاکتور : '  + CAST(r.INVC_NUMB AS NVARCHAR(10)) + CHAR(10) +
                            N'نام مشتری : ' + F.NAME_DNRM + CHAR(10) +
                            N'تلفن همراه : ' + CASE WHEN f.CELL_PHON_DNRM IS NULL THEN N'* بدون شماره موبایل' ELSE f.CELL_PHON_DNRM END + CHAR(10) + 
                            N'کد ملی : ' + CASE WHEN f.NATL_CODE_DNRM IS NULL THEN N'* بدون کد ملی' ELSE f.NATL_CODE_DNRM END + CHAR(10)

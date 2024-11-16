@@ -43,14 +43,14 @@ BEGIN
    -- مهسا_امینی
    DECLARE @AP BIT
           ,@AccessString VARCHAR(250);
-   -- اگر درخواست هنوز پایانی نشده میتوانیم که ردیف پرداخت را پاک کنیم
+   -- اگر درخواست هنوز پایانی نشده میتوانیم که صورتحساب ردیف پرداخت را پاک کنیم
    IF EXISTS(SELECT * FROM dbo.Request r, Deleted d WHERE r.RQID = d.PYMT_RQST_RQID AND r.RQST_STAT = '002')
    BEGIN
       SET @AccessString = N'<AP><UserName>' + SUSER_NAME() + '</UserName><Privilege>262</Privilege><Sub_Sys>5</Sub_Sys></AP>';	
       EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
       IF @AP = 0 
       BEGIN
-         RAISERROR ( N'خطا - عدم دسترسی به ردیف 262 سطوح امینتی', -- Message text.
+         RAISERROR ( N'خطا - عدم دسترسی به صورتحساب ردیف 262 سطوح امینتی', -- Message text.
                   16, -- Severity.
                   1 -- State.
                   );
@@ -76,7 +76,7 @@ BEGIN
       EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
       IF @AP = 0 
       BEGIN
-         RAISERROR ( N'خطا - عدم دسترسی به ردیف 264 سطوح امینتی', -- Message text.
+         RAISERROR ( N'خطا - عدم دسترسی به صورتحساب ردیف 264 سطوح امینتی', -- Message text.
                   16, -- Severity.
                   1 -- State.
                   );
@@ -129,7 +129,7 @@ BEGIN
     BEGIN
         DECLARE @MsgbStat VARCHAR(3) ,
             @MsgbText NVARCHAR(MAX) ,
-  @TempMsgbText NVARCHAR(MAX) ,
+            @TempMsgbText NVARCHAR(MAX) ,
             @InsrCnamStat VARCHAR(3) ,
             @ClubName NVARCHAR(250) ,
             @XMsg XML ,
@@ -205,7 +205,7 @@ BEGIN
                                                               @MsgbText
                                                     FOR
                                                       XML PATH('Message') ,
-      TYPE
+                                                      TYPE
                                              )
                                         FOR
                                           XML PATH('Contact') ,
@@ -235,8 +235,8 @@ BEGIN
                                         ) ,
                                         ( SELECT    @Cel5Phon AS '@phonnumb' ,
                                                     ( SELECT  '030' AS '@type' ,
-              @MsgbText
-                         FOR
+                                                               @MsgbText
+                                                         FOR
                                                       XML PATH('Message') ,
                                                           TYPE
                                                     )
@@ -249,10 +249,32 @@ BEGIN
                                   ROOT('Process')
                             );
             EXEC dbo.MSG_SEND_P @X = @XMsg; -- xml                  
-        END;       
-                
+        END;
     END;
-
+   
+   -- 1403/06/23 * save log
+   IF EXISTS(SELECT * FROM dbo.Request r, Deleted s WHERE r.RQID = s.PYMT_RQST_RQID AND r.RQST_STAT = '002')
+   BEGIN
+      DECLARE @X XML = 
+      (
+         SELECT rr.FIGH_FILE_NO AS '@fileno',
+                '019' AS '@type',
+                N'کاربر "' + u.USER_NAME + N'"' +
+                N' مبلغ ' + dbo.GET_NTOF_U(s.AMNT) + N' ' + da.DOMN_DESC + 
+                N' به صورت "' + dr.DOMN_DESC + N'" برای صورتحساب ردیف ' + dbo.GET_NTOF_U(p.PYMT_NO) + 
+                N' از صورتحساب حذف کرد.' AS '@text'
+           FROM dbo.Request_Row rr, dbo.V#Users u,
+                Deleted s, dbo.[D$RCMT] dr,
+                dbo.Payment p, dbo.[D$ATYP] da
+          WHERE rr.RQST_RQID = s.PYMT_RQST_RQID
+            AND s.RCPT_MTOD = dr.VALU
+            AND s.PYMT_RQST_RQID = p.RQST_RQID
+            AND p.AMNT_UNIT_TYPE_DNRM = da.VALU
+            AND u.USER_DB = UPPER(SUSER_NAME())
+            FOR XML PATH('Log')
+      );
+      EXEC dbo.INS_LGOP_P @X = @X -- xml      
+   END
 END;
 GO
 SET QUOTED_IDENTIFIER ON
@@ -378,7 +400,31 @@ BEGIN
          AND S.RQRO_RWNO      = Payment_Method.RQRO_RWNO
          AND S.AMNT           = Payment_Method.AMNT
          AND Payment_Method.AMNT = 0
-    )
+    );
+   
+   -- 1403/06/23 * save log
+   IF EXISTS(SELECT * FROM dbo.Request r, Inserted s WHERE r.RQID = s.PYMT_RQST_RQID AND r.RQST_STAT = '002')
+   BEGIN
+      DECLARE @X XML = 
+      (
+         SELECT rr.FIGH_FILE_NO AS '@fileno',
+                '018' AS '@type',
+                N'کاربر "' + u.USER_NAME + N'"' +
+                N' مبلغ ' + dbo.GET_NTOF_U(s.AMNT) + N' ' + da.DOMN_DESC + 
+                N' به صورت "' + dr.DOMN_DESC + N'" برای ردیف ' + dbo.GET_NTOF_U(p.PYMT_NO) + 
+                N' در صورتحساب ثبت کردن.' AS '@text'
+           FROM dbo.Request_Row rr, dbo.V#Users u,
+                Inserted s, dbo.[D$RCMT] dr,
+                dbo.Payment p, dbo.[D$ATYP] da
+          WHERE rr.RQST_RQID = s.PYMT_RQST_RQID
+            AND s.RCPT_MTOD = dr.VALU
+            AND s.PYMT_RQST_RQID = p.RQST_RQID
+            AND p.AMNT_UNIT_TYPE_DNRM = da.VALU
+            AND u.USER_DB = UPPER(SUSER_NAME())
+            FOR XML PATH('Log')
+      );
+      EXEC dbo.INS_LGOP_P @X = @X -- xml      
+   END
 END
 ;
 GO
@@ -531,6 +577,40 @@ BEGIN
         FROM dbo.Request_Row Rr, INSERTED I
        WHERE Rr.Rqst_rqid = I.Pymt_Rqst_Rqid       
     );
+    
+   -- 1403/06/23 * save log
+   IF EXISTS(SELECT * FROM dbo.Request r, Inserted s WHERE r.RQID = s.PYMT_RQST_RQID AND r.RQST_STAT = '002')
+   AND EXISTS(SELECT * FROM Inserted i, Deleted d WHERE i.AMNT != d.AMNT OR i.ACTN_DATE != d.ACTN_DATE OR i.RCPT_MTOD != d.RCPT_MTOD)
+   BEGIN
+      DECLARE @X XML = 
+      (
+         SELECT rr.FIGH_FILE_NO AS '@fileno',
+                '020' AS '@type',
+                N'کاربر "' + u.USER_NAME + N'"' +
+                N' مبلغ جدید' + dbo.GET_NTOF_U(s.AMNT) + N' ' + da.DOMN_DESC + 
+                N' به صورت "' + dr.DOMN_DESC + N'" برای ردیف ' + dbo.GET_NTOF_U(p.PYMT_NO) + 
+                N' در صورتحساب ویرایش کردن.' +
+                CHAR(10) + 
+                CHAR(10) + 
+                N' مبلغ قدیمی ' + dbo.GET_NTOF_U(d.AMNT) + N' ' + da.DOMN_DESC + 
+                N' به صورت "' + dd.DOMN_DESC + N'"' AS '@text'
+           FROM dbo.Request_Row rr, dbo.V#Users u,
+                Inserted s, dbo.[D$RCMT] dr,
+                Deleted d, dbo.[D$RCMT] dd,
+                dbo.Payment p, dbo.[D$ATYP] da
+          WHERE rr.RQST_RQID = s.PYMT_RQST_RQID
+            AND s.RCPT_MTOD = dr.VALU
+            AND s.PYMT_RQST_RQID = p.RQST_RQID
+            
+            AND d.RCPT_MTOD = dd.VALU
+            AND d.PYMT_RQST_RQID = p.RQST_RQID
+            
+            AND p.AMNT_UNIT_TYPE_DNRM = da.VALU
+            AND u.USER_DB = UPPER(SUSER_NAME())
+            FOR XML PATH('Log')
+      );
+      EXEC dbo.INS_LGOP_P @X = @X -- xml      
+   END
 END
 ;
 GO

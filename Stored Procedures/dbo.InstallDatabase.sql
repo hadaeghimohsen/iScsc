@@ -14,6 +14,8 @@ BEGIN
    IF @Emptydb = '002'
    BEGIN
       -- Delete Record From Database
+      DELETE dbo.Aggregation_Operation_Detail;
+      DELETE dbo.Aggregation_Operation;  
       DELETE dbo.Payment_Contract_Detail;
       DELETE dbo.Payment_Contract;
       DELETE dbo.Payment_Detail_Cost;
@@ -36,8 +38,7 @@ BEGIN
       DELETE dbo.Expense;
       DELETE dbo.Account;
       DELETE dbo.Account_Detail;
-      DELETE dbo.Aggregation_Operation;
-      DELETE dbo.Aggregation_Operation_Detail;
+    
       DELETE dbo.Report_Temporary;
       DELETE dbo.Report_Action_Parameter;
       DELETE dbo.Dresser_Attendance;
