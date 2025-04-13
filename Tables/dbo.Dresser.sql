@@ -11,6 +11,8 @@ CREATE TABLE [dbo].[Dresser]
 [BAND_RATE] [int] NULL,
 [IP_ADRS] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [VIP_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[FROM_HEIT] [real] NULL,
+[TO_HEIT] [real] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -79,9 +81,13 @@ EXEC sp_addextendedproperty N'MS_Description', N'شرح', 'SCHEMA', N'dbo', 'TAB
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'DRES_NUMB'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'Max Height', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'FROM_HEIT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'ترتیب باز شدن کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'ORDR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'REC_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'Min Height', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'TO_HEIT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'کمد vip', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'VIP_STAT'
 GO

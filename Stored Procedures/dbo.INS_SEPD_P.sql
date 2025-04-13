@@ -27,7 +27,7 @@ BEGIN
              ,@MbspRwno SMALLINT             
              ,@MtodCode BIGINT
              ,@CtgyCode BIGINT
-             ,@Exprdate DATE
+             ,@Exprdate DATETIME
              ,@Cmnt NVARCHAR(500);
              
              
@@ -40,7 +40,7 @@ BEGIN
             --,@FighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@fighfileno)[1]', 'BIGINT')
             ,@CbmtCodeDnrm = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cbmtcodednrm)[1]', 'BIGINT')
             ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
-            ,@Exprdate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE')
+            ,@Exprdate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATETIME')
             ,@Cmnt = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@cmnt)[1]', 'NVARCHAR(500)');
       
       IF @CbmtCodeDnrm = 0 OR @CbmtCodeDnrm IS NULL

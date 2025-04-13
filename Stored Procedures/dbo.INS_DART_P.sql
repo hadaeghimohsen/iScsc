@@ -17,7 +17,8 @@ BEGIN
          DECLARE @DresCode BIGINT,
                  @DresNumb INT,
                  @FileNo BIGINT,
-                 @MbspRwno SMALLINT;
+                 @MbspRwno SMALLINT,
+                 @HeitNumb REAL;
                 --,@ClubCode BIGINT;
          --SELECT @ClubCode = Club_Code FROM Attendance WHERE CODE = @AttnCode;
          
@@ -26,15 +27,16 @@ BEGIN
          --   RAISERROR(N'قبلا برای این هنرجو کمد رزور شده است' , 16, 1);
          --END
          
-         UPDATE dbo.Dresser_Attendance
-            SET TKBK_TIME = CAST(GETDATE() AS TIME(0))
-          WHERE TKBK_TIME IS NULL
-            AND ( CAST (CRET_DATE AS DATE) <= CAST (DATEADD (DAY, -1, GETDATE()) AS DATE)
+         UPDATE da
+            SET da.TKBK_TIME = CAST(GETDATE() AS TIME(0))
+           FROM dbo.Dresser_Attendance da
+          WHERE da.TKBK_TIME IS NULL
+            AND ( CAST (da.CRET_DATE AS DATE) <= CAST (DATEADD (DAY, -1, GETDATE()) AS DATE)
              OR   EXISTS ( 
                      SELECT *
                        FROM dbo.Attendance a
                       WHERE a.ATTN_STAT = '001'
-                        AND a.CODE = dbo.Dresser_Attendance.ATTN_CODE
+                        AND a.CODE = da.ATTN_CODE
                   )
              );
          
@@ -45,7 +47,8 @@ BEGIN
                 @DresNumb = DERS_NUMB
            FROM Dresser_Attendance 
           WHERE ATTN_CODE = @AttnCode
-            AND DRAT_CODE IS NULL;
+            AND DRAT_CODE IS NULL
+            AND TKBK_TIME IS NULL;
          
          -- اگر سیستم کامپیوتری مشخص نباشد
          IF @ComaCode IS NULL
@@ -60,6 +63,12 @@ BEGIN
                    @MbspRwno = a.MBSP_RWNO_DNRM
               FROM dbo.Attendance a
              WHERE a.CODE = @AttnCode;
+            
+            -- 1403/12/03 * بدست آوردن قد مشتری
+            SELECT @HeitNumb = ISNULL(a.MESR_VALU, 0)
+              FROM dbo.Fighter_Body_Measurement a
+             WHERE a.FIGH_FILE_NO = @FileNo
+               AND a.BODY_TYPE = '003';
              
             /*SELECT TOP 1 
                    @DresCode = CODE,
@@ -126,6 +135,39 @@ BEGIN
                      WHERE dv.MBSP_FIGH_FILE_NO = @FileNo 
                        AND dv.STAT = '002' 
                        AND dv.DRES_CODE = d.CODE );
+            
+            -- 1403/12/03 * اگر قد مشتری داخل سیستم وارد شده و کمدها بر اساس قد تعریف شده باشن
+            IF (@DresCode IS NULL OR @DresNumb IS NULL) AND (@HeitNumb IS NOT NULL AND @HeitNumb > 0)
+            BEGIN
+               SELECT TOP 1 
+                      @DresCode = CODE,
+                      @DresNumb = D.DRES_NUMB
+                 FROM Dresser D 
+                WHERE D.Rec_Stat = '002'       
+                  AND D.COMA_CODE = @ComaCode
+                  -- Not VIP
+                  AND ISNULL(D.VIP_STAT, '001') = '001'
+                  AND (@EdevCode IS NULL 
+                       OR EXISTS (
+                          SELECT * 
+                            FROM dbo.External_Device ed 
+                           WHERE ed.CODE = @EdevCode 
+                             AND ed.IP_ADRS = d.IP_ADRS 
+                          )
+                      )     
+                  -- NOT Rent                 
+                  AND NOT EXISTS (SELECT * FROM Dresser_Vip_Fighter dv WHERE dv.DRES_CODE = d.CODE and dv.STAT = '002')
+                  -- Height Checked
+                  AND @HeitNumb <= D.TO_HEIT
+                  -- NO LOCKED IN TODAY WITH OTHERS
+                  AND NOT EXISTS (
+                     SELECT * 
+                       FROM Dresser_Attendance Da
+                      WHERE Da.DRES_CODE = D.CODE
+                        AND Da.Lend_Time IS NOT NULL
+                        AND Da.Tkbk_Time IS NULL )                  
+                ORDER BY d.TO_HEIT, D.ORDR;
+            END
             
             -- The Customer is Normal Membership
             IF @DresCode IS NULL OR @DresNumb IS NULL             

@@ -17,6 +17,8 @@ BEGIN
       DECLARE @AdvpCode BIGINT,
               @isMen BIT,
               @isWomen BIT,
+              @isService BIT,
+              @isGuest BIT,
               @isFromBd BIT,
               @FromBd DATE,
               @isToBd BIT,
@@ -67,11 +69,18 @@ BEGIN
               @isFromSurvey BIT,
               @FromSurvey DATE,
               @isRSur BIT,
-              @RSurCode BIGINT;
+              @RSurCode BIGINT,
+              @isOprtRun BIT,
+              @isSendMsgDate BIT,
+              @SendMsgDate DATE,
+              @isSendTestPhon BIT,
+              @SendTestPhon VARCHAR(10),
+              @isSendSmsBulk BIT;
       
       /*
       <Advertising_Parameter code="">
          <Sex ismen="1" iswomen="0"/>
+         <RecordType isservice="1" isguest="0"/>
          <BirthDate isfrombd="1" frombd="1365/10/01" istobd="0" todb=""/>
          <Categories isctgy="1">
             <Category code="1"/>
@@ -86,6 +95,7 @@ BEGIN
          <Inviting isnumbinvdir="1" numbinvdir="3" isnumbinvndir="0" numbinvndir="" isfrominv="0" frominv="" />
          <Deposit isnumbdpst="1" numbdpst="" issumdpst="" sumdpst="" isfromdpst="" fromdpst=""/>
          <Payment isnumbpymt="1" numbpymt="" issumpymt="" sumpymt="" isfrompymt="" frompymt=""/>
+         <OperationRun isoprtrun="1" issendmsgdate="" sendmsgdate="" issendtestphon="" sendtestphon="" issendsmsbulk=""/>
          <Organs isorgn="1">
             <SubUnit code=""/>
             <SubUnit code=""/>
@@ -110,6 +120,9 @@ BEGIN
       
              @isMen = @x.query('//Sex').value('(Sex/@ismen)[1]', 'BIT'),
              @isWomen = @x.query('//Sex').value('(Sex/@iswomen)[1]', 'BIT'),
+             
+             @isService = @x.query('//RecordType').value('(RecordType/@isservice)[1]', 'BIT'),
+             @isGuest = @x.query('//RecordType').value('(RecordType/@isguest)[1]', 'BIT'),
              
              @isFromBd = @x.query('//BirthDate').value('(BirthDate/@isfrombd)[1]', 'BIT'),
              @FromBd = @x.query('//BirthDate').value('(BirthDate/@frombd)[1]', 'DATE'),
@@ -164,7 +177,10 @@ BEGIN
              
              @isRSur = @x.query('//Call_Survey').value('(Call_Survey/@issurvey)[1]', 'BIT'),
              @isFromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@isfromsurvey)[1]', 'BIT'),
-             @FromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@fromsurvey)[1]', 'DATE');
+             @FromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@fromsurvey)[1]', 'DATE'),
+             
+             @isOprtRun = @x.query('//OperationRun').value('(OperationRun/@isoprtrun)[1]', 'BIT'),
+             @isSendMsgDate = @x.query('//OperationRun').value('(OperationRun/@issendmsgdate)[1]', 'BIT');
       
       -- Second Step List Variable
       --DECLARE C$Ctgy CURSOR FOR

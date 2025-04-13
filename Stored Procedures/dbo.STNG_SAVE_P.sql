@@ -120,7 +120,8 @@ BEGIN
 	             ,@Dev6Stat VARCHAR(3)
 	             ,@IPAdr6 VARCHAR(15)
 	             ,@PortNum6 INT
-	             ,@AttnCompCnc6 VARCHAR(30);
+	             ,@AttnCompCnc6 VARCHAR(30)
+	             ,@LimtCalcAttnIndy VARCHAR(3);
       	
 	      SELECT  @BackUp = @X.query('//Settings').value('(Settings/@backup)[1]', 'BIT')
 	             ,@BackupAppExit = @X.query('//Settings').value('(Settings/@backupappexit)[1]', 'BIT')
@@ -226,7 +227,9 @@ BEGIN
 	             ,@Dev6Stat = @X.query('//Settings').value('(Settings/@dev6stat)[1]', 'VARCHAR(3)')
 	             ,@IPAdr6 = @X.query('//Settings').value('(Settings/@ipadr6)[1]', 'VARCHAR(15)')
 	             ,@PortNum6 = @X.query('//Settings').value('(Settings/@portnum6)[1]', 'INT')
-	             ,@AttnCompCnc6 = @X.query('//Settings').value('(Settings/@attncompcnc6)[1]', 'VARCHAR(30)');
+	             ,@AttnCompCnc6 = @X.query('//Settings').value('(Settings/@attncompcnc6)[1]', 'VARCHAR(30)')
+	             
+	             ,@LimtCalcAttnIndy = @X.query('//Settings').value('(Settings/@limtcalcattnindy)[1]', 'VARCHAR(3)');
          
          IF @ClubCode != 0 AND NOT EXISTS(SELECT * FROM Settings WHERE CLUB_CODE = @ClubCode)
             INSERT INTO Settings (CLUB_CODE, CODE) VALUES(@ClubCode, dbo.GNRT_NVID_U());
@@ -347,6 +350,8 @@ BEGIN
                   ,IP_ADR6 = @IPAdr6
                   ,PORT_NUM6 = @PortNum6
                   ,ATTN_COMP_CNC6 = @AttnCompCnc6
+                  
+                  ,LIMT_CALC_ATTN_INDY = @LimtCalcAttnIndy
              WHERE CLUB_CODE = @ClubCode;
       END;
       ELSE IF @ConfigType = '001' -- ADD_FGA_UREGN

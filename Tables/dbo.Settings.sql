@@ -91,7 +91,8 @@ CREATE TABLE [dbo].[Settings]
 [DEV6_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [IP_ADR6] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PORT_NUM6] [int] NULL,
-[ATTN_COMP_CNC6] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[ATTN_COMP_CNC6] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LIMT_CALC_ATTN_INDY] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 SET QUOTED_IDENTIFIER ON
@@ -172,6 +173,10 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ورود اطلاعات کد ملی اجباری میباشد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'INPT_NATL_CODE_STAT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'طول کدهای کارت های عضویت', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'LEN_FNGR_PRNT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'محدود کردن کسر جلسه در یک روز
+اگر فعال باشد یعنی مشتری یک ورود و یک خروج باعث میشود یک جلسه از مشتری کسر شود ولی در طی ورود و خروج های بعدی دیگر جلسه از مشتری کسر نمیکند
+در صورت غیر فعال بود به ازای هر ورود و خروج جلسه کسر میشود', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'LIMT_CALC_ATTN_INDY'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'قراردادن وسایل چند اعضا در یک کمد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'MORE_FIGH_ONE_DRES'
 GO

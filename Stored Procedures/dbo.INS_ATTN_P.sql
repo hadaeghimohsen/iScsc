@@ -48,10 +48,11 @@ BEGIN
    
    DECLARE @HostName NVARCHAR(128)
           ,@ComaCode BIGINT
-          ,@AttnDelyTime SMALLINT;   
+          ,@AttnDelyTime SMALLINT
+          ,@LimtCalcAttnIndy VARCHAR(3);   
    
-   SELECT @AttnDelyTime = ISNULL(MAX(ATTN_DELY_TIME), 0)
-     FROM dbo.Settings;    
+   SELECT @AttnDelyTime = ISNULL(MAX(ATTN_DELY_TIME), 0)          
+     FROM dbo.Settings;
    
    IF ISNULL(@Mbsp_Rwno, 0) = 0
    BEGIN
@@ -66,7 +67,7 @@ BEGIN
       END
       ELSE   
       BEGIN         
-         RAISERROR ( N'اعضای گرامی، دوره ای برای شما وجود ندارد یا دوره شما به اتمام رسیده', -- Message text.
+         RAISERROR (N'0001: اعضای گرامی، دوره ای برای شما وجود ندارد یا دوره شما به اتمام رسیده', -- Message text.
                   16, -- Severity.
                   1 -- State.
                   );
@@ -76,7 +77,7 @@ BEGIN
    
    IF EXISTS(SELECT * FROM dbo.Member_Ship WHERE FIGH_FILE_NO = @Figh_File_No AND RWNO = @Mbsp_Rwno AND RECT_CODE = '004' AND VALD_TYPE = '001')
    BEGIN
-      RAISERROR ( N'دوره مورد نظر شما حذف شده است', -- Message text.
+      RAISERROR (N'0002: دوره مورد نظر شما حذف شده است', -- Message text.
                16, -- Severity.
                1 -- State.
                );
@@ -96,7 +97,7 @@ BEGIN
              )
    )
    BEGIN
-      RAISERROR(N'مدت زمان انتظار شما هنوز تمام نشده، لطفا کمی صبر کنید', 16, 1);
+      RAISERROR(N'0003: مدت زمان انتظار شما هنوز تمام نشده، لطفا کمی صبر کنید', 16, 1);
       RETURN;
    END   
    
@@ -122,7 +123,7 @@ BEGIN
          
          IF @Club_Code IS NULL AND @Type != '004'
          BEGIN
-            RAISERROR ( N'خطا 1 - این شماره پرونده مربی به هیچ باشگاه و برنامه کلاسی باشگاه متصل نیست', -- Message text.
+            RAISERROR ( N'0004: خطا 1 - این شماره پرونده مربی به هیچ باشگاه و برنامه کلاسی باشگاه متصل نیست', -- Message text.
                16, -- Severity.
                1 -- State.
                );            
@@ -135,12 +136,17 @@ BEGIN
       END
    END
    
+   SELECT @LimtCalcAttnIndy = ISNULL(LIMT_CALC_ATTN_INDY, '001')
+     FROM dbo.Settings WHERE CLUB_CODE = @Club_Code;    
+   
+   IF @LimtCalcAttnIndy IS NULL SET @LimtCalcAttnIndy = '001';
+   
    -- 1401/05/23 * پر کردن تاریخ حضور درون سیستم
    IF @Attn_Date IS NULL
       SET @Attn_Date = GETDATE();
       
    IF NOT EXISTS(SELECT * FROM Fighter WHERE CONF_STAT = '002' AND FILE_NO = @Figh_File_No)
-      RAISERROR ( N'خطا 2 - این شماره پرونده وجود خارجی ندارد', -- Message text.
+      RAISERROR ( N'0005: خطا 2 - این شماره پرونده وجود خارجی ندارد', -- Message text.
                16, -- Severity.
                1 -- State.
                );   
@@ -149,7 +155,7 @@ BEGIN
    BEGIN
       IF ISNULL(@CochFileNo, 0) = 0
       BEGIN
-         RAISERROR ( N'خطا 3 - برای ثبت حضوری نیاز به نام مربی می باشد', -- Message text.
+         RAISERROR ( N'0006: خطا 3 - برای ثبت حضوری نیاز به نام مربی می باشد', -- Message text.
                16, -- Severity.
                1 -- State.
                );
@@ -217,7 +223,7 @@ BEGIN
       EXEC iProject.dbo.SP_EXECUTESQL N'SELECT @ap = DataGuard.AccessPrivilege(@P1)',N'@P1 ntext, @ap BIT OUTPUT',@AccessString , @ap = @ap output
       IF @AP = 0 
       BEGIN
-         RAISERROR ( N'خطا - عدم دسترسی به ردیف 288 سطوح امینتی : شما مجوز ثبت دستی حضور و غیاب برای پرسنل را ندارید', -- Message text.
+         RAISERROR ( N'0007: خطا - عدم دسترسی به ردیف 288 سطوح امینتی : شما مجوز ثبت دستی حضور و غیاب برای پرسنل را ندارید', -- Message text.
                   16, -- Severity.
                   1 -- State.
                   );
@@ -332,7 +338,8 @@ BEGIN
       )
       BEGIN
          L$AttnEror_EndOfCycl:
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+         SET @MessageShow = N'0008: ' + 
+                            N'هشدار!!!' + CHAR(10) + 
                             @SexDesc + N' ' + @NameDnrm + CHAR(10) +
                             N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
                             N' تعداد جلسات حضوری ' + CAST(@SumAttnMontDnrm AS VARCHAR(5)) + CHAR(10) +
@@ -371,7 +378,7 @@ BEGIN
             )
       )
       BEGIN
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+         SET @MessageShow = N'0009: ' + N'هشدار!!!' + CHAR(10) + 
                             @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
                             N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
                             N' تعداد کل جلسات ' + CAST(@NumbOfAttnMont AS VARCHAR(5)) + N' تعداد جلسات حضوری ' + CAST(@SumAttnMontDnrm AS VARCHAR(5)) + CHAR(10) +
@@ -445,7 +452,7 @@ BEGIN
          )
       )
       BEGIN
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+         SET @MessageShow = N'0010: ' + N'هشدار!!!' + CHAR(10) + 
                             @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
                             N' طبق مقررات باشگاه شما در طول روز فقط اجازه یک بار حضور در باشگاه را دارید' 
                             ;
@@ -528,7 +535,7 @@ BEGIN
             AND m.CODE = cb.MTOD_CODE
             AND cm.COCH_FILE_NO = c.FILE_NO;
       
-         SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+         SET @MessageShow = N'0011: ' + N'هشدار!!!' + CHAR(10) + 
                             @SexDesc + N' ' + @NameDnrm + CHAR(10) +
                             N'برنامه کلاسی شما در رشته "' + @MtodDesc + N'" در رسته "' + @CtgyDesc + N'" با مربی "' + @CochName + N'" در ساعت [ ' + @StrtTime + N' ] تا [ ' + @EndTime + N' ] در ایام هفته "' + @Wkdy + N'" می باشد ';
                             --N' برنامه کلاسی شما در امروز یا این ساعت تعریف نشده است.' + CHAR(10) +
@@ -545,6 +552,13 @@ BEGIN
    
    -- 1401/05/23 * عملیات مدیریت بدهی مشتریان
    IF @Attn_Ignr_Stat = '001' AND @Attn_Type NOT IN ('005')
+      AND NOT EXISTS (
+          SELECT *
+               FROM dbo.Exception_Operation
+              WHERE FIGH_FILE_NO = @Figh_File_No
+                AND EXCP_TYPE = '002' -- Debt
+                AND STAT = '002'
+      )
    BEGIN
       DECLARE @DebtDnrm BIGINT 
 	          ,@DebtClngStat VARCHAR(3)
@@ -575,7 +589,7 @@ BEGIN
                -- اگر تعداد جلسات مجاز در مورد افراد بدهکار گذشته باشد اجازه ثبت اطلاعات را ندارد
                IF (SELECT COUNT(a.CODE) FROM dbo.Attendance a WHERE a.FIGH_FILE_NO = @Figh_File_No AND a.MBSP_RWNO_DNRM = @Mbsp_Rwno AND a.MBSP_RECT_CODE_DNRM = '004' AND a.ATTN_STAT = '002' AND a.EXIT_TIME IS NOT NULL) >= @PermEntrDebtServNumb
                BEGIN
-                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+                  SET @MessageShow = N'0012: ' + N'هشدار!!!' + CHAR(10) + 
                       @SexDesc + N' ' + @NameDnrm + CHAR(10) + 
                       N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
                       N' میزان بدهی شما بیش از حد مجاز [ ورود جلسات ] می باشد.' + CHAR(10) +
@@ -584,10 +598,10 @@ BEGIN
                END 
             END
             -- میزان مبلغ بدهی بر اساس تاریخ مهلت پرداخت محاسبه شود
-            ELSE IF @DebtChckStat = '001' AND -- اگر از تاریخ پرداخت بدهی گذشته باشد
-                    EXISTS(SELECT * FROM dbo.Member_Ship ms WHERE ms.FIGH_FILE_NO = @Figh_File_No AND ms.RWNO = @Mbsp_Rwno AND ms.RECT_CODE = '004' AND CAST(DATEADD(DAY, @ExprDebtDay, ms.STRT_DATE) AS DATE) < CAST(GETDATE() AS DATE))
+            IF --@DebtChckStat = '001' AND -- اگر از تاریخ پرداخت بدهی گذشته باشد
+               EXISTS(SELECT * FROM dbo.Member_Ship ms WHERE ms.FIGH_FILE_NO = @Figh_File_No AND ms.RWNO = @Mbsp_Rwno AND ms.RECT_CODE = '004' AND CAST(DATEADD(DAY, @ExprDebtDay, ms.STRT_DATE) AS DATE) < CAST(GETDATE() AS DATE))
             BEGIN
-                  SET @MessageShow = N'هشدار!!!' + CHAR(10) + 
+                  SET @MessageShow = N'0013: ' + N'هشدار!!!' + CHAR(10) + 
                       @SexDesc + N' ' + @NameDnrm + CHAR(10) +
                       N'تاریخ شروع ' + @StrtDateStr + N' تاریخ پایان ' + @EndDate + CHAR(10) +
                       N' مهلت پرداخت بدهی ما به پایان رسیده است.' + CHAR(10) +
@@ -813,7 +827,7 @@ BEGIN
             AND fp.MTOD_CODE = cb.MTOD_CODE
       )
       BEGIN
-         RAISERROR ( N'تعداد ورود اعضا مهمان شما به اتمام رسیده است', 
+         RAISERROR ( N'0014: تعداد ورود اعضا مهمان شما به اتمام رسیده است', 
                      16, -- Severity.
                      1 -- State.
                    );
@@ -840,10 +854,26 @@ BEGIN
          SET @ExitTime = NULL;
       
       SET @AttnCode = dbo.GNRT_NVID_U();
-         
-      INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE, SEND_MESG_STAT)
-      VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type, '001');
       
+      -- 1403/12/03 * اگر ورود و خروج های خنثی برای مشتری داشته باشیم و فعال باشد نباید گزینه های ورود و خروج بعدی از جلسه مشتری کسر شود
+      IF  @LimtCalcAttnIndy = '002'
+      AND EXISTS (
+           SELECT * 
+             FROM dbo.Attendance a 
+            WHERE a.FIGH_FILE_NO = @Figh_File_No 
+              AND a.ATTN_DATE = @Attn_Date 
+              --AND a.EXIT_TIME IS NOT NULL
+              AND a.ATTN_STAT = '002'
+              AND a.ATTN_TYPE NOT IN ('006', '008', '009'))
+      BEGIN
+         INSERT INTO dbo.Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE, SEND_MESG_STAT)
+         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, '009', /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type, '001');
+      END;
+      ELSE          
+      BEGIN 
+         INSERT INTO dbo.Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_SYS_TYPE, SEND_MESG_STAT)
+         VALUES (@Club_Code, @Figh_File_No, @Attn_Date, /*dbo.GNRT_NVID_U()*/ @AttnCode, @ExitTime, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', @Attn_Sys_Type, '001');
+      END 
       -- 1401/03/30 * اگر رکورد حضوری درون سیستم ثبت شده باشد
       IF @Attn_TYPE = '001'
       BEGIN
@@ -930,7 +960,14 @@ BEGIN
       -- 1398/03/14 * اختصاص شماره کمد به مشتری
       -- البته اگر این گزینه کمد انلاین فعال باشه 
       -- 1396/01/09 * بدست آوردن کلاینت متصل به سرور
-	   IF EXISTS(SELECT * FROM dbo.Settings WHERE CLUB_CODE = @Club_Code AND DRES_AUTO = '002')
+	   IF EXISTS(SELECT * FROM dbo.Settings WHERE CLUB_CODE = @Club_Code AND DRES_AUTO = '002') 
+	      AND NOT EXISTS (
+	          SELECT *
+               FROM dbo.Exception_Operation
+              WHERE FIGH_FILE_NO = @Figh_File_No
+                AND EXCP_TYPE = '003' -- OnLine Lock Cabinet
+                AND STAT = '002'
+	      )
 	   BEGIN
 	      -- ابتدا بررسی میکنیم که چه کامیپوتری به کمد ها میخواد فرمان دهد
 	      SELECT   
@@ -1331,7 +1368,7 @@ BEGIN
          -- 1398/03/17 * بررسی اینکه ایا جریمه دیر کرد از مشتری گرفته شود یا خیر
          -- ********************** Not Implement
          
-         INSERT INTO Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC, ATTN_SYS_TYPE)
+         INSERT INTO dbo.Attendance (CLUB_CODE, FIGH_FILE_NO, ATTN_DATE, CODE, EXIT_TIME, COCH_FILE_NO, ATTN_TYPE, SESN_SNID_DNRM, MTOD_CODE_DNRM, CTGY_CODE_DNRM, MBSP_RWNO_DNRM, MBSP_RECT_CODE_DNRM, ATTN_DESC, ATTN_SYS_TYPE)
          VALUES (@Club_Code, @Figh_File_No, @Attn_Date, @TempAttnCode, /*DATEADD(MINUTE, @ClasTime, GETDATE())*/NULL, @CochFileNo, @Attn_TYPE, /*@SesnSnid*/NULL, /*@MtodCode*/NULL, /*@CtgyCode*/NULL, @Mbsp_Rwno, '004', N'کسر جلسه به دلیل تجاوز از ساعت حضور در باشگاه ' + ( SELECT CAST(DATEDIFF(MINUTE, ENTR_TIME, EXIT_TIME) AS VARCHAR(10)) FROM dbo.Attendance WHERE Code = @AttnCode), @Attn_Sys_Type );
          
          UPDATE dbo.Attendance

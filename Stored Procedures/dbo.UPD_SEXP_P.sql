@@ -33,7 +33,7 @@ BEGIN
              ,@TranMtodCode BIGINT
              ,@TranCtgyCode BIGINT
              ,@TranExpnCode BIGINT
-             ,@ExprDate DATE
+             ,@ExprDate DATETIME
              ,@MbspFighFileNo BIGINT
              ,@MbspRwno SMALLINT
              ,@MbspRectCode VARCHAR(3) = '004'
@@ -64,7 +64,7 @@ BEGIN
             ,@TranMtodCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranmtodcode)[1]', 'BIGINT')
             ,@TranCtgyCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranctgycode)[1]', 'BIGINT')
             ,@TranExpnCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@tranexpncode)[1]', 'BIGINT')
-            ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATE')
+            ,@ExprDate = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@exprdate)[1]', 'DATETIME')
             ,@MbspFighFileNo = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbspfighfileno)[1]', 'BIGINT')
             ,@MbspRwno = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprwno)[1]', 'SMALLINT')
             ,@MbspRectCode = @X.query('Request/Payment/Payment_Detail').value('(Payment_Detail/@mbsprectcode)[1]', 'VARCHAR(3)')

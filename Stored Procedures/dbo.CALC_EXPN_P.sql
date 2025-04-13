@@ -56,7 +56,8 @@ BEGIN
 	       ,@MinAttnStat  VARCHAR(3)
 	       ,@ExprPayDay   INT
 	       ,@ForeGivnAttnNumb INT
-	       ,@DyncPrctValu float;
+	       ,@DyncPrctValu FLOAT
+	       ,@PymtNoDebt VARCHAR(3);
 	
 	SELECT @FromPymtDate = @X.query('//Payment').value('(Payment/@fromdate)[1]', 'DATE')
 	      ,@ToPymtDate   = @X.query('//Payment').value('(Payment/@todate)[1]',   'DATE')
@@ -69,7 +70,8 @@ BEGIN
 	      ,@CetpCodeP    = @X.query('//Payment').value('(Payment/@cetpcode)[1]',   'VARCHAR(3)')
 	      ,@CxtpCodeP     = @X.query('//Payment').value('(Payment/@cxtpcode)[1]',   'VARCHAR(3)')
 	      ,@RqtpCodeP     = @X.query('//Payment').value('(Payment/@rqtpcode)[1]',   'VARCHAR(3)')
-	      ,@DyncPrctValu  = @X.query('//Payment').value('(Payment/@dyncprctvalu)[1]',   'FLOAT');	      
+	      ,@DyncPrctValu  = @X.query('//Payment').value('(Payment/@dyncprctvalu)[1]',   'FLOAT')
+	      ,@PymtNoDebt     = @X.query('//Payment').value('(Payment/@pymtnodebt)[1]',   'VARCHAR(3)');	      
    
    IF @FromPymtDate IN ('1900-01-01', '0001-01-01' ) BEGIN RAISERROR (N'برای فیلد "از تاریخ" اطلاعات وارد نشده' , 16, 1); END
    IF @ToPymtDate IN ('1900-01-01', '0001-01-01' ) BEGIN RAISERROR (N'برای فیلد "تا تاریخ" اطلاعات وارد نشده' , 16, 1); END
@@ -247,8 +249,12 @@ BEGIN
           Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
           Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
           Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-    WHERE /*(PYDT.PAY_STAT = @PymtStat) 
-      AND*/(RQRO.RECD_STAT = '002') 
+    WHERE (/* 1404/01/05 * صورتحساب های تسویه شده در محاسبه لحاظ شوند */ 
+                (@PymtNoDebt = '002' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) = 0 /* No Debt */) OR
+                (@PymtNoDebt = '001' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) != 0 /* Debt Amnt not zero*/) OR
+                (@PymtNoDebt = '003' /*All Item*/)
+          )
+      AND (RQRO.RECD_STAT = '002') 
       AND (FIGH.FGPB_TYPE_DNRM NOT IN (/*'003',*/'002', '004'))
       AND (
              ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -498,8 +504,12 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
-         AND*/ (RQRO.RECD_STAT = '002') 
+       WHERE (/* 1404/01/05 * صورتحساب های تسویه شده در محاسبه لحاظ شوند */ 
+                (@PymtNoDebt = '002' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) = 0 /* No Debt */) OR
+                (@PymtNoDebt = '001' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) != 0 /* Debt Amnt not zero*/) OR
+                (@PymtNoDebt = '003' /*All Item*/)
+             )
+         AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -807,8 +817,12 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
-         AND*/ (RQRO.RECD_STAT = '002') 
+       WHERE (/* 1404/01/05 * صورتحساب های تسویه شده در محاسبه لحاظ شوند */ 
+                (@PymtNoDebt = '002' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) = 0 /* No Debt */) OR
+                (@PymtNoDebt = '001' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) != 0 /* Debt Amnt not zero*/) OR
+                (@PymtNoDebt = '003' /*All Item*/)
+             )
+         AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ تاییدیه تسویه حساب
@@ -1133,8 +1147,12 @@ BEGIN
              Expense_Type EXTP ON EXPN.EXTP_CODE = EXTP.CODE INNER JOIN
              Expense_Item EPIT ON EXTP.EPIT_CODE = EPIT.CODE INNER JOIN
              Request_Requester RQRQ ON EXTP.RQRQ_CODE = RQRQ.CODE 
-       WHERE /*(PYDT.PAY_STAT = @PymtStat) 
-         AND*/ (RQRO.RECD_STAT = '002') 
+       WHERE (/* 1404/01/05 * صورتحساب های تسویه شده در محاسبه لحاظ شوند */ 
+                (@PymtNoDebt = '002' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) = 0 /* No Debt */) OR
+                (@PymtNoDebt = '001' AND (PYMT.SUM_EXPN_PRIC - (PYMT.SUM_RCPT_EXPN_PRIC + PYMT.SUM_PYMT_DSCN_DNRM)) != 0 /* Debt Amnt not zero*/) OR
+                (@PymtNoDebt = '003' /*All Item*/)
+             )
+         AND (RQRO.RECD_STAT = '002') 
          AND (FIGH.FGPB_TYPE_DNRM NOT IN ('003','002', '004'))
          AND (
                 ( @EfctDateType = '007' -- تاریخ ویرایش رکورد

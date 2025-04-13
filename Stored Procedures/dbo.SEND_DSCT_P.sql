@@ -34,7 +34,8 @@ BEGIN
               @ParmSendType VARCHAR(3);
       
       -- 1401/11/15
-      SELECT @ParmSendType = ISNULL(PARM_SEND_TYPE, '003')
+      SELECT @ParmSendType = ISNULL(PARM_SEND_TYPE, '003'),
+             @Tmid = TEMP_TMID
         FROM dbo.Advertising_Parameter
        WHERE CODE = @AdvpCode;
 
