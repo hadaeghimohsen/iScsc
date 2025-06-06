@@ -13,6 +13,8 @@ CREATE TABLE [dbo].[Dresser]
 [VIP_STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [FROM_HEIT] [real] NULL,
 [TO_HEIT] [real] NULL,
+[SEND_SGNL_CONT] [int] NULL,
+[INTR_SGNL_LONG] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -67,7 +69,8 @@ BEGIN
       UPDATE 
          SET MDFY_BY   = UPPER(SUSER_NAME())
             ,MDFY_DATE = GETDATE()
-            ,[DESC] = CASE WHEN LEN(S.[DESC]) = 0 THEN N'No ' + CAST(S.DRES_NUMB AS VARCHAR(10)) ELSE S.[DESC] END;
+            ,[DESC] = CASE WHEN LEN(S.[DESC]) = 0 THEN N'No ' + CAST(S.DRES_NUMB AS VARCHAR(10)) ELSE S.[DESC] END
+            ,SEND_SGNL_CONT = ISNULL(s.SEND_SGNL_CONT, 1);
 END
 ;
 GO
@@ -86,6 +89,8 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'ترتیب باز شدن کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'ORDR'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'وضعیت کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'REC_STAT'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'تعداد دفعات ارسال پیام به سانترال برای باز کردن کمد', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'SEND_SGNL_CONT'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'Min Height', 'SCHEMA', N'dbo', 'TABLE', N'Dresser', 'COLUMN', N'TO_HEIT'
 GO

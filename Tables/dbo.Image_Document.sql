@@ -62,13 +62,14 @@ BEGIN
 
    -- Insert statements for trigger here
    MERGE dbo.Image_Document T
-   USING (SELECT RCDC_RCID, RWNO FROM INSERTED) S
+   USING (SELECT RCDC_RCID, RWNO, IMAG FROM INSERTED) S
    ON (T.RCDC_RCID = S.RCDC_RCID AND
        T.RWNO      = S.RWNO)
    WHEN MATCHED THEN
       UPDATE
          SET MDFY_BY   = UPPER(SUSER_NAME())
-            ,MDFY_DATE = GETDATE();            
+            ,MDFY_DATE = GETDATE()
+            ,IMAG = CASE S.IMAG WHEN '' THEN NULL ELSE S.IMAG END;
 END
 GO
 ALTER TABLE [dbo].[Image_Document] ADD CONSTRAINT [IMAG_PK] PRIMARY KEY CLUSTERED  ([RCDC_RCID], [RWNO]) ON [BLOB]

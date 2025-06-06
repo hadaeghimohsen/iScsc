@@ -2,16 +2,20 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 CREATE VIEW [dbo].[V#Pos_Device]
 AS
-SELECT  p.PSID, b.DOMN_DESC AS BANK_NAME, p.BANK_TYPE, p.BNKB_CODE, p.BNKA_ACNT_NUMB, p.SHBA_CODE, p.POS_DESC, p.POS_DFLT, p.GTWY_MAC_ADRS
-FROM     iProject.Global.Pos_Device AS p INNER JOIN
-         iProject.DataGuard.D$BANK AS b ON p.BANK_TYPE = b.VALU INNER JOIN
-         iProject.Global.User_Access_Pos AS up ON p.PSID = up.POSD_PSID AND up.STAT = '002' INNER JOIN
-         iProject.DataGuard.[User] AS u ON u.ID = up.USER_ID AND u.IsVisible = 1 AND UPPER(u.USERDB) = UPPER(SUSER_NAME())         
-WHERE  (p.POS_STAT = '002')
-
+SELECT     p.PSID, b.DOMN_DESC AS BANK_NAME, p.BANK_TYPE, p.BNKB_CODE, p.BNKA_ACNT_NUMB, p.SHBA_CODE, p.POS_DESC, p.POS_DFLT, p.GTWY_MAC_ADRS, p.IP_ADRS
+FROM         iProject.Global.Pos_Device AS p INNER JOIN
+                      iProject.DataGuard.D$BANK AS b ON p.BANK_TYPE = b.VALU INNER JOIN
+                      iProject.Global.User_Access_Pos AS up ON p.PSID = up.POSD_PSID AND up.STAT = '002' INNER JOIN
+                      iProject.DataGuard.[User] AS u ON u.ID = up.USER_ID AND u.IsVisible = 1 AND UPPER(u.USERDB) = UPPER(SUSER_NAME())
+WHERE     (p.POS_STAT = '002')
+GO
+EXEC sp_addextendedproperty N'MS_DiagramPane2', N'r = 1350
+      End
+   End
+End
+', 'SCHEMA', N'dbo', 'VIEW', N'V#Pos_Device', NULL, NULL
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 
@@ -92,7 +96,7 @@ Begin DesignProperties =
                Right = 257
             End
             DisplayFlags = 280
-            TopColumn = 10
+            TopColumn = 0
          End
          Begin Table = "b"
             Begin Extent = 
@@ -104,12 +108,45 @@ Begin DesignProperties =
             DisplayFlags = 280
             TopColumn = 0
          End
+         Begin Table = "up"
+            Begin Extent = 
+               Top = 102
+               Left = 295
+               Bottom = 222
+               Right = 455
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "u"
+            Begin Extent = 
+               Top = 312
+               Left = 38
+               Bottom = 432
+               Right = 252
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
       End
    End
    Begin SQLPane = 
    End
    Begin DataPane = 
       Begin ParameterDefaults = ""
+      End
+      Begin ColumnWidths = 11
+         Width = 284
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
+         Width = 1500
       End
    End
    Begin CriteriaPane = 
@@ -126,13 +163,13 @@ Begin DesignProperties =
          Filter = 1350
          Or = 1350
          Or = 1350
-         Or = 1350
-      End
-   End
-End
-', 'SCHEMA', N'dbo', 'VIEW', N'V#Pos_Device', NULL, NULL
+         O', 'SCHEMA', N'dbo', 'VIEW', N'V#Pos_Device', NULL, NULL
 GO
 DECLARE @xp int
 SELECT @xp=1
+
+GO
+DECLARE @xp int
+SELECT @xp=2
 EXEC sp_addextendedproperty N'MS_DiagramPaneCount', @xp, 'SCHEMA', N'dbo', 'VIEW', N'V#Pos_Device', NULL, NULL
 GO
