@@ -192,6 +192,18 @@ EXEC sp_addextendedproperty N'MS_Description', N'آیا جلسات مشترکی�
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'نمایش صحفه خطای حضور و غیاب', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SHOW_EROR_LOG'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت شروع بلیط فروشی', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND1_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت شروع سانس', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND2_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت پایان بلیط فروشی', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND3_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت نزدیک پایان سانس', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND4_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت استراحت', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND5_PATH'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'صدای ساعت پایان سانس', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND6_PATH'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'مسیر آدرس فایل تولد', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND7_PATH'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'آدرس بازگویی مدت زمان استفاده از سالن', 'SCHEMA', N'dbo', 'TABLE', N'Settings', 'COLUMN', N'SND8_PATH'

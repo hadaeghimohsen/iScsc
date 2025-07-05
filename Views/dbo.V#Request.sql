@@ -8,7 +8,7 @@ SELECT     r.REGN_PRVN_CNTY_CODE, r.REGN_PRVN_CODE, r.REGN_CODE, r.RQST_RQID, r.
                       r.LETT_DATE, r.LETT_OWNR, r.SSTT_MSTT_SUB_SYS, r.SSTT_MSTT_CODE, r.SSTT_CODE, r.YEAR, r.CYCL, r.SEND_EXPN, r.MDUL_NAME, r.SECT_NAME, r.RQST_NUMB, r.RQST_DESC, 
                       r.REF_SUB_SYS, r.REF_CODE, r.AMNT_TYPE_DNRM, r.CRET_BY, r.CRET_DATE, r.MDFY_BY, r.MDFY_DATE, rr.FIGH_FILE_NO, p.PYMT_NO, p.PYMT_PYMT_NO, p.SUM_EXPN_PRIC, 
                       p.SUM_EXPN_EXTR_PRCT, p.SUM_REMN_PRIC, p.SUM_RCPT_EXPN_PRIC, p.SUM_RCPT_EXPN_EXTR_PRCT, p.SUM_RCPT_REMN_PRIC, p.SUM_PYMT_DSCN_DNRM, p.CASH_BY, 
-                      p.CASH_DATE, p.AMNT_UNIT_TYPE_DNRM, p.PROF_AMNT_DNRM, p.DEDU_AMNT_DNRM, dbo.D$ATYP.DOMN_DESC AS AMNT_TYPE_DESC
+                      p.CASH_DATE, p.AMNT_UNIT_TYPE_DNRM, p.PROF_AMNT_DNRM, p.DEDU_AMNT_DNRM, dbo.D$ATYP.DOMN_DESC AS AMNT_TYPE_DESC, r.INVC_DATE, r.INVC_NUMB
 FROM         dbo.D$ATYP INNER JOIN
                       dbo.Payment AS p ON dbo.D$ATYP.VALU = p.AMNT_UNIT_TYPE_DNRM RIGHT OUTER JOIN
                       dbo.Request AS r INNER JOIN
@@ -114,7 +114,7 @@ Begin DesignProperties =
                Right = 463
             End
             DisplayFlags = 280
-            TopColumn = 0
+            TopColumn = 29
          End
          Begin Table = "rr"
             Begin Extent = 
@@ -160,9 +160,9 @@ Begin DesignProperties =
          Width = 1500
          Width = 1500
          Width = 1500
-         Width', 'SCHEMA', N'dbo', 'VIEW', N'V#Request', NULL, NULL
+         Widt', 'SCHEMA', N'dbo', 'VIEW', N'V#Request', NULL, NULL
 GO
-EXEC sp_addextendedproperty N'MS_DiagramPane2', N' = 1500
+EXEC sp_addextendedproperty N'MS_DiagramPane2', N'h = 1500
          Width = 1500
          Width = 1500
          Width = 1500
