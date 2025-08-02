@@ -55,13 +55,14 @@ BEGIN
 	          ,@FileNo   BIGINT
 	          ,@PrvnCode VARCHAR(3)
 	          ,@RegnCode VARCHAR(3)
-	          ,@xTemp xml;   	
+	          ,@xTemp XML;
+
 	          
 	   SELECT @Rqid     = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@OrgnRqid = @X.query('//Request').value('(Request/@rqid)[1]'    , 'BIGINT')
 	         ,@PrvnCode = @X.query('//Request').value('(Request/@prvncode)[1]', 'VARCHAR(3)')
 	         ,@RegnCode = @X.query('//Request').value('(Request/@regncode)[1]', 'VARCHAR(3)');
-
+      
       -- 1400/01/21 * اگر سیستم نیاز به ثبت کارمزد از جانب سیستم داشته باشد
       SET @xTemp = (
           SELECT @Rqid AS '@rqid'
@@ -240,6 +241,11 @@ BEGIN
          AND P.RQRO_RWNO = 1
          AND P.RECT_CODE = '001';
       
+      -- 1404/04/22 * چک کردن کد شناسایی که تکراری نباشه
+      IF LEN(@FngrPrnt) <> 0 AND EXISTS(SELECT * FROM dbo.Fighter WHERE FNGR_PRNT_DNRM = @FngrPrnt AND FILE_NO <> @FileNo )
+      BEGIN
+         RAISERROR (N'برای فیلد کد اثر انگشت قبلا توسط هنرجوی دیگری رزرو شده است. لطفا اصلاح کنید' , 16, 1);
+      END
             
       IF NOT EXISTS(
          SELECT * 

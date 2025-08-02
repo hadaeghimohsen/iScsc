@@ -69,13 +69,14 @@ BEGIN
               @isFromSurvey BIT,
               @FromSurvey DATE,
               @isRSur BIT,
-              @RSurCode BIGINT,
-              @isOprtRun BIT,
-              @isSendMsgDate BIT,
-              @SendMsgDate DATE,
-              @isSendTestPhon BIT,
-              @SendTestPhon VARCHAR(10),
-              @isSendSmsBulk BIT;
+              @RSurCode BIGINT;
+              
+              --@isOprtRun BIT,
+              --@isSendMsgDate BIT,
+              --@SendMsgDate DATE,
+              --@isSendTestPhon BIT,
+              --@SendTestPhon VARCHAR(10),
+              --@isSendSmsBulk BIT;
       
       /*
       <Advertising_Parameter code="">
@@ -177,11 +178,14 @@ BEGIN
              
              @isRSur = @x.query('//Call_Survey').value('(Call_Survey/@issurvey)[1]', 'BIT'),
              @isFromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@isfromsurvey)[1]', 'BIT'),
-             @FromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@fromsurvey)[1]', 'DATE'),
+             @FromSurvey = @x.query('//Call_Survey').value('(Call_Survey/@fromsurvey)[1]', 'DATE');
              
-             @isOprtRun = @x.query('//OperationRun').value('(OperationRun/@isoprtrun)[1]', 'BIT'),
-             @isSendMsgDate = @x.query('//OperationRun').value('(OperationRun/@issendmsgdate)[1]', 'BIT');
-      
+             --@isOprtRun = @x.query('//OperationRun').value('(OperationRun/@isoprtrun)[1]', 'BIT'),
+             --@isSendMsgDate = @x.query('//OperationRun').value('(OperationRun/@issendmsgdate)[1]', 'BIT'),
+             --@SendMsgDate = @x.query('//OperationRun').value('(OperationRun/@sendmsgdate)[1]', 'DATE'),
+             --@isSendTestPhon = @x.query('//OperationRun').value('(OperationRun/@issendtestphon)[1]', 'BIT'),
+             --@SendTestPhon = @x.query('//OperationRun').value('(OperationRun/@sendtestphon)[1]', 'VARCHAR(10)'),
+             --@isSendSmsBulk = @x.query('//OperationRun').value('(OperationRun/@issendsmsbulk)[1]', 'BIT');      
       -- Second Step List Variable
       --DECLARE C$Ctgy CURSOR FOR
       --   SELECT r.query('.').value('(Category/@code)[1]', 'BIGINT')

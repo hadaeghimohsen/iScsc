@@ -17,12 +17,26 @@ BEGIN
 	   DECLARE @AdvpCode BIGINT,
 	           @Tmid BIGINT,
 	           @SendSmsStat BIT,
-	           @SendAppStat BIT;
+	           @SendAppStat BIT,
+	           
+	           @isOprtRun BIT,
+              @isSendMsgDate BIT,
+              @SendMsgDate DATE,
+              @isSendTestPhon BIT,
+              @SendTestPhon VARCHAR(10),
+              @isSendSmsBulk BIT;
 	   
 	   SELECT @AdvpCode = @x.query('//Advertising_Parameter').value('(Advertising_Parameter/@code)[1]' ,'BIGINT'),
 	          @Tmid = @x.query('//Advertising_Parameter').value('(Advertising_Parameter/@tmid)[1]' ,'BIGINT'),
 	          @SendSmsStat = @x.query('//Advertising_Parameter').value('(Advertising_Parameter/@sendsmsstat)[1]' ,'BIT'),
-	          @SendAppStat = @x.query('//Advertising_Parameter').value('(Advertising_Parameter/@sendappstat)[1]' ,'BIT');
+	          @SendAppStat = @x.query('//Advertising_Parameter').value('(Advertising_Parameter/@sendappstat)[1]' ,'BIT'),
+	          
+	          @isOprtRun = @x.query('//OperationRun').value('(OperationRun/@isoprtrun)[1]', 'BIT'),
+             @isSendMsgDate = @x.query('//OperationRun').value('(OperationRun/@issendmsgdate)[1]', 'BIT'),
+             @SendMsgDate = @x.query('//OperationRun').value('(OperationRun/@sendmsgdate)[1]', 'DATE'),
+             @isSendTestPhon = @x.query('//OperationRun').value('(OperationRun/@issendtestphon)[1]', 'BIT'),
+             @SendTestPhon = @x.query('//OperationRun').value('(OperationRun/@sendtestphon)[1]', 'VARCHAR(10)'),
+             @isSendSmsBulk = @x.query('//OperationRun').value('(OperationRun/@issendsmsbulk)[1]', 'BIT');
 	   
       -- Local Var
       DECLARE @Code BIGINT,
