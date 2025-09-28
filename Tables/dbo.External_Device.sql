@@ -18,6 +18,8 @@ CREATE TABLE [dbo].[External_Device]
 [EXPN_CODE] [bigint] NULL,
 [CMNT] [nvarchar] (500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CARD_READ_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SEND_CMND_TYPE] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[AUTO_EXIT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -89,6 +91,8 @@ EXEC sp_addextendedproperty N'MS_Description', N'نوع وضعیت برخورد 
 عملیات حضور و غیاب انجام شود یا 
 مبلغ بابت هزینه خدمات از سپرده کسر گردد', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'ACTN_TYPE'
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'خروج اتوماتیک، مدرسه احسان برای اینکه برای ریدرهای ورود به استخر بخواهند تعداد جلسات با یک تماس کم شود', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'AUTO_EXIT'
+GO
 EXEC sp_addextendedproperty N'MS_Description', N'Card Coding (Mifare, RO)', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'CARD_READ_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'دوره خواندن اطلاعات
@@ -116,6 +120,12 @@ GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت دریافت داده از گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_RECV'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'شماره پورت ارسال داده به گیت', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'PORT_SEND'
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'نوع دستور ارسال به دستکاه مثلا میخوایم به دستگاه فقط بگوییم فقط باز شود
+ولی برای خروج هیچ فرمانی دریافت نکند
+منظور این هست که ابا فرمان باز و بسته شدن هر دو اجرا شود یا فقط بگویم باز فرمان داده شود یا خروج
+
+این گزینه برای باشگاه اریا راد ساخته میشود به درخواست ایمان سخاوتی', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'SEND_CMND_TYPE'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'آدرس سرور 
 برای راه اندازی برای آن سیستمی که به عنوان سرور شناسایی می شود', 'SCHEMA', N'dbo', 'TABLE', N'External_Device', 'COLUMN', N'SERV_IP_ADRS'

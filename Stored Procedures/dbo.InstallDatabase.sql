@@ -14,6 +14,7 @@ BEGIN
    IF @Emptydb = '002'
    BEGIN
       -- Delete Record From Database
+      DELETE dbo.Log_Operation;
       DELETE dbo.External_Device;
       DELETE dbo.Aggregation_Operation_Detail;
       DELETE dbo.Aggregation_Operation;  

@@ -492,7 +492,17 @@ BEGIN
          WHEN MATCHED THEN
             UPDATE
                SET RQST_RQID = NULL
-                  ,FIGH_STAT = '002';  
+                  ,FIGH_STAT = '002';
+         
+         -- 1404/06/31 * پایان دادن به ماموریت کارت زماندار
+         UPDATE dbo.Card_Link_Operation
+            SET VALD_TYPE = '001'
+          WHERE VALD_TYPE = '002' 
+            AND EXISTS (
+                SELECT *
+                  FROM Inserted i
+                 WHERE i.RQID = FINE_RQST_RQID                  
+          );
       END -- IF @RQST_STAT IN ('002', '003')
       
       GOTO L$NextRow;

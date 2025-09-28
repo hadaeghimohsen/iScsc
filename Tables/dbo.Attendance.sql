@@ -297,7 +297,81 @@ BEGIN
          );
          EXEC dbo.FINL_RQST_P @X = @xTemp -- xml
       END 
-   END 
+   END
+   
+   -- 1404/05/28 * اگر مشتری ورودی زده باشد و بخواهیم چک کنیم که از چه دستگاهی ورودی خورده و ایا باید برای حضوری اول حضوری بعدی هم کم شود یا خیر
+   -- این نسخه برای استخر احسان باید ساخته بهش
+   DECLARE @EddrCode BIGINT,
+           @NumbOfAttn INT,
+           @FileNo BIGINT,
+           @AttnCode BIGINT,
+           @LogText NVARCHAR(500),
+           @AutoExit VARCHAR(3);
+
+   SELECT TOP 1 
+          @EddrCode = ed.CODE,
+          @AttnCode = i.CODE
+     FROM dbo.Fighter f, Inserted i, dbo.External_Device_DataRead ed, 
+          dbo.External_Device ex
+    WHERE f.FILE_NO = i.FIGH_FILE_NO
+      AND f.FNGR_PRNT_DNRM = ed.FNGR_PRNT
+      AND ed.STAT = '002'
+      AND ed.EDEV_CODE = ex.CODE
+      AND ex.AUTO_EXIT = '002';
+     
+   IF @EddrCode IS NOT NULL
+   BEGIN
+      UPDATE dbo.Attendance
+         SET EXIT_TIME = GETDATE()
+       WHERE CODE = @AttnCode;
+   END;
+   
+   SET @EddrCode = NULL;
+           
+   SELECT TOP 1 
+          @EddrCode = ed.CODE,
+          @NumbOfAttn = em.NUMB_OF_ATTN,
+          @MbspRwno = i.MBSP_RWNO_DNRM, 
+          @FileNo = f.FILE_NO,
+          @AttnCode = i.CODE,
+          --@AutoExit = ISNULL(ex.AUTO_EXIT, '001'),
+          @LogText = 
+          N'بابت دریافت اطلاعات حضوری از دستگاه ' + ISNULL(ex.CMNT, ex.DEV_NAME) + 
+          N' برای گروه ' + m.MTOD_DESC + 
+          N' به تعداد ' + CAST(em.NUMB_OF_ATTN AS VARCHAR(3)) + N' جلسه کسر شد' 
+     FROM dbo.Fighter f, Inserted i, dbo.External_Device_DataRead ed, 
+          dbo.External_Device_Link_Method em, dbo.External_Device ex,
+          dbo.Method m
+    WHERE f.FILE_NO = i.FIGH_FILE_NO
+      AND f.FNGR_PRNT_DNRM = ed.FNGR_PRNT
+      AND ed.STAT = '002'
+      AND ed.EDEV_CODE = ex.CODE
+      AND em.EDEV_CODE = ed.EDEV_CODE
+      AND em.MTOD_CODE = m.CODE
+      AND ISNULL(em.NUMB_OF_ATTN, 1) > 1
+      AND em.STAT = '002';
+   
+   IF @EddrCode IS NOT NULL
+   BEGIN
+      DELETE dbo.External_Device_DataRead WHERE STAT = '001' AND CAST(READ_DATE AS DATE) < CAST(GETDATE() AS DATE);
+      UPDATE dbo.External_Device_DataRead
+         SET STAT = '001'
+       WHERE CODE = @EddrCode;
+      
+      UPDATE dbo.Member_Ship
+         SET SUM_ATTN_MONT_DNRM += (@NumbOfAttn - 1)
+       WHERE FIGH_FILE_NO = @FileNo
+         AND RWNO = @MbspRwno
+         AND RECT_CODE = '004';
+      
+      UPDATE dbo.Attendance
+         SET SUM_ATTN_MONT_DNRM += (@NumbOfAttn - 1)
+             --EXIT_TIME = CASE @AutoExit WHEN '002' THEN GETDATE() ELSE EXIT_TIME END 
+       WHERE CODE = @AttnCode;
+      
+      INSERT INTO dbo.Log_Operation ( FIGH_FILE_NO ,LOID ,LOG_TYPE ,LOG_TEXT ,MBSP_RWNO ,MBSP_RECT_CODE ,ATTN_CODE)
+      VALUES  (@FileNo, dbo.GNRT_NVID_U(), '011', @LogText, @MbspRwno, '004', @AttnCode);
+   END;
 END;
 GO
 SET QUOTED_IDENTIFIER ON

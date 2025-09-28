@@ -4,6 +4,7 @@ CREATE TABLE [dbo].[External_Device_Link_Method]
 [MTOD_CODE] [bigint] NULL,
 [CODE] [bigint] NOT NULL,
 [STAT] [varchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NUMB_OF_ATTN] [int] NULL,
 [CRET_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CRET_DATE] [datetime] NULL,
 [MDFY_BY] [varchar] (250) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -73,7 +74,8 @@ BEGIN
    WHEN MATCHED THEN 
       UPDATE SET
          T.MDFY_BY = UPPER(SUSER_NAME()),
-         T.MDFY_DATE = GETDATE();
+         T.MDFY_DATE = GETDATE(),
+         T.NUMB_OF_ATTN = ISNULL(s.NUMB_OF_ATTN, 1);
 END
 GO
 ALTER TABLE [dbo].[External_Device_Link_Method] ADD CONSTRAINT [PK_EDLM] PRIMARY KEY CLUSTERED  ([CODE]) ON [PRIMARY]
@@ -81,4 +83,6 @@ GO
 ALTER TABLE [dbo].[External_Device_Link_Method] ADD CONSTRAINT [FK_EDLM_EDEV] FOREIGN KEY ([EDEV_CODE]) REFERENCES [dbo].[External_Device] ([CODE]) ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[External_Device_Link_Method] ADD CONSTRAINT [FK_EDLM_MTOD] FOREIGN KEY ([MTOD_CODE]) REFERENCES [dbo].[Method] ([CODE]) ON DELETE CASCADE
+GO
+EXEC sp_addextendedproperty N'MS_Description', N'با استفاده کردن از این گزینه میخواهیم مشخص کنیم که اگر حضوری از این سمت دستگاه زده شد چند جلسه از مشتری کسر شود', 'SCHEMA', N'dbo', 'TABLE', N'External_Device_Link_Method', 'COLUMN', N'NUMB_OF_ATTN'
 GO
